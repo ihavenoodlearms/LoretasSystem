@@ -14,6 +14,7 @@ namespace InventoryOrderSystem
         {
             InitializeComponent();
             dbManager = new DatabaseManager();
+            this.lnkForgotPassword.LinkClicked += LnkForgotPassword_LinkClicked;
         }
 
         private void btnLogin_Click(object sender, EventArgs e)
@@ -34,6 +35,11 @@ namespace InventoryOrderSystem
             {
                 MessageBox.Show("Invalid username or password. Please try again.");
             }
+        }
+        private void LnkForgotPassword_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            // Implement password recovery logic here
+            MessageBox.Show("Password recovery feature not implemented yet.");
         }
     }
 }
