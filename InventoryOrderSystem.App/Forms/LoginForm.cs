@@ -1,8 +1,8 @@
-﻿using InventoryOrderSystem.App.Forms;
+﻿using System;
+using System.Windows.Forms;
+using System.Data.SQLite;
 using InventoryOrderSystem.Models;
 using InventoryOrderSystem.Services;
-using System;
-using System.Windows.Forms;
 
 namespace InventoryOrderSystem
 {
@@ -14,32 +14,42 @@ namespace InventoryOrderSystem
         {
             InitializeComponent();
             dbManager = new DatabaseManager();
-            this.lnkForgotPassword.LinkClicked += LnkForgotPassword_LinkClicked;
         }
 
         private void btnLogin_Click(object sender, EventArgs e)
         {
-            string username = txtUsername.Text;
+            string username = txtUsername.Text.Trim();
             string password = txtPassword.Text;
 
-            User user = dbManager.AuthenticateUser(username, password);
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            {
+                MessageBox.Show("Please enter both username and password.", "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
-            if (user != null)
+            try
             {
-                MessageBox.Show("Login successful!");
-                this.Hide();
-                Forms.DashboardForm dashboardForm = new Forms.DashboardForm(user);
-                dashboardForm.Show();
+                User user = dbManager.AuthenticateUser(username, password);
+                if (user != null)
+                {
+                    MessageBox.Show("Login successful!");
+                    this.Hide();
+                    Forms.DashboardForm dashboardForm = new Forms.DashboardForm(user);
+                    dashboardForm.Show();
+                }
+                else
+                {
+                    MessageBox.Show("Invalid username or password. Please try again.", "Login Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
-            else
+            catch (SQLiteException sqlEx)
             {
-                MessageBox.Show("Invalid username or password. Please try again.");
+                MessageBox.Show($"Database error: {sqlEx.Message}\nPlease contact your system administrator.", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-        private void LnkForgotPassword_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            // Implement password recovery logic here
-            MessageBox.Show("Password recovery feature not implemented yet.");
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}\nPlease try again or contact support.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

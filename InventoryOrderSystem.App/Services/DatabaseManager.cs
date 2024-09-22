@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Data.SqlClient;
+using System.Data.SQLite;
+using System.IO;
 using InventoryOrderSystem.Models;
 using InventoryOrderSystem.Utils;
 
@@ -16,17 +17,95 @@ namespace InventoryOrderSystem.Services
             connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
         }
 
+        public void InitializeDatabase()
+        {
+            string dbPath = GetDatabasePath();
+            if (!File.Exists(dbPath))
+            {
+                SQLiteConnection.CreateFile(dbPath);
+            }
+
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(connection))
+                {
+                    // Create Users table
+                    command.CommandText = @"
+                        CREATE TABLE IF NOT EXISTS Users (
+                            UserId INTEGER PRIMARY KEY AUTOINCREMENT,
+                            Username TEXT NOT NULL UNIQUE,
+                            PasswordHash TEXT NOT NULL,
+                            IsSuperAdmin INTEGER NOT NULL
+                        )";
+                    command.ExecuteNonQuery();
+
+                    // Create InventoryItems table
+                    command.CommandText = @"
+                        CREATE TABLE IF NOT EXISTS InventoryItems (
+                            ItemId INTEGER PRIMARY KEY AUTOINCREMENT,
+                            Name TEXT NOT NULL,
+                            Quantity INTEGER NOT NULL,
+                            Price REAL NOT NULL
+                        )";
+                    command.ExecuteNonQuery();
+
+                    // Create Orders table
+                    command.CommandText = @"
+                        CREATE TABLE IF NOT EXISTS Orders (
+                            OrderId INTEGER PRIMARY KEY AUTOINCREMENT,
+                            UserId INTEGER NOT NULL,
+                            OrderDate TEXT NOT NULL,
+                            TotalAmount REAL NOT NULL,
+                            PaymentMethod TEXT NOT NULL,
+                            FOREIGN KEY(UserId) REFERENCES Users(UserId)
+                        )";
+                    command.ExecuteNonQuery();
+                }
+            }
+
+            // Create admin user
+            CreateAdminUser("admin", "password123");
+        }
+
+        public void CreateAdminUser(string username, string password)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(connection))
+                {
+                    // Check if admin user already exists
+                    command.CommandText = "SELECT COUNT(*) FROM Users WHERE Username = @Username";
+                    command.Parameters.AddWithValue("@Username", username);
+                    int userCount = Convert.ToInt32(command.ExecuteScalar());
+
+                    if (userCount == 0)
+                    {
+                        // Create admin user
+                        command.CommandText = @"
+                            INSERT INTO Users (Username, PasswordHash, IsSuperAdmin) 
+                            VALUES (@Username, @PasswordHash, @IsSuperAdmin)";
+                        command.Parameters.AddWithValue("@Username", username);
+                        command.Parameters.AddWithValue("@PasswordHash", PasswordHasher.HashPassword(password));
+                        command.Parameters.AddWithValue("@IsSuperAdmin", 1);
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+
         public User AuthenticateUser(string username, string password)
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (var connection = new SQLiteConnection(connectionString))
             {
+                connection.Open();
                 string query = "SELECT * FROM Users WHERE Username = @Username";
-                using (SqlCommand command = new SqlCommand(query, connection))
+                using (var command = new SQLiteCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@Username", username);
 
-                    connection.Open();
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (var reader = command.ExecuteReader())
                     {
                         if (reader.Read())
                         {
@@ -35,9 +114,9 @@ namespace InventoryOrderSystem.Services
                             {
                                 return new User
                                 {
-                                    UserId = (int)reader["UserId"],
+                                    UserId = Convert.ToInt32(reader["UserId"]),
                                     Username = reader["Username"].ToString(),
-                                    IsSuperAdmin = (bool)reader["IsSuperAdmin"]
+                                    IsSuperAdmin = Convert.ToBoolean(reader["IsSuperAdmin"])
                                 };
                             }
                         }
@@ -51,22 +130,22 @@ namespace InventoryOrderSystem.Services
         {
             List<InventoryItem> items = new List<InventoryItem>();
 
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (var connection = new SQLiteConnection(connectionString))
             {
+                connection.Open();
                 string query = "SELECT * FROM InventoryItems";
-                using (SqlCommand command = new SqlCommand(query, connection))
+                using (var command = new SQLiteCommand(query, connection))
                 {
-                    connection.Open();
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())
                         {
                             items.Add(new InventoryItem
                             {
-                                ItemId = (int)reader["ItemId"],
+                                ItemId = Convert.ToInt32(reader["ItemId"]),
                                 Name = reader["Name"].ToString(),
-                                Quantity = (int)reader["Quantity"],
-                                Price = (decimal)reader["Price"]
+                                Quantity = Convert.ToInt32(reader["Quantity"]),
+                                Price = Convert.ToDecimal(reader["Price"])
                             });
                         }
                     }
@@ -78,14 +157,18 @@ namespace InventoryOrderSystem.Services
 
         public void DeleteInventoryItem(int itemId)
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (var connection = new SQLiteConnection(connectionString))
             {
+                connection.Open();
                 string query = "DELETE FROM InventoryItems WHERE ItemId = @ItemId";
-                using (SqlCommand command = new SqlCommand(query, connection))
+                using (var command = new SQLiteCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@ItemId", itemId);
-                    connection.Open();
-                    command.ExecuteNonQuery();
+                    int rowsAffected = command.ExecuteNonQuery();
+                    if (rowsAffected == 0)
+                    {
+                        throw new Exception($"Item with ID {itemId} not found.");
+                    }
                 }
             }
         }
@@ -94,22 +177,22 @@ namespace InventoryOrderSystem.Services
         {
             List<Order> orders = new List<Order>();
 
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (var connection = new SQLiteConnection(connectionString))
             {
+                connection.Open();
                 string query = "SELECT * FROM Orders";
-                using (SqlCommand command = new SqlCommand(query, connection))
+                using (var command = new SQLiteCommand(query, connection))
                 {
-                    connection.Open();
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (var reader = command.ExecuteReader())
                     {
                         while (reader.Read())
                         {
                             orders.Add(new Order
                             {
-                                OrderId = (int)reader["OrderId"],
-                                UserId = (int)reader["UserId"],
-                                OrderDate = (DateTime)reader["OrderDate"],
-                                TotalAmount = (decimal)reader["TotalAmount"],
+                                OrderId = Convert.ToInt32(reader["OrderId"]),
+                                UserId = Convert.ToInt32(reader["UserId"]),
+                                OrderDate = DateTime.Parse(reader["OrderDate"].ToString()),
+                                TotalAmount = Convert.ToDecimal(reader["TotalAmount"]),
                                 PaymentMethod = reader["PaymentMethod"].ToString()
                             });
                         }
@@ -120,6 +203,12 @@ namespace InventoryOrderSystem.Services
             return orders;
         }
 
-        // Add more methods for CRUD operations on InventoryItems and Orders
+        private string GetDatabasePath()
+        {
+            string dataDirectory = AppDomain.CurrentDomain.GetData("DataDirectory").ToString();
+            return Path.Combine(dataDirectory, "LoretasCafeDB.sqlite");
+        }
+
+        // Add more methods for CRUD operations on InventoryItems and Orders as needed
     }
 }
