@@ -20,11 +20,11 @@
             this.pnlLogin = new System.Windows.Forms.Panel();
             this.lblSubtitle = new System.Windows.Forms.Label();
             this.lblLogin = new System.Windows.Forms.Label();
+            this.txtUsername = new InventoryOrderSystem.PlaceholderTextBox();
+            this.txtPassword = new InventoryOrderSystem.PlaceholderTextBox();
             this.btnLogin = new System.Windows.Forms.Button();
             this.lnkForgotPassword = new System.Windows.Forms.LinkLabel();
             this.pnlImages = new System.Windows.Forms.Panel();
-            this.txtUsername = new InventoryOrderSystem.PlaceholderTextBox();
-            this.txtPassword = new InventoryOrderSystem.PlaceholderTextBox();
             this.pnlLogin.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -67,47 +67,6 @@
             this.lblLogin.TabIndex = 3;
             this.lblLogin.Text = "Loreta\'s Cafe";
             // 
-            // btnLogin
-            // 
-            this.btnLogin.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(53)))));
-            this.btnLogin.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnLogin.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-            this.btnLogin.ForeColor = System.Drawing.Color.White;
-            this.btnLogin.Location = new System.Drawing.Point(30, 267);
-            this.btnLogin.Name = "btnLogin";
-            this.btnLogin.Size = new System.Drawing.Size(240, 40);
-            this.btnLogin.TabIndex = 3;
-            this.btnLogin.Text = "LOG IN";
-            this.btnLogin.UseVisualStyleBackColor = false;
-            this.btnLogin.Click += new System.EventHandler(this.btnLogin_Click);
-            // 
-            // lnkForgotPassword
-            // 
-            this.lnkForgotPassword.AutoSize = true;
-            this.lnkForgotPassword.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.lnkForgotPassword.LinkColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(53)))));
-            this.lnkForgotPassword.Location = new System.Drawing.Point(30, 317);
-            this.lnkForgotPassword.Name = "lnkForgotPassword";
-            this.lnkForgotPassword.Size = new System.Drawing.Size(121, 15);
-            this.lnkForgotPassword.TabIndex = 4;
-            this.lnkForgotPassword.TabStop = true;
-            this.lnkForgotPassword.Text = "FORGET PASSWORD ?";
-            // 
-            // pnlImages
-            // 
-            this.pnlImages.AllowDrop = true;
-            this.pnlImages.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.pnlImages.BackColor = System.Drawing.Color.White;
-            this.pnlImages.BackgroundImage = global::InventoryOrderSystem.App.Properties.Resources.loginimg;
-            this.pnlImages.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
-            this.pnlImages.Cursor = System.Windows.Forms.Cursors.Arrow;
-            this.pnlImages.Location = new System.Drawing.Point(-132, -24);
-            this.pnlImages.Name = "pnlImages";
-            this.pnlImages.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.pnlImages.Size = new System.Drawing.Size(595, 474);
-            this.pnlImages.TabIndex = 0;
-            this.pnlImages.Paint += new System.Windows.Forms.PaintEventHandler(this.pnlImages_Paint);
-            // 
             // txtUsername
             // 
             this.txtUsername.Font = new System.Drawing.Font("Segoe UI", 12F);
@@ -131,6 +90,49 @@
             this.txtPassword.Size = new System.Drawing.Size(240, 29);
             this.txtPassword.TabIndex = 2;
             this.txtPassword.Text = "PASSWORD";
+            // 
+            // btnLogin
+            // 
+            this.btnLogin.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(53)))));
+            this.btnLogin.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnLogin.FlatAppearance.BorderSize = 0;
+            this.btnLogin.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
+            this.btnLogin.ForeColor = System.Drawing.Color.White;
+            this.btnLogin.Location = new System.Drawing.Point(30, 267);
+            this.btnLogin.Name = "btnLogin";
+            this.btnLogin.Size = new System.Drawing.Size(240, 40);
+            this.btnLogin.TabIndex = 3;
+            this.btnLogin.Text = "LOG IN";
+            this.btnLogin.UseVisualStyleBackColor = false;
+            this.btnLogin.Click += new System.EventHandler(this.btnLogin_Click);
+            this.btnLogin.Paint += new System.Windows.Forms.PaintEventHandler(this.btnLogin_Paint);
+            // 
+            // lnkForgotPassword
+            // 
+            this.lnkForgotPassword.AutoSize = true;
+            this.lnkForgotPassword.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.lnkForgotPassword.LinkColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(53)))));
+            this.lnkForgotPassword.Location = new System.Drawing.Point(30, 317);
+            this.lnkForgotPassword.Name = "lnkForgotPassword";
+            this.lnkForgotPassword.Size = new System.Drawing.Size(121, 15);
+            this.lnkForgotPassword.TabIndex = 4;
+            this.lnkForgotPassword.TabStop = true;
+            this.lnkForgotPassword.Text = "FORGET PASSWORD ?";
+            // 
+            // pnlImages
+            // 
+            this.pnlImages.AllowDrop = true;
+            this.pnlImages.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.pnlImages.BackColor = System.Drawing.Color.White;
+            this.pnlImages.BackgroundImage = global::InventoryOrderSystem.App.Properties.Resources.loginpic;
+            this.pnlImages.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.pnlImages.Cursor = System.Windows.Forms.Cursors.Arrow;
+            this.pnlImages.Location = new System.Drawing.Point(-132, -24);
+            this.pnlImages.Name = "pnlImages";
+            this.pnlImages.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.pnlImages.Size = new System.Drawing.Size(593, 474);
+            this.pnlImages.TabIndex = 0;
+            this.pnlImages.Paint += new System.Windows.Forms.PaintEventHandler(this.pnlImages_Paint);
             // 
             // LoginForm
             // 

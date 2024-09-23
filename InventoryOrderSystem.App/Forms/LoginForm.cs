@@ -4,6 +4,7 @@ using System.Data.SQLite;
 using InventoryOrderSystem.Models;
 using InventoryOrderSystem.Services;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 
 namespace InventoryOrderSystem
 {
@@ -56,6 +57,16 @@ namespace InventoryOrderSystem
         private void pnlImages_Paint(object sender, PaintEventArgs e)
         {
             var img = e.Graphics;
+        }
+
+        private void btnLogin_Paint(object sender, PaintEventArgs e)
+        {
+            GraphicsPath grPath = new GraphicsPath();
+            grPath.AddArc(0, 0, 20, 20, 180, 90);
+            grPath.AddArc(btnLogin.Width - 21, 0, 20, 20, 270, 90);
+            grPath.AddArc(btnLogin.Width - 21, btnLogin.Height - 21, 20, 20, 0, 90);
+            grPath.AddArc(0, btnLogin.Height - 21, 20, 20, 90, 90);
+            btnLogin.Region = new Region(grPath);
         }
     }
 
