@@ -54,11 +54,6 @@ namespace InventoryOrderSystem
             }
         }
 
-        private void pnlImages_Paint(object sender, PaintEventArgs e)
-        {
-            var img = e.Graphics;
-        }
-
         private void btnLogin_Paint(object sender, PaintEventArgs e)
         {
             GraphicsPath grPath = new GraphicsPath();
@@ -69,9 +64,41 @@ namespace InventoryOrderSystem
             btnLogin.Region = new Region(grPath);
         }
     }
-
-    public class PlaceholderTextBox : TextBox
+    public class RoundedPanel : Panel
     {
+        public int CornerRadius { get; set; } = 20;
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            using (GraphicsPath path = new GraphicsPath())
+            {
+                path.AddArc(0, 0, CornerRadius, CornerRadius, 180, 90);
+                path.AddArc(Width - CornerRadius, 0, CornerRadius, CornerRadius, 270, 90);
+                path.AddArc(Width - CornerRadius, Height - CornerRadius, CornerRadius, CornerRadius, 0, 90);
+                path.AddArc(0, Height - CornerRadius, CornerRadius, CornerRadius, 90, 90);
+                path.CloseAllFigures();
+
+                this.Region = new Region(path);
+
+                using (SolidBrush brush = new SolidBrush(this.BackColor))
+                {
+                    e.Graphics.FillPath(brush, path);
+                }
+
+                if (this.BackgroundImage != null)
+                {
+                    e.Graphics.SetClip(path);
+                    e.Graphics.DrawImage(this.BackgroundImage, ClientRectangle);
+                }
+            }
+        }
+    }
+    public class CustomTextBox : TextBox
+    {
+        private const int WM_PAINT = 0xF;
+        private int borderBottom = 2;
+        private Color borderColor = Color.Gray;
         private string _placeholderText;
         private Color _placeholderColor = Color.Gray;
         private bool _isPassword;
@@ -82,7 +109,7 @@ namespace InventoryOrderSystem
             set
             {
                 _placeholderText = value;
-                SetPlaceholder();
+                SetPlaceholder(this, EventArgs.Empty);
             }
         }
 
@@ -92,17 +119,62 @@ namespace InventoryOrderSystem
             set
             {
                 _isPassword = value;
-                if (_isPassword)
+                UpdatePasswordChar();
+            }
+        }
+
+        public CustomTextBox()
+        {
+            GotFocus += RemovePlaceholder;
+            LostFocus += SetPlaceholder;
+            TextChanged += OnTextChanged;
+        }
+
+        private void OnTextChanged(object sender, EventArgs e)
+        {
+            UpdatePasswordChar();
+        }
+
+        private void UpdatePasswordChar()
+        {
+            if (_isPassword && !string.IsNullOrEmpty(Text) && Text != _placeholderText)
+            {
+                UseSystemPasswordChar = true;
+            }
+            else
+            {
+                UseSystemPasswordChar = false;
+            }
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            base.WndProc(ref m);
+
+            if (m.Msg == WM_PAINT)
+            {
+                using (var g = Graphics.FromHwnd(Handle))
                 {
-                    PasswordChar = '•';
+                    using (var p = new Pen(borderColor, borderBottom))
+                    {
+                        g.DrawLine(p, 0, Height - 1, Width, Height - 1);
+                    }
                 }
             }
         }
 
-        public PlaceholderTextBox()
+        protected override void OnGotFocus(EventArgs e)
         {
-            GotFocus += RemovePlaceholder;
-            LostFocus += SetPlaceholder;
+            base.OnGotFocus(e);
+            borderColor = Color.FromArgb(101, 67, 53); // Match button color
+            RemovePlaceholder(this, e);
+        }
+
+        protected override void OnLostFocus(EventArgs e)
+        {
+            base.OnLostFocus(e);
+            borderColor = Color.Gray;
+            SetPlaceholder(this, e);
         }
 
         private void RemovePlaceholder(object sender, EventArgs e)
@@ -111,11 +183,8 @@ namespace InventoryOrderSystem
             {
                 Text = "";
                 ForeColor = SystemColors.WindowText;
-                if (_isPassword)
-                {
-                    PasswordChar = '•';
-                }
             }
+            UpdatePasswordChar();
         }
 
         private void SetPlaceholder(object sender, EventArgs e)
@@ -124,24 +193,8 @@ namespace InventoryOrderSystem
             {
                 Text = _placeholderText;
                 ForeColor = _placeholderColor;
-                if (_isPassword)
-                {
-                    PasswordChar = '\0';
-                }
             }
-        }
-
-        private void SetPlaceholder()
-        {
-            if (string.IsNullOrEmpty(Text) || Text == _placeholderText)
-            {
-                Text = _placeholderText;
-                ForeColor = _placeholderColor;
-                if (_isPassword)
-                {
-                    PasswordChar = '\0';
-                }
-            }
+            UpdatePasswordChar();
         }
     }
 }
