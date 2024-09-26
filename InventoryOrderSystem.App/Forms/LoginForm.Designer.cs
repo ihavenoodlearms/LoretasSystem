@@ -97,8 +97,6 @@ namespace InventoryOrderSystem
             this.txtPassword.PlaceholderText = "PASSWORD";
             this.txtPassword.Size = new System.Drawing.Size(290, 22);
             this.txtPassword.TabIndex = 3;
-            this.txtPassword.Text = "PASSWORD";
-            this.txtPassword.UseSystemPasswordChar = true;
             // 
             // btnLogin
             // 
