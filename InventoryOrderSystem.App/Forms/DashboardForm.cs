@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using InventoryOrderingSystem;
 using InventoryOrderSystem.App.Forms;
 using InventoryOrderSystem.Models;
 
@@ -23,11 +24,13 @@ namespace InventoryOrderSystem.Forms
 
         private void btnInventory_Click(object sender, EventArgs e)
         {
+            this.Hide();
             new InventoryForm().Show();
         }
 
         private void btnOrders_Click(object sender, EventArgs e)
         {
+            this.Hide();
             new OrderForm().Show();
         }
 
@@ -64,6 +67,12 @@ namespace InventoryOrderSystem.Forms
                 lblLogo.Text = "Loreta's Cafe";
             }
             sidebarExpanded = !sidebarExpanded;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            new OrderMenuForm().Show();
         }
     }
 }

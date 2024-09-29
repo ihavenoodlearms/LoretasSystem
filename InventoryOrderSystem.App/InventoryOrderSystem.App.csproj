@@ -91,6 +91,14 @@
     <Compile Include="Forms\OrderForm.Designer.cs">
       <DependentUpon>OrderForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\OrderMenuForm.cs">
+      <SubType>Form</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="Forms\OrderMenuForm.Designer.cs">
+      <DependentUpon>OrderMenuForm.cs</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
     <Compile Include="Forms\Payment.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -111,6 +119,10 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\LoginForm.resx">
       <DependentUpon>LoginForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\OrderMenuForm.resx">
+      <DependentUpon>OrderMenuForm.cs</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -141,6 +153,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\loginimg.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\americano.jpeg" />
+    <Content Include="Resources\cafe_mocha.jpeg" />
+    <Content Include="Resources\cappucino.jpeg" />
+    <Content Include="Resources\caramel_macchiato.jpeg" />
+    <Content Include="Resources\inventoryicon.png" />
+    <Content Include="Resources\ordericon.png" />
+    <Content Include="Resources\salesicon.png" />
+    <Content Include="Resources\settingsicon.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets" Condition="Exists('..\packages\Stub.System.Data.SQLite.Core.NetFramework.1.0.118.0\build\net46\Stub.System.Data.SQLite.Core.NetFramework.targets')" />
