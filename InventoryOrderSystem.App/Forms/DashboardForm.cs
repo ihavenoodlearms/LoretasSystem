@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 using InventoryOrderingSystem;
 using InventoryOrderSystem.App.Forms;
@@ -20,6 +21,29 @@ namespace InventoryOrderSystem.Forms
             {
                 btnReports.Visible = false;
             }
+
+            // Set form properties for sizing
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            SetFormSize();
+
+            // Initially hide the sidebar
+            pnlSidebar.Width = 0;
+            btnToggleSidebar.Visible = true;
+            btnToggleSidebar.BringToFront();
+            btnToggleSidebar.Location = new Point(12, 12);
+        }
+
+        private void SetFormSize()
+        {
+            Rectangle screenRect = Screen.PrimaryScreen.WorkingArea;
+            // Calculate the form size (e.g., 80% of the screen width and height)
+            int formWidth = (int)(screenRect.Width * 0.8);
+            int formHeight = (int)(screenRect.Height * 0.8);
+            // Set the form size
+            this.Size = new Size(formWidth, formHeight);
+            // Center the form on the screen
+            this.StartPosition = FormStartPosition.CenterScreen;
         }
 
         private void btnInventory_Click(object sender, EventArgs e)
@@ -47,15 +71,8 @@ namespace InventoryOrderSystem.Forms
         {
             if (sidebarExpanded)
             {
-                pnlSidebar.Width = 60;
-                foreach (Control ctrl in pnlSidebar.Controls)
-                {
-                    if (ctrl is Button)
-                    {
-                        ctrl.Text = "";
-                    }
-                }
-                lblLogo.Text = "LC";
+                pnlSidebar.Width = 0;
+                btnToggleSidebar.Location = new Point(12, 12);
             }
             else
             {
@@ -65,6 +82,7 @@ namespace InventoryOrderSystem.Forms
                 btnReports.Text = "Reports";
                 btnSettings.Text = "Settings";
                 lblLogo.Text = "Loreta's Cafe";
+                btnToggleSidebar.Location = new Point(pnlSidebar.Width + 12, 12);
             }
             sidebarExpanded = !sidebarExpanded;
         }

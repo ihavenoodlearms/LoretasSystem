@@ -39,6 +39,10 @@
   <PropertyGroup>
     <StartupObject>InventoryOrderSystem.Program</StartupObject>
   </PropertyGroup>
+  <PropertyGroup>
+    <Win32Resource>
+    </Win32Resource>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.4.4\lib\net45\EntityFramework.dll</HintPath>
@@ -110,6 +114,11 @@
     <Compile Include="Models\User.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Services\DatabaseManager.cs" />
     <Compile Include="Services\PaymentProcessor.cs" />
     <Compile Include="Settings.cs" />
@@ -126,14 +135,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-    </Compile>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -159,6 +163,10 @@
     <Content Include="Resources\cafe_mocha.jpeg" />
     <Content Include="Resources\cappucino.jpeg" />
     <Content Include="Resources\caramel_macchiato.jpeg" />
+    <None Include="Resources\dashboard_design.jpg" />
+    <None Include="Resources\dashboardbanner.jpg" />
+    <None Include="Resources\dashboardbn.jpg" />
+    <None Include="Resources\cfbg.jpg" />
     <Content Include="Resources\inventoryicon.png" />
     <Content Include="Resources\ordericon.png" />
     <Content Include="Resources\salesicon.png" />
