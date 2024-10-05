@@ -11,6 +11,7 @@ namespace InventoryOrderSystem.Services
     public class DatabaseManager
     {
         private readonly string connectionString;
+        private const int LowInventoryThreshold = 10;
 
         public DatabaseManager()
         {
@@ -45,8 +46,7 @@ namespace InventoryOrderSystem.Services
                         CREATE TABLE IF NOT EXISTS InventoryItems (
                             ItemId INTEGER PRIMARY KEY AUTOINCREMENT,
                             Name TEXT NOT NULL,
-                            Quantity INTEGER NOT NULL,
-                            Price REAL NOT NULL
+                            Quantity INTEGER NOT NULL
                         )";
                     command.ExecuteNonQuery();
 
@@ -144,8 +144,7 @@ namespace InventoryOrderSystem.Services
                             {
                                 ItemId = Convert.ToInt32(reader["ItemId"]),
                                 Name = reader["Name"].ToString(),
-                                Quantity = Convert.ToInt32(reader["Quantity"]),
-                                Price = Convert.ToDecimal(reader["Price"])
+                                Quantity = Convert.ToInt32(reader["Quantity"])
                             });
                         }
                     }
@@ -154,6 +153,74 @@ namespace InventoryOrderSystem.Services
 
             return items;
         }
+
+        public List<InventoryItem> GetLowInventoryItems()
+        {
+            List<InventoryItem> lowInventoryItems = new List<InventoryItem>();
+
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT * FROM InventoryItems WHERE Quantity <= @LowInventoryThreshold";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@LowInventoryThreshold", LowInventoryThreshold);
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            lowInventoryItems.Add(new InventoryItem
+                            {
+                                ItemId = Convert.ToInt32(reader["ItemId"]),
+                                Name = reader["Name"].ToString(),
+                                Quantity = Convert.ToInt32(reader["Quantity"])
+                            });
+                        }
+                    }
+                }
+            }
+
+            return lowInventoryItems;
+        }
+
+        public void AddNewInventoryItem(InventoryItem item)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = @"INSERT INTO InventoryItems (Name, Quantity) 
+                                 VALUES (@Name, @Quantity)";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Name", item.Name);
+                    command.Parameters.AddWithValue("@Quantity", item.Quantity);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void UpdateInventoryItem(InventoryItem item)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = @"UPDATE InventoryItems 
+                                 SET Name = @Name, Quantity = @Quantity 
+                                 WHERE ItemId = @ItemId";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ItemId", item.ItemId);
+                    command.Parameters.AddWithValue("@Name", item.Name);
+                    command.Parameters.AddWithValue("@Quantity", item.Quantity);
+                    int rowsAffected = command.ExecuteNonQuery();
+                    if (rowsAffected == 0)
+                    {
+                        throw new Exception($"Item with ID {item.ItemId} not found.");
+                    }
+                }
+            }
+        }
+
 
         public void DeleteInventoryItem(int itemId)
         {
@@ -164,6 +231,27 @@ namespace InventoryOrderSystem.Services
                 using (var command = new SQLiteCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@ItemId", itemId);
+                    int rowsAffected = command.ExecuteNonQuery();
+                    if (rowsAffected == 0)
+                    {
+                        throw new Exception($"Item with ID {itemId} not found.");
+                    }
+                }
+            }
+        }
+
+        public void RestockInventoryItem(int itemId, int quantityToAdd)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = @"UPDATE InventoryItems 
+                                 SET Quantity = Quantity + @QuantityToAdd 
+                                 WHERE ItemId = @ItemId";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@ItemId", itemId);
+                    command.Parameters.AddWithValue("@QuantityToAdd", quantityToAdd);
                     int rowsAffected = command.ExecuteNonQuery();
                     if (rowsAffected == 0)
                     {
@@ -202,7 +290,6 @@ namespace InventoryOrderSystem.Services
 
             return orders;
         }
-
         private string GetDatabasePath()
         {
             string dataDirectory = AppDomain.CurrentDomain.GetData("DataDirectory").ToString();
