@@ -96,8 +96,8 @@
       <DependentUpon>OrderForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\OrderMenuForm.cs">
-      <SubType>Form</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\OrderMenuForm.Designer.cs">
       <DependentUpon>OrderMenuForm.cs</DependentUpon>

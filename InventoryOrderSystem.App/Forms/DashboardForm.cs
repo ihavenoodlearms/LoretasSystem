@@ -28,6 +28,13 @@ namespace InventoryOrderSystem.Forms
             {
                 btnReports.Visible = false;
             }
+            else
+            {
+                lblWelcome.Text = "Welcome!";
+                btnReports.Visible = false;
+                // You might want to handle the case where no user is provided
+                // For example, you could show a login prompt or disable certain functionality
+            }
 
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
@@ -131,7 +138,7 @@ namespace InventoryOrderSystem.Forms
         private void button1_Click(object sender, EventArgs e)
         {
             this.Hide();
-            new OrderMenuForm().Show();
+            new OrderMenuForm(_currentUser).Show();
         }
 
         private void AdjustMainPanelLayout()
