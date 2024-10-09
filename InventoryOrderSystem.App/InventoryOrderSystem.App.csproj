@@ -103,11 +103,11 @@
       <DependentUpon>OrderMenuForm.cs</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
-    <Compile Include="Forms\Payment.cs">
+    <Compile Include="Forms\PaymentForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\Payment.Designer.cs">
-      <DependentUpon>Payment.cs</DependentUpon>
+    <Compile Include="Forms\PaymentForm.Designer.cs">
+      <DependentUpon>PaymentForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Models\InventoryItem.cs" />
     <Compile Include="Models\Order.cs" />

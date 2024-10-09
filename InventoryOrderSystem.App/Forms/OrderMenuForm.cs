@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 using InventoryOrderSystem.Forms;
 using InventoryOrderSystem.Models;
@@ -12,28 +14,47 @@ namespace InventoryOrderingSystem
         private Dictionary<string, List<Product>> categoryProducts;
         private List<OrderItem> orderItems;
         private User _currentUser;
+        private Dictionary<string, GroupBox> productBoxes;
 
         public OrderMenuForm(User user)
         {
             InitializeComponent();
             _currentUser = user;
+            productBoxes = new Dictionary<string, GroupBox>();
             InitializeCategories();
             orderItems = new List<OrderItem>();
-            AddBackButton();
+            productBoxes = new Dictionary<string, GroupBox>();
+            buttonBackToDashboard.Click += BackButton_Click;
+            AddProceedToPaymentButton();
+            ResizeForm();
         }
 
-        private void AddBackButton()
+        private void ResizeForm()
         {
-            Button backButton = new Button
-            {
-                Text = "Back to Dashboard",
-                Location = new System.Drawing.Point(12, this.ClientSize.Height - 40),
-                Size = new System.Drawing.Size(120, 30)
-            };
-            backButton.Click += BackButton_Click;
-            this.Controls.Add(backButton);
-        }
+            // Increase the form size
+            this.Size = new Size(1300, 900);
 
+            // Resize and reposition the main panels
+            panelSidebar.Size = new Size(200, this.ClientSize.Height);
+            panelProducts.Size = new Size(this.ClientSize.Width - panelSidebar.Width, this.ClientSize.Height - panelOrderSummary.Height);
+            panelProducts.Location = new Point(panelSidebar.Width, 0);
+            panelOrderSummary.Size = new Size(this.ClientSize.Width - panelSidebar.Width, 220);
+            panelOrderSummary.Location = new Point(panelSidebar.Width, this.ClientSize.Height - panelOrderSummary.Height);
+
+            // Resize the flowLayoutPanels
+            flowLayoutPanelCategories.Size = panelSidebar.Size;
+            flowLayoutPanelProducts.Size = panelProducts.Size;
+
+            // Set FlowLayoutPanel properties to allow wrapping and vertical scrolling
+            flowLayoutPanelProducts.FlowDirection = FlowDirection.LeftToRight;
+            flowLayoutPanelProducts.WrapContents = true;
+            flowLayoutPanelProducts.AutoScroll = true;
+
+            // Reposition and resize controls in the order summary panel
+            listBoxOrderSummary.Size = new Size(panelOrderSummary.Width - 40, panelOrderSummary.Height - 110);
+            labelTotal.Location = new Point(20, panelOrderSummary.Height - 90);
+            buttonBackToDashboard.Location = new Point(20, panelOrderSummary.Height - 60);
+        }
         private void BackButton_Click(object sender, EventArgs e)
         {
             this.Hide();
@@ -44,58 +65,250 @@ namespace InventoryOrderingSystem
         {
             categoryProducts = new Dictionary<string, List<Product>>
             {
-                {"COFFEES & TEAS", new List<Product>
+                {"Cheesecake Series", new List<Product>
                     {
-                        new Product("Americano", 98.00m),
-                        new Product("Cappuccino", 98.00m),
-                        new Product("Cafe Mocha", 98.00m),
-                        new Product("Caramel Macchiato", 98.00m)
+                        new Product("Matcha Cheesecake", 118.00m),
+                        new Product("Oreo Cheesecake", 118.00m),
+                        new Product("Red Velvet Cheesecake", 118.00m),
+                        new Product("Strawberry Cheesecake", 118.00m),
+                        new Product("Ube Cheesecake", 118.00m),
+                        new Product("Wintermelon Cheesecake", 118.00m),
                     }
                 },
-                {"SNACKS", new List<Product>()},
-                {"FRAPPES, FRUIT MILKS, & MORE", new List<Product>()}
+                {"Fruit Tea & Lemonade", new List<Product>
+                    {
+                        new Product("Berry Blossom", 68.00m),
+                        new Product("Blue Lemonade", 68.00m),
+                        new Product("Green Apple Lemonade", 68.00m),
+                        new Product("Lychee", 68.00m),
+                        new Product("Paradise", 68.00m),
+                        new Product("Strawberry Lemonade", 68.00m),
+                        new Product("Sunrise", 68.00m),
+                    }
+                },
+                {"Milk Tea Classic", new List<Product>
+                    {
+                        new Product("Chocolate", 78.00m),
+                        new Product("Cookies and Cream", 78.00m),
+                        new Product("Dark Chocolate", 78.00m),
+                        new Product("Hazelnut", 78.00m),
+                        new Product("Matcha", 78.00m),
+                        new Product("Mocha", 78.00m),
+                        new Product("Okinawa", 78.00m),
+                        new Product("Taro", 78.00m),
+                        new Product("Ube", 78.00m),
+                        new Product("Wintermelon", 78.00m),
+                    }
+                },
+                {"Fruit Milk", new List<Product>
+                    {
+                        new Product("Blueberry Milk", 98.00m),
+                        new Product("Mango Milk", 98.00m),
+                        new Product("Strawberry Milk", 98.00m),
+                    }
+                },
+                {"Loreta's Specials", new List<Product>
+                    {
+                        new Product("Nutellatte", 118.00m),
+                        new Product("Tiger Boba Milk", 108.00m),
+                        new Product("Tiger Boba Milktea", 138.00m),
+                        new Product("Tiger Oreo Cheesecake", 128.00m),
+                    }
+                },
+                {"Iced Coffee", new List<Product>
+                    {
+                        new Product("Americano", 68.00m),
+                        new Product("Cafe Latte", 78.00m),
+                        new Product("Cafe Mocha", 78.00m),
+                        new Product("Caramel Macchiato", 78.00m),
+                        new Product("Cappuccino", 78.00m),
+                        new Product("Dirty Matcha", 138.00m),
+                        new Product("French Vanilla", 78.00m),
+                        new Product("Matcha Latte", 98.00m),
+                        new Product("Spanish Latte", 78.00m),
+                        new Product("Triple Chocolate Mocha", 78.00m),
+                    }
+                },
+                {"Frappe/Coffee", new List<Product>
+                    {
+                        new Product("Black Forest", 98.00m),
+                        new Product("Cafe Latte", 98.00m),
+                        new Product("Cappuccino", 98.00m),
+                        new Product("Caramel", 98.00m),
+                        new Product("Choc Chip", 98.00m),
+                        new Product("Cookies and Cream", 98.00m),
+                        new Product("Dark Chocolate", 98.00m),
+                        new Product("Double Dutch", 98.00m),
+                        new Product("Mango Graham", 98.00m),
+                        new Product("Matcha", 98.00m),
+                        new Product("Mocha", 98.00m),
+                        new Product("Strawberry", 98.00m),
+                        new Product("Vanilla", 98.00m),
+                    }
+                },
+                {"Garlic Parmesan & Buffalo Wings", new List<Product>
+                    {
+                        new Product("3 pcs", 109.00m),
+                        new Product("4 pcs", 139.00m),
+                        new Product("3 pcs • rice", 139.00m),
+                        new Product("4 pcs • rice", 169.00m),
+                    }
+                },
+                {"Chicken Burger", new List<Product>
+                    {
+                        new Product("Chicken Burger", 169.00m),
+                        new Product("Black Mamba", 209.00m),
+                    }
+                },
+                {"Churros, Mojos, Corndogs", new List<Product>
+                    {
+                        new Product("Churros Classic", 80.00m),
+                        new Product("Churros Overload", 120.00m),
+                        new Product("Mojos (Solo)", 80.00m),
+                        new Product("Mojos (Barkada)", 140.00m),
+                        new Product("Classic Bites", 75.00m),
+                        new Product("Regular Classic", 90.00m),
+                        new Product("Full Mozza", 90.00m),
+                        new Product("Frenchie", 90.00m),
+                        new Product("Mozzadog", 90.00m),
+                    }
+                },
+                {"Loreta's Snacks", new List<Product>
+                    {
+                        new Product("Cheesy Fries", 50.00m),
+                        new Product("Cheesy Nachos", 70.00m),
+                        new Product("Cheddar Sticks", 70.00m),
+                        new Product("Waffles", 50.00m),
+                        new Product("Nutella Waffles", 60.00m),
+                        new Product("Brownies", 50.00m),
+                        new Product("Cookies", 50.00m),
+                    }
+                },
+                {"Croffle", new List<Product>
+                    {
+                        new Product("Chocolate (Classic)", 80.00m),
+                        new Product("Maple w/ Butter(Classic)", 80.00m),
+                        new Product("Nutella (Classic)", 90.00m),
+                        new Product("Matcha (Classic)", 90.00m),
+                        new Product("Peanut Butter (Classic)", 90.00m),
+                        new Product("Biscoff Spread (Classic)", 90.00m),
+                        new Product("Nutella Alcapone (Premium)", 110.00m),
+                        new Product("Cookies & Cream (Premium)", 120.00m),
+                        new Product("Matcha Alcapone (Premium)", 110.00m),
+                        new Product("Strawberry Cream (Premium)", 120.00m),
+                        new Product("Biscoff Overload (Premium)", 130.00m),
+                        new Product("Classic (IN A BOX)", 360.00m),
+                        new Product("Premium (IN A BOX)", 480.00m),
+                        new Product("Classic-Premium (IN A BOX)", 430.00m),
+                    }
+                },
+                {"Hungarian Sausage", new List<Product>
+                    {
+                        new Product("Hungarian Classic (Sandwich)", 130.00m),
+                        new Product("Bacon & Cheese (Sandwich)", 150.00m),
+                        new Product("Spicy Beef (Sandwich)", 160.00m),
+                        new Product("Classic (On-Stick)", 100.00m),
+                        new Product("Sausage & Bacon (On-Stick)", 120.00m),
+                    }
+                },
             };
 
             foreach (var category in categoryProducts.Keys)
             {
-                TabPage tabPage = new TabPage(category);
-                tabControl1.TabPages.Add(tabPage);
-                DisplayProducts(category, tabPage);
+                Button categoryButton = new Button
+                {
+                    Text = category,
+                    Size = new Size(180, 40),
+                    FlatStyle = FlatStyle.Flat,
+                    BackColor = Color.FromArgb(74, 44, 42),
+                    ForeColor = Color.White,
+                    Tag = category
+                };
+                categoryButton.Click += CategoryButton_Click;
+                flowLayoutPanelCategories.Controls.Add(categoryButton);
+            }
+
+            if (flowLayoutPanelCategories.Controls.Count > 0)
+            {
+                CategoryButton_Click(flowLayoutPanelCategories.Controls[0], EventArgs.Empty);
             }
         }
 
-        private void DisplayProducts(string category, TabPage tabPage)
+        private void CategoryButton_Click(object sender, EventArgs e)
         {
-            FlowLayoutPanel panel = new FlowLayoutPanel
+            Button clickedButton = (Button)sender;
+            string category = (string)clickedButton.Tag;
+            DisplayProducts(category);
+        }
+
+        private void DisplayProducts(string category)
+        {
+            flowLayoutPanelProducts.Controls.Clear();
+
+            if (productBoxes == null)
             {
-                Dock = DockStyle.Fill,
-                AutoScroll = true
-            };
+                productBoxes = new Dictionary<string, GroupBox>();
+            }
 
             foreach (var product in categoryProducts[category])
             {
-                GroupBox productBox = new GroupBox
+                GroupBox productBox;
+                if (!productBoxes.TryGetValue(product.Name, out productBox))
                 {
-                    Text = product.Name,
-                    Size = new System.Drawing.Size(250, 130),
-                    Margin = new Padding(5)
-                };
+                    productBox = CreateProductBox(product);
+                    productBoxes[product.Name] = productBox;
+                }
+                flowLayoutPanelProducts.Controls.Add(productBox);
+            }
+        }
 
-                CheckBox checkBox = new CheckBox
-                {
-                    Text = $"{product.Name} - ₱{product.Price:F2}",
-                    Tag = product,
-                    AutoSize = true,
-                    Location = new System.Drawing.Point(10, 20)
-                };
-                checkBox.CheckedChanged += ProductCheckBox_CheckedChanged;
+        private GroupBox CreateProductBox(Product product)
+        {
+            GroupBox productBox = new GroupBox
+            {
+                Text = product.Name,
+                Size = new Size(250, 300),
+                Margin = new Padding(5)
+            };
 
+            CheckBox checkBox = new CheckBox
+            {
+                Text = $"₱{product.Price:F2}",
+                Tag = product,
+                AutoSize = true,
+                Location = new Point(10, 20)
+            };
+            checkBox.CheckedChanged += ProductCheckBox_CheckedChanged;
+
+            NumericUpDown quantityUpDown = new NumericUpDown
+            {
+                Minimum = 0,
+                Maximum = 10,
+                Value = 0,
+                Location = new Point(180, 20),
+                Size = new Size(50, 25),
+                Enabled = false
+            };
+            quantityUpDown.ValueChanged += (sender, e) => QuantityUpDown_ValueChanged(sender, e, product);
+
+            productBox.Controls.Add(checkBox);
+            productBox.Controls.Add(quantityUpDown);
+
+            string[] categoriesWithOptions = new string[]
+            {
+        "Cheesecake Series", "Fruit Tea & Lemonade", "Milk Tea Classic",
+        "Fruit Milk", "Loreta's Specials", "Iced Coffee", "Frappe/Coffee"
+            };
+
+            if (categoriesWithOptions.Any(category => categoryProducts[category].Contains(product)))
+            {
                 ComboBox sizeComboBox = new ComboBox
                 {
                     Items = { "8oz", "16oz" },
                     SelectedIndex = 0,
-                    Location = new System.Drawing.Point(10, 50),
-                    Size = new System.Drawing.Size(80, 25)
+                    Location = new Point(10, 50),
+                    Size = new Size(80, 25),
+                    Enabled = false
                 };
                 sizeComboBox.SelectedIndexChanged += (s, e) => UpdateOrderSummary();
 
@@ -103,54 +316,48 @@ namespace InventoryOrderingSystem
                 {
                     Text = "Extra Shot",
                     AutoSize = true,
-                    Location = new System.Drawing.Point(10, 80)
+                    Location = new Point(100, 52),
+                    Enabled = false
                 };
                 extraShotCheckBox.CheckedChanged += (s, e) => UpdateOrderSummary();
 
-                NumericUpDown quantityUpDown = new NumericUpDown
+                productBox.Controls.Add(sizeComboBox);
+                productBox.Controls.Add(extraShotCheckBox);
+
+                Panel addOnsPanel = new Panel
                 {
-                    Minimum = 0,
-                    Maximum = 10,
-                    Value = 0,
-                    Location = new System.Drawing.Point(150, 50),
-                    Size = new System.Drawing.Size(50, 25)
+                    Location = new Point(10, 80),
+                    Size = new Size(230, 210),
+                    AutoScroll = true
                 };
-                quantityUpDown.ValueChanged += QuantityUpDown_ValueChanged;
+                productBox.Controls.Add(addOnsPanel);
 
-                productBox.Controls.AddRange(new Control[] { checkBox, sizeComboBox, extraShotCheckBox, quantityUpDown });
-                panel.Controls.Add(productBox);
+                string[] addOns = new string[]
+                {
+            "Pearls", "Nata de Coco", "Rainbow Jelly", "Chia Seeds",
+            "Crushed Oreo", "Crushed Graham", "Cream Cheese", "Brown Sugar", "Espresso"
+                };
+
+                int yPos = 5;
+                foreach (var addOn in addOns)
+                {
+                    CheckBox addOnCheckBox = new CheckBox
+                    {
+                        Text = addOn,
+                        AutoSize = true,
+                        Location = new Point(5, yPos),
+                        Enabled = false
+                    };
+                    addOnCheckBox.CheckedChanged += (s, e) => UpdateOrderSummary();
+                    addOnsPanel.Controls.Add(addOnCheckBox);
+                    yPos += 25;
+                }
             }
 
-            tabPage.Controls.Add(panel);
+            return productBox;
         }
 
-        private void ProductCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            CheckBox checkBox = (CheckBox)sender;
-            Product product = (Product)checkBox.Tag;
-            GroupBox productBox = (GroupBox)checkBox.Parent;
-
-            ComboBox sizeComboBox = productBox.Controls.OfType<ComboBox>().First();
-            CheckBox extraShotCheckBox = productBox.Controls.OfType<CheckBox>().ElementAt(1);
-            NumericUpDown quantityUpDown = productBox.Controls.OfType<NumericUpDown>().First();
-
-            sizeComboBox.Enabled = checkBox.Checked;
-            extraShotCheckBox.Enabled = checkBox.Checked;
-            quantityUpDown.Enabled = checkBox.Checked;
-
-            if (checkBox.Checked && quantityUpDown.Value == 0)
-            {
-                quantityUpDown.Value = 1;
-            }
-            else if (!checkBox.Checked)
-            {
-                quantityUpDown.Value = 0;
-            }
-
-            UpdateOrderSummary();
-        }
-
-        private void QuantityUpDown_ValueChanged(object sender, EventArgs e)
+        private void QuantityUpDown_ValueChanged(object sender, EventArgs e, Product product)
         {
             NumericUpDown quantityUpDown = (NumericUpDown)sender;
             GroupBox productBox = (GroupBox)quantityUpDown.Parent;
@@ -168,42 +375,148 @@ namespace InventoryOrderingSystem
             UpdateOrderSummary();
         }
 
+        private void ProductCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            CheckBox checkBox = (CheckBox)sender;
+            GroupBox productBox = (GroupBox)checkBox.Parent;
+
+            NumericUpDown quantityUpDown = productBox.Controls.OfType<NumericUpDown>().First();
+            quantityUpDown.Enabled = checkBox.Checked;
+
+            ComboBox sizeComboBox = productBox.Controls.OfType<ComboBox>().FirstOrDefault();
+            if (sizeComboBox != null)
+            {
+                sizeComboBox.Enabled = checkBox.Checked;
+            }
+
+            CheckBox extraShotCheckBox = productBox.Controls.OfType<CheckBox>().ElementAtOrDefault(1);
+            if (extraShotCheckBox != null)
+            {
+                extraShotCheckBox.Enabled = checkBox.Checked;
+            }
+
+            // Enable/disable add-on checkboxes in the panel
+            Panel addOnsPanel = productBox.Controls.OfType<Panel>().FirstOrDefault();
+            if (addOnsPanel != null)
+            {
+                foreach (CheckBox addOnCheckBox in addOnsPanel.Controls.OfType<CheckBox>())
+                {
+                    addOnCheckBox.Enabled = checkBox.Checked;
+                }
+            }
+
+            if (checkBox.Checked && quantityUpDown.Value == 0)
+            {
+                quantityUpDown.Value = 1;
+            }
+            else if (!checkBox.Checked)
+            {
+                quantityUpDown.Value = 0;
+            }
+
+            UpdateOrderSummary();
+        }
+
         private void UpdateOrderSummary()
         {
             orderItems.Clear();
             listBoxOrderSummary.Items.Clear();
             decimal total = 0;
 
-            foreach (TabPage tabPage in tabControl1.TabPages)
+            foreach (var productBox in productBoxes.Values)
             {
-                foreach (GroupBox productBox in tabPage.Controls[0].Controls.OfType<GroupBox>())
+                CheckBox checkBox = productBox.Controls.OfType<CheckBox>().First();
+                if (checkBox.Checked)
                 {
-                    CheckBox checkBox = productBox.Controls.OfType<CheckBox>().First();
-                    if (checkBox.Checked)
+                    Product product = (Product)checkBox.Tag;
+                    NumericUpDown quantityUpDown = productBox.Controls.OfType<NumericUpDown>().First();
+                    ComboBox sizeComboBox = productBox.Controls.OfType<ComboBox>().FirstOrDefault();
+                    CheckBox extraShotCheckBox = productBox.Controls.OfType<CheckBox>().ElementAtOrDefault(1);
+
+                    string size = sizeComboBox?.Text ?? "N/A";
+                    bool extraShot = extraShotCheckBox?.Checked ?? false;
+
+                    List<string> selectedAddOns = new List<string>();
+                    foreach (CheckBox addOnCheckBox in productBox.Controls.OfType<CheckBox>().Skip(2))
                     {
-                        Product product = (Product)checkBox.Tag;
-                        ComboBox sizeComboBox = productBox.Controls.OfType<ComboBox>().First();
-                        CheckBox extraShotCheckBox = productBox.Controls.OfType<CheckBox>().ElementAt(1);
-                        NumericUpDown quantityUpDown = productBox.Controls.OfType<NumericUpDown>().First();
-
-                        OrderItem item = new OrderItem(product, sizeComboBox.Text, extraShotCheckBox.Checked, (int)quantityUpDown.Value);
-                        orderItems.Add(item);
-
-                        decimal itemPrice = item.Product.Price;
-                        if (item.Size == "16oz") itemPrice += 20;
-                        if (item.ExtraShot) itemPrice += 20;
-
-                        string itemDescription = $"{item.Product.Name} ({item.Size})";
-                        if (item.ExtraShot) itemDescription += " +Shot";
-
-                        decimal totalItemPrice = itemPrice * item.Quantity;
-                        listBoxOrderSummary.Items.Add($"{itemDescription} x{item.Quantity} - ₱{totalItemPrice:F2}");
-                        total += totalItemPrice;
+                        if (addOnCheckBox.Checked)
+                        {
+                            selectedAddOns.Add(addOnCheckBox.Text);
+                        }
                     }
+
+                    OrderItem item = new OrderItem(product, size, extraShot, (int)quantityUpDown.Value, selectedAddOns);
+                    orderItems.Add(item);
+
+                    decimal itemPrice = item.Product.Price;
+                    if (size == "16oz") itemPrice += 20;
+                    if (extraShot) itemPrice += 20;
+                    itemPrice += selectedAddOns.Count * 15; // Assuming each add-on costs ₱15
+
+                    string itemDescription = $"{item.Product.Name}";
+                    if (size != "N/A") itemDescription += $" ({size})";
+                    if (extraShot) itemDescription += " +Shot";
+                    if (selectedAddOns.Any())
+                    {
+                        itemDescription += $" +{string.Join(", ", selectedAddOns)}";
+                    }
+
+                    decimal totalItemPrice = itemPrice * item.Quantity;
+                    listBoxOrderSummary.Items.Add($"{itemDescription} x{item.Quantity} - ₱{totalItemPrice:F2}");
+                    total += totalItemPrice;
                 }
             }
 
             labelTotal.Text = $"Total: ₱{total:F2}";
+        }
+
+        private void AddProceedToPaymentButton()
+        {
+            Button proceedToPaymentButton = new Button
+            {
+                Text = "Proceed to Payment",
+                Size = new Size(150, 35),
+                Location = new Point(panelOrderSummary.Width - 170, panelOrderSummary.Height - 45),
+                BackColor = Color.FromArgb(74, 44, 42),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat
+            };
+            proceedToPaymentButton.Click += ProceedToPaymentButton_Click;
+            panelOrderSummary.Controls.Add(proceedToPaymentButton);
+        }
+
+        private void ProceedToPaymentButton_Click(object sender, EventArgs e)
+        {
+            if (orderItems.Count == 0)
+            {
+                MessageBox.Show("Please add items to your order before proceeding to payment.", "Empty Order", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string orderSummary = GetOrderSummary();
+            DialogResult result = MessageBox.Show(
+                $"Please confirm your order:\n\n{orderSummary}\n\nProceed to payment?",
+                "Confirm Order",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (result == DialogResult.Yes)
+            {
+                this.Hide();
+                new PaymentForm(_currentUser, orderItems, decimal.Parse(labelTotal.Text.Replace("Total: ₱", ""))).Show();
+            }
+        }
+
+        private string GetOrderSummary()
+        {
+            StringBuilder summary = new StringBuilder();
+            foreach (var item in orderItems)
+            {
+                summary.AppendLine($"{item.Product.Name} ({item.Size}){(item.ExtraShot ? " +Shot" : "")} x{item.Quantity}");
+            }
+            summary.AppendLine($"\n{labelTotal.Text}");
+            return summary.ToString();
         }
     }
 
@@ -225,13 +538,15 @@ namespace InventoryOrderingSystem
         public string Size { get; set; }
         public bool ExtraShot { get; set; }
         public int Quantity { get; set; }
+        public List<string> AddOns { get; set; }
 
-        public OrderItem(Product product, string size, bool extraShot, int quantity)
+        public OrderItem(Product product, string size, bool extraShot, int quantity, List<string> addOns)
         {
             Product = product;
             Size = size;
             ExtraShot = extraShot;
             Quantity = quantity;
+            AddOns = addOns;
         }
     }
 }

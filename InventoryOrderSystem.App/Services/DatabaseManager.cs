@@ -189,7 +189,7 @@ namespace InventoryOrderSystem.Services
             {
                 connection.Open();
                 string query = @"INSERT INTO InventoryItems (Name, Quantity) 
-                                 VALUES (@Name, @Quantity)";
+                         VALUES (@Name, @Quantity)";
                 using (var command = new SQLiteCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@Name", item.Name);
