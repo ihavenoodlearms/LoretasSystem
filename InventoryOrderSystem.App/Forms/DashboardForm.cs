@@ -174,7 +174,7 @@ namespace InventoryOrderSystem.Forms
         private void btnInventory_Click(object sender, EventArgs e)
         {
             this.Hide();
-            new InventoryForm().Show();
+            new InventoryForm(_currentUser).Show();
         }
 
         private void btnOrders_Click(object sender, EventArgs e)

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using InventoryOrderSystem.Forms;
 using InventoryOrderSystem.Models;
@@ -21,44 +20,10 @@ namespace InventoryOrderingSystem
             InitializeComponent();
             _currentUser = user;
             productBoxes = new Dictionary<string, GroupBox>();
-            InitializeCategories();
             orderItems = new List<OrderItem>();
-            productBoxes = new Dictionary<string, GroupBox>();
+            InitializeCategories();
             buttonBackToDashboard.Click += BackButton_Click;
-            AddProceedToPaymentButton();
-            ResizeForm();
-        }
-
-        private void ResizeForm()
-        {
-            // Increase the form size
-            this.Size = new Size(1300, 900);
-
-            // Resize and reposition the main panels
-            panelSidebar.Size = new Size(200, this.ClientSize.Height);
-            panelProducts.Size = new Size(this.ClientSize.Width - panelSidebar.Width, this.ClientSize.Height - panelOrderSummary.Height);
-            panelProducts.Location = new Point(panelSidebar.Width, 0);
-            panelOrderSummary.Size = new Size(this.ClientSize.Width - panelSidebar.Width, 220);
-            panelOrderSummary.Location = new Point(panelSidebar.Width, this.ClientSize.Height - panelOrderSummary.Height);
-
-            // Resize the flowLayoutPanels
-            flowLayoutPanelCategories.Size = panelSidebar.Size;
-            flowLayoutPanelProducts.Size = panelProducts.Size;
-
-            // Set FlowLayoutPanel properties to allow wrapping and vertical scrolling
-            flowLayoutPanelProducts.FlowDirection = FlowDirection.LeftToRight;
-            flowLayoutPanelProducts.WrapContents = true;
-            flowLayoutPanelProducts.AutoScroll = true;
-
-            // Reposition and resize controls in the order summary panel
-            listBoxOrderSummary.Size = new Size(panelOrderSummary.Width - 40, panelOrderSummary.Height - 110);
-            labelTotal.Location = new Point(20, panelOrderSummary.Height - 90);
-            buttonBackToDashboard.Location = new Point(20, panelOrderSummary.Height - 60);
-        }
-        private void BackButton_Click(object sender, EventArgs e)
-        {
-            this.Hide();
-            new DashboardForm(_currentUser).Show();
+            buttonProceedToPayment.Click += ProceedToPaymentButton_Click;
         }
 
         private void InitializeCategories()
@@ -75,7 +40,7 @@ namespace InventoryOrderingSystem
                         new Product("Wintermelon Cheesecake", 118.00m),
                     }
                 },
-                {"Fruit Tea & Lemonade", new List<Product>
+                                {"Fruit Tea & Lemonade", new List<Product>
                     {
                         new Product("Berry Blossom", 68.00m),
                         new Product("Blue Lemonade", 68.00m),
@@ -211,27 +176,73 @@ namespace InventoryOrderingSystem
                         new Product("Sausage & Bacon (On-Stick)", 120.00m),
                     }
                 },
+        };
+
+            // Add "Drinks" label
+            Label drinksLabel = new Label
+            {
+                Text = "Drinks",
+                AutoSize = true,
+                Font = new Font(this.Font, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(10, 10)
+            };
+            flowLayoutPanelCategories.Controls.Add(drinksLabel);
+
+            // Add drink categories
+            string[] drinkCategories = new string[]
+            {
+                "Cheesecake Series", "Fruit Tea & Lemonade", "Milk Tea Classic",
+                "Fruit Milk", "Loreta's Specials", "Iced Coffee", "Frappe/Coffee"
             };
 
-            foreach (var category in categoryProducts.Keys)
+            foreach (var category in drinkCategories)
             {
-                Button categoryButton = new Button
-                {
-                    Text = category,
-                    Size = new Size(180, 40),
-                    FlatStyle = FlatStyle.Flat,
-                    BackColor = Color.FromArgb(74, 44, 42),
-                    ForeColor = Color.White,
-                    Tag = category
-                };
-                categoryButton.Click += CategoryButton_Click;
-                flowLayoutPanelCategories.Controls.Add(categoryButton);
+                AddCategoryButton(category);
+            }
+
+            // Add "Snacks" label
+            Label snacksLabel = new Label
+            {
+                Text = "Snacks",
+                AutoSize = true,
+                Font = new Font(this.Font, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(10, flowLayoutPanelCategories.Controls[flowLayoutPanelCategories.Controls.Count - 1].Bottom + 20)
+            };
+            flowLayoutPanelCategories.Controls.Add(snacksLabel);
+
+            // Add snack categories
+            string[] snackCategories = new string[]
+            {
+                "Garlic Parmesan & Buffalo Wings", "Chicken Burger", "Churros, Mojos, Corndogs",
+                "Loreta's Snacks", "Croffle", "Hungarian Sausage"
+            };
+
+            foreach (var category in snackCategories)
+            {
+                AddCategoryButton(category);
             }
 
             if (flowLayoutPanelCategories.Controls.Count > 0)
             {
-                CategoryButton_Click(flowLayoutPanelCategories.Controls[0], EventArgs.Empty);
+                CategoryButton_Click(flowLayoutPanelCategories.Controls.OfType<Button>().First(), EventArgs.Empty);
             }
+        }
+
+        private void AddCategoryButton(string category)
+        {
+            Button categoryButton = new Button
+            {
+                Text = category,
+                Size = new Size(180, 40),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Color.FromArgb(74, 44, 42),
+                ForeColor = Color.White,
+                Tag = category
+            };
+            categoryButton.Click += CategoryButton_Click;
+            flowLayoutPanelCategories.Controls.Add(categoryButton);
         }
 
         private void CategoryButton_Click(object sender, EventArgs e)
@@ -244,11 +255,6 @@ namespace InventoryOrderingSystem
         private void DisplayProducts(string category)
         {
             flowLayoutPanelProducts.Controls.Clear();
-
-            if (productBoxes == null)
-            {
-                productBoxes = new Dictionary<string, GroupBox>();
-            }
 
             foreach (var product in categoryProducts[category])
             {
@@ -296,8 +302,8 @@ namespace InventoryOrderingSystem
 
             string[] categoriesWithOptions = new string[]
             {
-        "Cheesecake Series", "Fruit Tea & Lemonade", "Milk Tea Classic",
-        "Fruit Milk", "Loreta's Specials", "Iced Coffee", "Frappe/Coffee"
+                "Cheesecake Series", "Fruit Tea & Lemonade", "Milk Tea Classic",
+                "Fruit Milk", "Loreta's Specials", "Iced Coffee", "Frappe/Coffee"
             };
 
             if (categoriesWithOptions.Any(category => categoryProducts[category].Contains(product)))
@@ -332,13 +338,21 @@ namespace InventoryOrderingSystem
                 };
                 productBox.Controls.Add(addOnsPanel);
 
+                Label addOnsLabel = new Label
+                {
+                    Text = "Add-ons:",
+                    AutoSize = true,
+                    Location = new Point(5, 5)
+                };
+                addOnsPanel.Controls.Add(addOnsLabel);
+
                 string[] addOns = new string[]
                 {
-            "Pearls", "Nata de Coco", "Rainbow Jelly", "Chia Seeds",
-            "Crushed Oreo", "Crushed Graham", "Cream Cheese", "Brown Sugar", "Espresso"
+                    "Pearls", "Nata de Coco", "Rainbow Jelly", "Chia Seeds",
+                    "Crushed Oreo", "Crushed Graham", "Cream Cheese", "Brown Sugar", "Espresso"
                 };
 
-                int yPos = 5;
+                int yPos = 25;
                 foreach (var addOn in addOns)
                 {
                     CheckBox addOnCheckBox = new CheckBox
@@ -355,24 +369,6 @@ namespace InventoryOrderingSystem
             }
 
             return productBox;
-        }
-
-        private void QuantityUpDown_ValueChanged(object sender, EventArgs e, Product product)
-        {
-            NumericUpDown quantityUpDown = (NumericUpDown)sender;
-            GroupBox productBox = (GroupBox)quantityUpDown.Parent;
-            CheckBox checkBox = productBox.Controls.OfType<CheckBox>().First();
-
-            if (quantityUpDown.Value > 0 && !checkBox.Checked)
-            {
-                checkBox.Checked = true;
-            }
-            else if (quantityUpDown.Value == 0 && checkBox.Checked)
-            {
-                checkBox.Checked = false;
-            }
-
-            UpdateOrderSummary();
         }
 
         private void ProductCheckBox_CheckedChanged(object sender, EventArgs e)
@@ -395,7 +391,6 @@ namespace InventoryOrderingSystem
                 extraShotCheckBox.Enabled = checkBox.Checked;
             }
 
-            // Enable/disable add-on checkboxes in the panel
             Panel addOnsPanel = productBox.Controls.OfType<Panel>().FirstOrDefault();
             if (addOnsPanel != null)
             {
@@ -412,6 +407,24 @@ namespace InventoryOrderingSystem
             else if (!checkBox.Checked)
             {
                 quantityUpDown.Value = 0;
+            }
+
+            UpdateOrderSummary();
+        }
+
+        private void QuantityUpDown_ValueChanged(object sender, EventArgs e, Product product)
+        {
+            NumericUpDown quantityUpDown = (NumericUpDown)sender;
+            GroupBox productBox = (GroupBox)quantityUpDown.Parent;
+            CheckBox checkBox = productBox.Controls.OfType<CheckBox>().First();
+
+            if (quantityUpDown.Value > 0 && !checkBox.Checked)
+            {
+                checkBox.Checked = true;
+            }
+            else if (quantityUpDown.Value == 0 && checkBox.Checked)
+            {
+                checkBox.Checked = false;
             }
 
             UpdateOrderSummary();
@@ -437,11 +450,15 @@ namespace InventoryOrderingSystem
                     bool extraShot = extraShotCheckBox?.Checked ?? false;
 
                     List<string> selectedAddOns = new List<string>();
-                    foreach (CheckBox addOnCheckBox in productBox.Controls.OfType<CheckBox>().Skip(2))
+                    Panel addOnsPanel = productBox.Controls.OfType<Panel>().FirstOrDefault();
+                    if (addOnsPanel != null)
                     {
-                        if (addOnCheckBox.Checked)
+                        foreach (CheckBox addOnCheckBox in addOnsPanel.Controls.OfType<CheckBox>())
                         {
-                            selectedAddOns.Add(addOnCheckBox.Text);
+                            if (addOnCheckBox.Checked)
+                            {
+                                selectedAddOns.Add(addOnCheckBox.Text);
+                            }
                         }
                     }
 
@@ -470,19 +487,10 @@ namespace InventoryOrderingSystem
             labelTotal.Text = $"Total: ₱{total:F2}";
         }
 
-        private void AddProceedToPaymentButton()
+        private void BackButton_Click(object sender, EventArgs e)
         {
-            Button proceedToPaymentButton = new Button
-            {
-                Text = "Proceed to Payment",
-                Size = new Size(150, 35),
-                Location = new Point(panelOrderSummary.Width - 170, panelOrderSummary.Height - 45),
-                BackColor = Color.FromArgb(74, 44, 42),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-            proceedToPaymentButton.Click += ProceedToPaymentButton_Click;
-            panelOrderSummary.Controls.Add(proceedToPaymentButton);
+            this.Hide();
+            new DashboardForm(_currentUser).Show();
         }
 
         private void ProceedToPaymentButton_Click(object sender, EventArgs e)
@@ -510,10 +518,14 @@ namespace InventoryOrderingSystem
 
         private string GetOrderSummary()
         {
-            StringBuilder summary = new StringBuilder();
+            System.Text.StringBuilder summary = new System.Text.StringBuilder();
             foreach (var item in orderItems)
             {
                 summary.AppendLine($"{item.Product.Name} ({item.Size}){(item.ExtraShot ? " +Shot" : "")} x{item.Quantity}");
+                if (item.AddOns.Any())
+                {
+                    summary.AppendLine($"  Add-ons: {string.Join(", ", item.AddOns)}");
+                }
             }
             summary.AppendLine($"\n{labelTotal.Text}");
             return summary.ToString();
@@ -547,6 +559,31 @@ namespace InventoryOrderingSystem
             ExtraShot = extraShot;
             Quantity = quantity;
             AddOns = addOns;
+        }
+
+        public decimal CalculatePrice()
+        {
+            decimal price = Product.Price * Quantity;
+
+            if (Size == "16oz")
+                price += 20 * Quantity;
+
+            if (ExtraShot)
+                price += 20 * Quantity;
+
+            price += AddOns.Count * 15 * Quantity; // Assuming each add-on costs ₱15
+
+            return price;
+        }
+
+        public override string ToString()
+        {
+            string description = $"{Product.Name} ({Size})";
+            if (ExtraShot)
+                description += " +Shot";
+            if (AddOns.Any())
+                description += $" +{string.Join(", ", AddOns)}";
+            return $"{description} x{Quantity}";
         }
     }
 }

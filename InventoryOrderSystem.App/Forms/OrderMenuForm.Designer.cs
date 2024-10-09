@@ -23,6 +23,8 @@
             this.listBoxOrderSummary = new System.Windows.Forms.ListBox();
             this.labelTotal = new System.Windows.Forms.Label();
             this.buttonBackToDashboard = new System.Windows.Forms.Button();
+            this.buttonProceedToPayment = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
             this.panelSidebar.SuspendLayout();
             this.panelProducts.SuspendLayout();
             this.panelOrderSummary.SuspendLayout();
@@ -68,9 +70,11 @@
             // panelOrderSummary
             // 
             this.panelOrderSummary.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(241)))), ((int)(((byte)(227)))), ((int)(((byte)(211)))));
+            this.panelOrderSummary.Controls.Add(this.label1);
             this.panelOrderSummary.Controls.Add(this.listBoxOrderSummary);
             this.panelOrderSummary.Controls.Add(this.labelTotal);
             this.panelOrderSummary.Controls.Add(this.buttonBackToDashboard);
+            this.panelOrderSummary.Controls.Add(this.buttonProceedToPayment);
             this.panelOrderSummary.Location = new System.Drawing.Point(200, 600);
             this.panelOrderSummary.Name = "panelOrderSummary";
             this.panelOrderSummary.Size = new System.Drawing.Size(1000, 200);
@@ -84,7 +88,7 @@
             this.listBoxOrderSummary.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(20)))), ((int)(((byte)(16)))));
             this.listBoxOrderSummary.FormattingEnabled = true;
             this.listBoxOrderSummary.ItemHeight = 17;
-            this.listBoxOrderSummary.Location = new System.Drawing.Point(20, 20);
+            this.listBoxOrderSummary.Location = new System.Drawing.Point(20, 36);
             this.listBoxOrderSummary.Name = "listBoxOrderSummary";
             this.listBoxOrderSummary.Size = new System.Drawing.Size(960, 102);
             this.listBoxOrderSummary.TabIndex = 0;
@@ -107,12 +111,37 @@
             this.buttonBackToDashboard.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.buttonBackToDashboard.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold);
             this.buttonBackToDashboard.ForeColor = System.Drawing.Color.White;
-            this.buttonBackToDashboard.Location = new System.Drawing.Point(20, 160);
+            this.buttonBackToDashboard.Location = new System.Drawing.Point(674, 160);
             this.buttonBackToDashboard.Name = "buttonBackToDashboard";
             this.buttonBackToDashboard.Size = new System.Drawing.Size(150, 30);
             this.buttonBackToDashboard.TabIndex = 2;
             this.buttonBackToDashboard.Text = "Back to Dashboard";
             this.buttonBackToDashboard.UseVisualStyleBackColor = false;
+            // 
+            // buttonProceedToPayment
+            // 
+            this.buttonProceedToPayment.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(74)))), ((int)(((byte)(44)))), ((int)(((byte)(42)))));
+            this.buttonProceedToPayment.FlatAppearance.BorderSize = 0;
+            this.buttonProceedToPayment.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.buttonProceedToPayment.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold);
+            this.buttonProceedToPayment.ForeColor = System.Drawing.Color.White;
+            this.buttonProceedToPayment.Location = new System.Drawing.Point(830, 160);
+            this.buttonProceedToPayment.Name = "buttonProceedToPayment";
+            this.buttonProceedToPayment.Size = new System.Drawing.Size(150, 30);
+            this.buttonProceedToPayment.TabIndex = 3;
+            this.buttonProceedToPayment.Text = "Proceed to Payment";
+            this.buttonProceedToPayment.UseVisualStyleBackColor = false;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Segoe UI Semibold", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(20)))), ((int)(((byte)(16)))));
+            this.label1.Location = new System.Drawing.Point(22, 13);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(61, 17);
+            this.label1.TabIndex = 4;
+            this.label1.Text = "Checklist";
             // 
             // OrderMenuForm
             // 
@@ -143,5 +172,7 @@
         private System.Windows.Forms.ListBox listBoxOrderSummary;
         private System.Windows.Forms.Label labelTotal;
         private System.Windows.Forms.Button buttonBackToDashboard;
+        private System.Windows.Forms.Button buttonProceedToPayment;
+        private System.Windows.Forms.Label label1;
     }
 }

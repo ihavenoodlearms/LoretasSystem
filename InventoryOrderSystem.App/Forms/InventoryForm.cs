@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
+using InventoryOrderSystem.Forms;
 using InventoryOrderSystem.Models;
 using InventoryOrderSystem.Services;
 
@@ -8,11 +9,19 @@ namespace InventoryOrderSystem.App.Forms
     public partial class InventoryForm : Form
     {
         private readonly DatabaseManager dbManager;
+        private readonly User _currentUser;
 
-        public InventoryForm()
+        public InventoryForm(User currentUser)
         {
             InitializeComponent();
             dbManager = new DatabaseManager();
+            _currentUser = currentUser;
+        }
+
+        private void BackButton_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            new DashboardForm(_currentUser).Show();
         }
 
         private void InventoryForm_Load(object sender, EventArgs e)
