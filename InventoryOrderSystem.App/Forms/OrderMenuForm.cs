@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using System.IO;
+using Newtonsoft.Json;
 using InventoryOrderSystem.Forms;
 using InventoryOrderSystem.Models;
+using InventoryOrderSystem.Services;
 
 namespace InventoryOrderingSystem
 {
@@ -14,17 +17,114 @@ namespace InventoryOrderingSystem
         private List<OrderItem> orderItems;
         private User _currentUser;
         private Dictionary<string, GroupBox> productBoxes;
+        private DatabaseManager _dbManager;
+        private List<string> currentAddOns;
+        private const string ADD_ONS_FILE = "add_ons.json";
+
+        public event EventHandler<Order> OrderPlaced;
+
+        private void LoadAddOns()
+        {
+            if (File.Exists(ADD_ONS_FILE))
+            {
+                string json = File.ReadAllText(ADD_ONS_FILE);
+                currentAddOns = JsonConvert.DeserializeObject<List<string>>(json);
+            }
+            else
+            {
+                currentAddOns = new List<string>
+                {
+                    "Pearls", "Nata de Coco", "Rainbow Jelly", "Chia Seeds",
+                    "Crushed Oreo", "Crushed Graham", "Cream Cheese", "Brown Sugar", "Espresso"
+                };
+                SaveAddOns();
+            }
+        }
+
+        private void SaveAddOns()
+        {
+            string json = JsonConvert.SerializeObject(currentAddOns);
+            File.WriteAllText(ADD_ONS_FILE, json);
+        }
+
+        private void EditAddOns_Click(object sender, EventArgs e)
+        {
+            using (var form = new AddOnEditForm(currentAddOns))
+            {
+                var result = form.ShowDialog();
+                if (result == DialogResult.OK)
+                {
+                    currentAddOns = form.UpdatedAddOns;
+                    SaveAddOns();
+                    RefreshProductBoxes();
+                }
+            }
+        }
+
+        private void RefreshProductBoxes()
+        {
+            foreach (var productBox in productBoxes.Values)
+            {
+                UpdateProductBoxAddOns(productBox);
+            }
+        }
+
+        private void UpdateProductBoxAddOns(GroupBox productBox)
+        {
+            Panel addOnsPanel = productBox.Controls.OfType<Panel>().FirstOrDefault();
+            if (addOnsPanel != null)
+            {
+                addOnsPanel.Controls.Clear();
+
+                Label addOnsLabel = new Label
+                {
+                    Text = "Add-ons:",
+                    AutoSize = true,
+                    Location = new Point(5, 5)
+                };
+                addOnsPanel.Controls.Add(addOnsLabel);
+
+                int yPos = 25;
+                foreach (var addOn in currentAddOns)
+                {
+                    CheckBox addOnCheckBox = new CheckBox
+                    {
+                        Text = addOn,
+                        AutoSize = true,
+                        Location = new Point(5, yPos),
+                        Enabled = productBox.Controls.OfType<CheckBox>().First().Checked
+                    };
+                    addOnsPanel.Controls.Add(addOnCheckBox);
+                    yPos += 25;
+                }
+            }
+        }
 
         public OrderMenuForm(User user)
         {
             InitializeComponent();
-            _currentUser = user;
+            _currentUser = user ?? throw new ArgumentNullException(nameof(user));
+            _dbManager = new DatabaseManager();
             productBoxes = new Dictionary<string, GroupBox>();
             orderItems = new List<OrderItem>();
+            LoadAddOns();
             InitializeCategories();
             buttonBackToDashboard.Click += BackButton_Click;
             buttonProceedToPayment.Click += ProceedToPaymentButton_Click;
+
+            Button editAddOnsButton = new Button
+            {
+                Text = "Edit Add-ons",
+                Location = new Point(10, flowLayoutPanelCategories.Bottom + 10),
+                Size = new Size(100, 30),
+                BackColor = Color.FromArgb(74, 44, 42),
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat
+            };
+            editAddOnsButton.Click += EditAddOns_Click;
+            this.Controls.Add(editAddOnsButton);
         }
+
 
         private void InitializeCategories()
         {
@@ -40,7 +140,7 @@ namespace InventoryOrderingSystem
                         new Product("Wintermelon Cheesecake", 118.00m),
                     }
                 },
-                                {"Fruit Tea & Lemonade", new List<Product>
+                {"Fruit Tea & Lemonade", new List<Product>
                     {
                         new Product("Berry Blossom", 68.00m),
                         new Product("Blue Lemonade", 68.00m),
@@ -224,6 +324,18 @@ namespace InventoryOrderingSystem
                 AddCategoryButton(category);
             }
 
+            Button editAddOnsButton = new Button
+            {
+                Text = "Edit Add-ons",
+                Size = new Size(180, 40),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Color.FromArgb(74, 44, 42),
+                ForeColor = Color.White,
+                Margin = new Padding(0, 90, 0, 0) // Add some top margin to separate it from other buttons
+            };
+            editAddOnsButton.Click += EditAddOns_Click;
+            flowLayoutPanelCategories.Controls.Add(editAddOnsButton);
+
             if (flowLayoutPanelCategories.Controls.Count > 0)
             {
                 CategoryButton_Click(flowLayoutPanelCategories.Controls.OfType<Button>().First(), EventArgs.Empty);
@@ -273,7 +385,7 @@ namespace InventoryOrderingSystem
             GroupBox productBox = new GroupBox
             {
                 Text = product.Name,
-                Size = new Size(250, 300),
+                Size = new Size(250, 320),
                 Margin = new Padding(5)
             };
 
@@ -295,15 +407,34 @@ namespace InventoryOrderingSystem
                 Size = new Size(50, 25),
                 Enabled = false
             };
-            quantityUpDown.ValueChanged += (sender, e) => QuantityUpDown_ValueChanged(sender, e, product);
+
+            Button addToChecklistButton = new Button
+            {
+                Text = "Add to Checklist",
+                Location = new Point(10, 280),
+                Size = new Size(110, 30),
+                Enabled = true
+            };
+            addToChecklistButton.Click += (sender, e) => AddToChecklist_Click(sender, e, product);
+
+            Button removeFromChecklistButton = new Button
+            {
+                Text = "Remove",
+                Location = new Point(130, 280),
+                Size = new Size(110, 30),
+                Enabled = true
+            };
+            removeFromChecklistButton.Click += (sender, e) => RemoveFromChecklist_Click(sender, e, product);
 
             productBox.Controls.Add(checkBox);
             productBox.Controls.Add(quantityUpDown);
+            productBox.Controls.Add(addToChecklistButton);
+            productBox.Controls.Add(removeFromChecklistButton);
 
             string[] categoriesWithOptions = new string[]
             {
-                "Cheesecake Series", "Fruit Tea & Lemonade", "Milk Tea Classic",
-                "Fruit Milk", "Loreta's Specials", "Iced Coffee", "Frappe/Coffee"
+        "Cheesecake Series", "Fruit Tea & Lemonade", "Milk Tea Classic",
+        "Fruit Milk", "Loreta's Specials", "Iced Coffee", "Frappe/Coffee"
             };
 
             if (categoriesWithOptions.Any(category => categoryProducts[category].Contains(product)))
@@ -316,24 +447,25 @@ namespace InventoryOrderingSystem
                     Size = new Size(80, 25),
                     Enabled = false
                 };
-                sizeComboBox.SelectedIndexChanged += (s, e) => UpdateOrderSummary();
-
-                CheckBox extraShotCheckBox = new CheckBox
-                {
-                    Text = "Extra Shot",
-                    AutoSize = true,
-                    Location = new Point(100, 52),
-                    Enabled = false
-                };
-                extraShotCheckBox.CheckedChanged += (s, e) => UpdateOrderSummary();
 
                 productBox.Controls.Add(sizeComboBox);
-                productBox.Controls.Add(extraShotCheckBox);
+
+                if (categoryProducts["Frappe/Coffee"].Contains(product))
+                {
+                    CheckBox extraShotCheckBox = new CheckBox
+                    {
+                        Text = "Extra Shot",
+                        AutoSize = true,
+                        Location = new Point(100, 52),
+                        Enabled = false
+                    };
+                    productBox.Controls.Add(extraShotCheckBox);
+                }
 
                 Panel addOnsPanel = new Panel
                 {
                     Location = new Point(10, 80),
-                    Size = new Size(230, 210),
+                    Size = new Size(230, 190),
                     AutoScroll = true
                 };
                 productBox.Controls.Add(addOnsPanel);
@@ -346,14 +478,9 @@ namespace InventoryOrderingSystem
                 };
                 addOnsPanel.Controls.Add(addOnsLabel);
 
-                string[] addOns = new string[]
-                {
-                    "Pearls", "Nata de Coco", "Rainbow Jelly", "Chia Seeds",
-                    "Crushed Oreo", "Crushed Graham", "Cream Cheese", "Brown Sugar", "Espresso"
-                };
 
                 int yPos = 25;
-                foreach (var addOn in addOns)
+                foreach (var addOn in currentAddOns)
                 {
                     CheckBox addOnCheckBox = new CheckBox
                     {
@@ -362,13 +489,103 @@ namespace InventoryOrderingSystem
                         Location = new Point(5, yPos),
                         Enabled = false
                     };
-                    addOnCheckBox.CheckedChanged += (s, e) => UpdateOrderSummary();
                     addOnsPanel.Controls.Add(addOnCheckBox);
                     yPos += 25;
                 }
             }
 
             return productBox;
+        }
+
+        private void AddToChecklist_Click(object sender, EventArgs e, Product product)
+        {
+            Button button = (Button)sender;
+            GroupBox productBox = (GroupBox)button.Parent;
+
+            CheckBox mainCheckBox = productBox.Controls.OfType<CheckBox>().First();
+            if (!mainCheckBox.Checked)
+            {
+                MessageBox.Show("Please select the product before adding to the checklist.", "Product Not Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            NumericUpDown quantityUpDown = productBox.Controls.OfType<NumericUpDown>().First();
+            if (quantityUpDown.Value == 0)
+            {
+                MessageBox.Show("Please specify a quantity before adding to the checklist.", "Invalid Quantity", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            ComboBox sizeComboBox = productBox.Controls.OfType<ComboBox>().FirstOrDefault();
+            CheckBox extraShotCheckBox = productBox.Controls.OfType<CheckBox>().ElementAtOrDefault(1);
+            Panel addOnsPanel = productBox.Controls.OfType<Panel>().FirstOrDefault();
+
+            string size = sizeComboBox?.Text ?? "N/A";
+            bool extraShot = extraShotCheckBox?.Checked ?? false;
+            List<string> selectedAddOns = new List<string>();
+
+            if (addOnsPanel != null)
+            {
+                foreach (CheckBox addOnCheckBox in addOnsPanel.Controls.OfType<CheckBox>())
+                {
+                    if (addOnCheckBox.Checked)
+                    {
+                        selectedAddOns.Add(addOnCheckBox.Text);
+                    }
+                }
+            }
+
+            OrderItem newItem = new OrderItem(product, size, extraShot, (int)quantityUpDown.Value, selectedAddOns);
+            orderItems.Add(newItem);
+
+            string itemDescription = GetItemDescription(newItem);
+            listBoxOrderSummary.Items.Add(itemDescription);
+
+            decimal itemTotal = newItem.CalculatePrice();
+            decimal currentTotal = decimal.Parse(labelTotal.Text.Replace("Total: ₱", ""));
+            decimal newTotal = currentTotal + itemTotal;
+            labelTotal.Text = $"Total: ₱{newTotal:F2}";
+
+            MessageBox.Show("Item added to the checklist successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+            // Reset the quantity, but keep other selections intact
+            quantityUpDown.Value = 0;
+            mainCheckBox.Checked = false;
+        }
+
+        private void RemoveFromChecklist_Click(object sender, EventArgs e, Product product)
+        {
+            if (listBoxOrderSummary.SelectedIndex == -1)
+            {
+                MessageBox.Show("Please select an item from the checklist to remove.", "No Item Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string selectedItem = listBoxOrderSummary.SelectedItem.ToString();
+            OrderItem itemToRemove = orderItems.FirstOrDefault(item => GetItemDescription(item) == selectedItem);
+
+            if (itemToRemove != null)
+            {
+                orderItems.Remove(itemToRemove);
+                listBoxOrderSummary.Items.RemoveAt(listBoxOrderSummary.SelectedIndex);
+
+                decimal removedItemPrice = itemToRemove.CalculatePrice();
+                decimal currentTotal = decimal.Parse(labelTotal.Text.Replace("Total: ₱", ""));
+                decimal newTotal = currentTotal - removedItemPrice;
+                labelTotal.Text = $"Total: ₱{newTotal:F2}";
+
+                MessageBox.Show("Item removed from the checklist successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+
+        private string GetItemDescription(OrderItem item)
+        {
+            string description = $"{item.Product.Name} ({item.Size})";
+            if (item.ExtraShot) description += " +Shot";
+            if (item.AddOns.Any()) description += $" +{string.Join(", ", item.AddOns)}";
+            description += $" x{item.Quantity} - ₱{item.CalculatePrice():F2}";
+            return description;
         }
 
         private void ProductCheckBox_CheckedChanged(object sender, EventArgs e)
@@ -385,10 +602,14 @@ namespace InventoryOrderingSystem
                 sizeComboBox.Enabled = checkBox.Checked;
             }
 
-            CheckBox extraShotCheckBox = productBox.Controls.OfType<CheckBox>().ElementAtOrDefault(1);
-            if (extraShotCheckBox != null)
+            Product product = (Product)checkBox.Tag;
+            if (categoryProducts["Frappe/Coffee"].Contains(product))
             {
-                extraShotCheckBox.Enabled = checkBox.Checked;
+                CheckBox extraShotCheckBox = productBox.Controls.OfType<CheckBox>().ElementAtOrDefault(1);
+                if (extraShotCheckBox != null)
+                {
+                    extraShotCheckBox.Enabled = checkBox.Checked;
+                }
             }
 
             Panel addOnsPanel = productBox.Controls.OfType<Panel>().FirstOrDefault();
@@ -408,83 +629,6 @@ namespace InventoryOrderingSystem
             {
                 quantityUpDown.Value = 0;
             }
-
-            UpdateOrderSummary();
-        }
-
-        private void QuantityUpDown_ValueChanged(object sender, EventArgs e, Product product)
-        {
-            NumericUpDown quantityUpDown = (NumericUpDown)sender;
-            GroupBox productBox = (GroupBox)quantityUpDown.Parent;
-            CheckBox checkBox = productBox.Controls.OfType<CheckBox>().First();
-
-            if (quantityUpDown.Value > 0 && !checkBox.Checked)
-            {
-                checkBox.Checked = true;
-            }
-            else if (quantityUpDown.Value == 0 && checkBox.Checked)
-            {
-                checkBox.Checked = false;
-            }
-
-            UpdateOrderSummary();
-        }
-
-        private void UpdateOrderSummary()
-        {
-            orderItems.Clear();
-            listBoxOrderSummary.Items.Clear();
-            decimal total = 0;
-
-            foreach (var productBox in productBoxes.Values)
-            {
-                CheckBox checkBox = productBox.Controls.OfType<CheckBox>().First();
-                if (checkBox.Checked)
-                {
-                    Product product = (Product)checkBox.Tag;
-                    NumericUpDown quantityUpDown = productBox.Controls.OfType<NumericUpDown>().First();
-                    ComboBox sizeComboBox = productBox.Controls.OfType<ComboBox>().FirstOrDefault();
-                    CheckBox extraShotCheckBox = productBox.Controls.OfType<CheckBox>().ElementAtOrDefault(1);
-
-                    string size = sizeComboBox?.Text ?? "N/A";
-                    bool extraShot = extraShotCheckBox?.Checked ?? false;
-
-                    List<string> selectedAddOns = new List<string>();
-                    Panel addOnsPanel = productBox.Controls.OfType<Panel>().FirstOrDefault();
-                    if (addOnsPanel != null)
-                    {
-                        foreach (CheckBox addOnCheckBox in addOnsPanel.Controls.OfType<CheckBox>())
-                        {
-                            if (addOnCheckBox.Checked)
-                            {
-                                selectedAddOns.Add(addOnCheckBox.Text);
-                            }
-                        }
-                    }
-
-                    OrderItem item = new OrderItem(product, size, extraShot, (int)quantityUpDown.Value, selectedAddOns);
-                    orderItems.Add(item);
-
-                    decimal itemPrice = item.Product.Price;
-                    if (size == "16oz") itemPrice += 20;
-                    if (extraShot) itemPrice += 20;
-                    itemPrice += selectedAddOns.Count * 15; // Assuming each add-on costs ₱15
-
-                    string itemDescription = $"{item.Product.Name}";
-                    if (size != "N/A") itemDescription += $" ({size})";
-                    if (extraShot) itemDescription += " +Shot";
-                    if (selectedAddOns.Any())
-                    {
-                        itemDescription += $" +{string.Join(", ", selectedAddOns)}";
-                    }
-
-                    decimal totalItemPrice = itemPrice * item.Quantity;
-                    listBoxOrderSummary.Items.Add($"{itemDescription} x{item.Quantity} - ₱{totalItemPrice:F2}");
-                    total += totalItemPrice;
-                }
-            }
-
-            labelTotal.Text = $"Total: ₱{total:F2}";
         }
 
         private void BackButton_Click(object sender, EventArgs e)
@@ -511,9 +655,53 @@ namespace InventoryOrderingSystem
 
             if (result == DialogResult.Yes)
             {
-                this.Hide();
-                new PaymentForm(_currentUser, orderItems, decimal.Parse(labelTotal.Text.Replace("Total: ₱", ""))).Show();
+                if (_currentUser == null)
+                {
+                    MessageBox.Show("Error: No user is currently logged in.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                decimal totalAmount = decimal.Parse(labelTotal.Text.Replace("Total: ₱", ""));
+                Order newOrder = new Order
+                {
+                    UserId = _currentUser.UserId,
+                    OrderDate = DateTime.Now,
+                    TotalAmount = totalAmount,
+                    PaymentMethod = "Cash", // You can add a payment method selection if needed
+                    OrderItems = ConvertToOrderItems(orderItems),
+                    Status = "Active"
+                };
+
+                try
+                {
+                    _dbManager.AddOrder(newOrder);
+                    OrderPlaced?.Invoke(this, newOrder);
+                    MessageBox.Show("Order placed successfully!", "Order Placed", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    this.Close();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error placing order: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
+        }
+
+        private List<InventoryOrderSystem.Models.OrderItem> ConvertToOrderItems(List<InventoryOrderingSystem.OrderItem> menuOrderItems)
+        {
+            List<InventoryOrderSystem.Models.OrderItem> dbOrderItems = new List<InventoryOrderSystem.Models.OrderItem>();
+            foreach (var item in menuOrderItems)
+            {
+                dbOrderItems.Add(new InventoryOrderSystem.Models.OrderItem
+                {
+                    ItemId = _dbManager.GetItemIdFromName(item.Product.Name),
+                    Quantity = item.Quantity,
+                    Price = item.CalculatePrice(),
+                    Size = item.Size,
+                    ExtraShot = item.ExtraShot,
+                    AddOns = item.AddOns
+                });
+            }
+            return dbOrderItems;
         }
 
         private string GetOrderSummary()
@@ -532,6 +720,7 @@ namespace InventoryOrderingSystem
         }
     }
 
+
     public class Product
     {
         public string Name { get; set; }
@@ -546,11 +735,17 @@ namespace InventoryOrderingSystem
 
     public class OrderItem
     {
+        public int OrderItemId { get; set; }
+        public int OrderId { get; set; }
+        public int ItemId { get; set; }
         public Product Product { get; set; }
         public string Size { get; set; }
         public bool ExtraShot { get; set; }
         public int Quantity { get; set; }
+        public decimal Price { get; set; }
         public List<string> AddOns { get; set; }
+
+        public OrderItem() { }
 
         public OrderItem(Product product, string size, bool extraShot, int quantity, List<string> addOns)
         {

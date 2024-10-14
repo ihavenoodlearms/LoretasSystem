@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
 using InventoryOrderSystem.Forms;
 using InventoryOrderSystem.Models;
@@ -118,10 +119,47 @@ namespace InventoryOrderSystem.App.Forms
 
                 if (result == DialogResult.Yes)
                 {
-                    dbManager.DeleteInventoryItem(itemId);
-                    MessageBox.Show("Item deleted successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadInventory();
-                    ClearInputFields();
+                    // Create and show password input dialog
+                    using (var passwordForm = new Form())
+                    {
+                        passwordForm.Text = "Enter Password";
+                        passwordForm.Size = new Size(300, 150);
+                        passwordForm.StartPosition = FormStartPosition.CenterParent;
+
+                        Label passwordLabel = new Label() { Left = 20, Top = 20, Text = "Enter your password:" };
+                        TextBox passwordBox = new TextBox() { Left = 20, Top = 50, Width = 240, PasswordChar = '*' };
+                        Button confirmButton = new Button() { Text = "Confirm", Left = 100, Top = 80, DialogResult = DialogResult.OK };
+
+                        confirmButton.Click += (s, evt) => { passwordForm.Close(); };
+
+                        passwordForm.Controls.Add(passwordLabel);
+                        passwordForm.Controls.Add(passwordBox);
+                        passwordForm.Controls.Add(confirmButton);
+
+                        passwordForm.AcceptButton = confirmButton;
+
+                        if (passwordForm.ShowDialog(this) == DialogResult.OK)
+                        {
+                            string enteredPassword = passwordBox.Text;
+
+                            // Verify the password
+                            if (dbManager.VerifyPassword(_currentUser.UserId, enteredPassword))
+                            {
+                                dbManager.DeleteInventoryItem(itemId);
+                                MessageBox.Show("Item deleted successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                LoadInventory();
+                                ClearInputFields();
+                            }
+                            else
+                            {
+                                MessageBox.Show("Incorrect password. Item deletion canceled.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show("Item deletion canceled.", "Canceled", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
                 }
             }
             catch (Exception ex)
