@@ -180,7 +180,7 @@ namespace InventoryOrderSystem.Forms
         private void btnOrders_Click(object sender, EventArgs e)
         {
             this.Hide();
-            new OrderForm().Show();
+            new OrderForm(_currentUser).Show();
         }
 
         private void btnReports_Click(object sender, EventArgs e)

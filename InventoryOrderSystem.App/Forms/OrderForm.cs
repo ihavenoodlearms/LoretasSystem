@@ -10,14 +10,15 @@ namespace InventoryOrderSystem.Forms
 {
     public partial class OrderForm : Form
     {
-        private DatabaseManager _dbManager;
+        private readonly DatabaseManager _dbManager;
         private List<Order> _orders;
-        private User _currentUser;
+        private readonly User _currentUser;
 
-        public OrderForm()
+        public OrderForm(User user)
         {
             InitializeComponent();
             _dbManager = new DatabaseManager();
+            _currentUser = user;
         }
 
         private void OrderForm_Load(object sender, EventArgs e)
@@ -57,9 +58,8 @@ namespace InventoryOrderSystem.Forms
         }
         private void btnNewOrder_Click(object sender, EventArgs e)
         {
-            OrderMenuForm orderMenuForm = new OrderMenuForm(_currentUser);
-            orderMenuForm.OrderPlaced += OrderMenuForm_OrderPlaced;
-            orderMenuForm.Show();
+            this.Hide();
+            new OrderMenuForm(_currentUser).Show();
         }
 
         private void OrderMenuForm_OrderPlaced(object sender, Order newOrder)

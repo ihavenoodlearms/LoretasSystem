@@ -103,7 +103,7 @@ namespace InventoryOrderingSystem
         public OrderMenuForm(User user)
         {
             InitializeComponent();
-            _currentUser = user ?? throw new ArgumentNullException(nameof(user));
+            _currentUser = user;
             _dbManager = new DatabaseManager();
             productBoxes = new Dictionary<string, GroupBox>();
             orderItems = new List<OrderItem>();

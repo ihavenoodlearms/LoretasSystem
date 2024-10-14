@@ -12,11 +12,11 @@ namespace InventoryOrderSystem.App.Forms
         private readonly DatabaseManager dbManager;
         private readonly User _currentUser;
 
-        public InventoryForm(User currentUser)
+        public InventoryForm(User user)
         {
             InitializeComponent();
             dbManager = new DatabaseManager();
-            _currentUser = currentUser;
+            _currentUser = user;
         }
 
         private void BackButton_Click(object sender, EventArgs e)
