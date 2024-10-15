@@ -92,6 +92,8 @@
             this.Controls.Add(this.listBoxAddOns);
             this.Name = "AddOnEditForm";
             this.Text = "Edit Add-Ons";
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.ResumeLayout(false);
             this.PerformLayout();
 

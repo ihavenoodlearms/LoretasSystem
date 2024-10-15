@@ -46,7 +46,8 @@ namespace InventoryOrderSystem.Services
                         CREATE TABLE IF NOT EXISTS InventoryItems (
                             ItemId INTEGER PRIMARY KEY AUTOINCREMENT,
                             Name TEXT NOT NULL,
-                            Quantity INTEGER NOT NULL
+                            Quantity INTEGER NOT NULL,
+                            Category TEXT NOT NULL
                         )";
                     command.ExecuteNonQuery();
 
@@ -181,7 +182,8 @@ namespace InventoryOrderSystem.Services
                             {
                                 ItemId = Convert.ToInt32(reader["ItemId"]),
                                 Name = reader["Name"].ToString(),
-                                Quantity = Convert.ToInt32(reader["Quantity"])
+                                Quantity = Convert.ToInt32(reader["Quantity"]),
+                                Category = reader["Category"].ToString()
                             });
                         }
                     }
@@ -225,12 +227,13 @@ namespace InventoryOrderSystem.Services
             using (var connection = new SQLiteConnection(connectionString))
             {
                 connection.Open();
-                string query = @"INSERT INTO InventoryItems (Name, Quantity) 
-                         VALUES (@Name, @Quantity)";
+                string query = @"INSERT INTO InventoryItems (Name, Quantity, Category) 
+                     VALUES (@Name, @Quantity, @Category)";
                 using (var command = new SQLiteCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@Name", item.Name);
                     command.Parameters.AddWithValue("@Quantity", item.Quantity);
+                    command.Parameters.AddWithValue("@Category", item.Category);
                     command.ExecuteNonQuery();
                 }
             }
@@ -242,13 +245,14 @@ namespace InventoryOrderSystem.Services
             {
                 connection.Open();
                 string query = @"UPDATE InventoryItems 
-                                 SET Name = @Name, Quantity = @Quantity 
-                                 WHERE ItemId = @ItemId";
+                             SET Name = @Name, Quantity = @Quantity, Category = @Category 
+                             WHERE ItemId = @ItemId";
                 using (var command = new SQLiteCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@ItemId", item.ItemId);
                     command.Parameters.AddWithValue("@Name", item.Name);
                     command.Parameters.AddWithValue("@Quantity", item.Quantity);
+                    command.Parameters.AddWithValue("@Category", item.Category);
                     int rowsAffected = command.ExecuteNonQuery();
                     if (rowsAffected == 0)
                     {

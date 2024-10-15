@@ -29,6 +29,8 @@
             this.btnAdd = new System.Windows.Forms.Button();
             this.btnUpdate = new System.Windows.Forms.Button();
             this.btnDelete = new System.Windows.Forms.Button();
+            this.cboCategory = new System.Windows.Forms.ComboBox();
+            this.lblCategory = new System.Windows.Forms.Label();
             this.panelRestock = new System.Windows.Forms.Panel();
             this.lblRestock = new System.Windows.Forms.Label();
             this.btnRestock = new System.Windows.Forms.Button();
@@ -51,7 +53,7 @@
             this.inventoryGridView.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(160)))), ((int)(((byte)(82)))), ((int)(((byte)(45)))));
             this.inventoryGridView.Location = new System.Drawing.Point(12, 50);
             this.inventoryGridView.Name = "inventoryGridView";
-            this.inventoryGridView.Size = new System.Drawing.Size(776, 262);
+            this.inventoryGridView.Size = new System.Drawing.Size(776, 300);
             this.inventoryGridView.TabIndex = 0;
             this.inventoryGridView.SelectionChanged += new System.EventHandler(this.inventoryGridView_SelectionChanged);
             // 
@@ -70,9 +72,11 @@
             this.panelItemDetails.Controls.Add(this.btnAdd);
             this.panelItemDetails.Controls.Add(this.btnUpdate);
             this.panelItemDetails.Controls.Add(this.btnDelete);
-            this.panelItemDetails.Location = new System.Drawing.Point(12, 318);
+            this.panelItemDetails.Controls.Add(this.cboCategory);
+            this.panelItemDetails.Controls.Add(this.lblCategory);
+            this.panelItemDetails.Location = new System.Drawing.Point(12, 360);
             this.panelItemDetails.Name = "panelItemDetails";
-            this.panelItemDetails.Size = new System.Drawing.Size(500, 170);
+            this.panelItemDetails.Size = new System.Drawing.Size(500, 230);
             this.panelItemDetails.TabIndex = 1;
             // 
             // lblItemDetails
@@ -80,7 +84,7 @@
             this.lblItemDetails.AutoSize = true;
             this.lblItemDetails.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblItemDetails.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(33)))));
-            this.lblItemDetails.Location = new System.Drawing.Point(3, 10);
+            this.lblItemDetails.Location = new System.Drawing.Point(8, 6);
             this.lblItemDetails.Name = "lblItemDetails";
             this.lblItemDetails.Size = new System.Drawing.Size(102, 21);
             this.lblItemDetails.TabIndex = 8;
@@ -90,7 +94,7 @@
             // 
             this.lblQuantity.AutoSize = true;
             this.lblQuantity.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(33)))));
-            this.lblQuantity.Location = new System.Drawing.Point(20, 103);
+            this.lblQuantity.Location = new System.Drawing.Point(10, 99);
             this.lblQuantity.Name = "lblQuantity";
             this.lblQuantity.Size = new System.Drawing.Size(56, 15);
             this.lblQuantity.TabIndex = 6;
@@ -100,7 +104,7 @@
             // 
             this.lblItemName.AutoSize = true;
             this.lblItemName.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(33)))));
-            this.lblItemName.Location = new System.Drawing.Point(20, 73);
+            this.lblItemName.Location = new System.Drawing.Point(10, 69);
             this.lblItemName.Name = "lblItemName";
             this.lblItemName.Size = new System.Drawing.Size(69, 15);
             this.lblItemName.TabIndex = 5;
@@ -110,7 +114,7 @@
             // 
             this.lblItemId.AutoSize = true;
             this.lblItemId.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(33)))));
-            this.lblItemId.Location = new System.Drawing.Point(20, 43);
+            this.lblItemId.Location = new System.Drawing.Point(10, 39);
             this.lblItemId.Name = "lblItemId";
             this.lblItemId.Size = new System.Drawing.Size(48, 15);
             this.lblItemId.TabIndex = 4;
@@ -119,7 +123,7 @@
             // txtQuantity
             // 
             this.txtQuantity.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(248)))), ((int)(((byte)(240)))));
-            this.txtQuantity.Location = new System.Drawing.Point(100, 100);
+            this.txtQuantity.Location = new System.Drawing.Point(120, 97);
             this.txtQuantity.Name = "txtQuantity";
             this.txtQuantity.Size = new System.Drawing.Size(100, 23);
             this.txtQuantity.TabIndex = 2;
@@ -127,7 +131,7 @@
             // txtItemName
             // 
             this.txtItemName.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(248)))), ((int)(((byte)(240)))));
-            this.txtItemName.Location = new System.Drawing.Point(100, 70);
+            this.txtItemName.Location = new System.Drawing.Point(120, 67);
             this.txtItemName.Name = "txtItemName";
             this.txtItemName.Size = new System.Drawing.Size(200, 23);
             this.txtItemName.TabIndex = 1;
@@ -135,7 +139,7 @@
             // txtItemId
             // 
             this.txtItemId.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(248)))), ((int)(((byte)(240)))));
-            this.txtItemId.Location = new System.Drawing.Point(100, 40);
+            this.txtItemId.Location = new System.Drawing.Point(120, 37);
             this.txtItemId.Name = "txtItemId";
             this.txtItemId.ReadOnly = true;
             this.txtItemId.Size = new System.Drawing.Size(100, 23);
@@ -147,7 +151,7 @@
             this.btnAdd.FlatAppearance.BorderSize = 0;
             this.btnAdd.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnAdd.ForeColor = System.Drawing.Color.White;
-            this.btnAdd.Location = new System.Drawing.Point(100, 130);
+            this.btnAdd.Location = new System.Drawing.Point(120, 170);
             this.btnAdd.Name = "btnAdd";
             this.btnAdd.Size = new System.Drawing.Size(75, 30);
             this.btnAdd.TabIndex = 3;
@@ -161,7 +165,7 @@
             this.btnUpdate.FlatAppearance.BorderSize = 0;
             this.btnUpdate.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnUpdate.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(33)))));
-            this.btnUpdate.Location = new System.Drawing.Point(185, 130);
+            this.btnUpdate.Location = new System.Drawing.Point(230, 170);
             this.btnUpdate.Name = "btnUpdate";
             this.btnUpdate.Size = new System.Drawing.Size(75, 30);
             this.btnUpdate.TabIndex = 4;
@@ -175,13 +179,32 @@
             this.btnDelete.FlatAppearance.BorderSize = 0;
             this.btnDelete.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnDelete.ForeColor = System.Drawing.Color.White;
-            this.btnDelete.Location = new System.Drawing.Point(270, 130);
+            this.btnDelete.Location = new System.Drawing.Point(340, 170);
             this.btnDelete.Name = "btnDelete";
             this.btnDelete.Size = new System.Drawing.Size(75, 30);
             this.btnDelete.TabIndex = 5;
             this.btnDelete.Text = "Delete";
             this.btnDelete.UseVisualStyleBackColor = false;
             this.btnDelete.Click += new System.EventHandler(this.btnDelete_Click);
+            // 
+            // cboCategory
+            // 
+            this.cboCategory.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cboCategory.FormattingEnabled = true;
+            this.cboCategory.Location = new System.Drawing.Point(120, 127);
+            this.cboCategory.Name = "cboCategory";
+            this.cboCategory.Size = new System.Drawing.Size(200, 23);
+            this.cboCategory.TabIndex = 3;
+            // 
+            // lblCategory
+            // 
+            this.lblCategory.AutoSize = true;
+            this.lblCategory.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(33)))));
+            this.lblCategory.Location = new System.Drawing.Point(10, 129);
+            this.lblCategory.Name = "lblCategory";
+            this.lblCategory.Size = new System.Drawing.Size(58, 15);
+            this.lblCategory.TabIndex = 9;
+            this.lblCategory.Text = "Category:";
             // 
             // panelRestock
             // 
@@ -191,9 +214,9 @@
             this.panelRestock.Controls.Add(this.btnRestock);
             this.panelRestock.Controls.Add(this.txtRestockQuantity);
             this.panelRestock.Controls.Add(this.lblRestockQuantity);
-            this.panelRestock.Location = new System.Drawing.Point(518, 318);
+            this.panelRestock.Location = new System.Drawing.Point(518, 360);
             this.panelRestock.Name = "panelRestock";
-            this.panelRestock.Size = new System.Drawing.Size(270, 170);
+            this.panelRestock.Size = new System.Drawing.Size(270, 230);
             this.panelRestock.TabIndex = 2;
             // 
             // lblRestock
@@ -201,7 +224,7 @@
             this.lblRestock.AutoSize = true;
             this.lblRestock.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblRestock.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(33)))));
-            this.lblRestock.Location = new System.Drawing.Point(3, 10);
+            this.lblRestock.Location = new System.Drawing.Point(17, 19);
             this.lblRestock.Name = "lblRestock";
             this.lblRestock.Size = new System.Drawing.Size(69, 21);
             this.lblRestock.TabIndex = 9;
@@ -213,7 +236,7 @@
             this.btnRestock.FlatAppearance.BorderSize = 0;
             this.btnRestock.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnRestock.ForeColor = System.Drawing.Color.White;
-            this.btnRestock.Location = new System.Drawing.Point(20, 100);
+            this.btnRestock.Location = new System.Drawing.Point(86, 90);
             this.btnRestock.Name = "btnRestock";
             this.btnRestock.Size = new System.Drawing.Size(75, 30);
             this.btnRestock.TabIndex = 7;
@@ -224,7 +247,7 @@
             // txtRestockQuantity
             // 
             this.txtRestockQuantity.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(248)))), ((int)(((byte)(240)))));
-            this.txtRestockQuantity.Location = new System.Drawing.Point(20, 70);
+            this.txtRestockQuantity.Location = new System.Drawing.Point(126, 47);
             this.txtRestockQuantity.Name = "txtRestockQuantity";
             this.txtRestockQuantity.Size = new System.Drawing.Size(100, 23);
             this.txtRestockQuantity.TabIndex = 6;
@@ -259,7 +282,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(248)))), ((int)(((byte)(240)))));
-            this.ClientSize = new System.Drawing.Size(800, 500);
+            this.ClientSize = new System.Drawing.Size(800, 600);
             this.Controls.Add(this.btnBack);
             this.Controls.Add(this.panelRestock);
             this.Controls.Add(this.panelItemDetails);
@@ -297,5 +320,7 @@
         private System.Windows.Forms.Label lblRestockQuantity;
         private System.Windows.Forms.Label lblItemDetails;
         private System.Windows.Forms.Label lblRestock;
+        private System.Windows.Forms.ComboBox cboCategory;
+        private System.Windows.Forms.Label lblCategory;
     }
 }

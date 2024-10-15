@@ -132,6 +132,7 @@
     <Compile Include="Services\PaymentProcessor.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Utils\PasswordHasher.cs" />
+    <Compile Include="Utils\SortableBindingList.cs" />
     <EmbeddedResource Include="Forms\DashboardForm.resx">
       <DependentUpon>DashboardForm.cs</DependentUpon>
     </EmbeddedResource>

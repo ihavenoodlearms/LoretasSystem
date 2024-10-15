@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using System.ComponentModel;
 using InventoryOrderSystem.Forms;
 using InventoryOrderSystem.Models;
 using InventoryOrderSystem.Services;
+using InventoryOrderSystem.Utils;
 
 namespace InventoryOrderSystem.App.Forms
 {
@@ -11,12 +13,21 @@ namespace InventoryOrderSystem.App.Forms
     {
         private readonly DatabaseManager dbManager;
         private readonly User _currentUser;
+        private readonly string[] categories = { "Powder", "Syrup", "Fruit Tea Syrup", "Misc." };
 
         public InventoryForm(User user)
         {
             InitializeComponent();
             dbManager = new DatabaseManager();
             _currentUser = user;
+
+            // Initialize the category combo box
+            cboCategory.Items.AddRange(categories);
+            cboCategory.SelectedIndex = 0;
+
+            // Enable sorting for the DataGridView
+            inventoryGridView.AllowUserToOrderColumns = true;
+            inventoryGridView.AllowUserToResizeColumns = true;
         }
 
         private void BackButton_Click(object sender, EventArgs e)
@@ -33,8 +44,74 @@ namespace InventoryOrderSystem.App.Forms
 
         private void LoadInventory()
         {
-            inventoryGridView.DataSource = dbManager.GetAllInventoryItems();
+            var items = dbManager.GetAllInventoryItems();
+
+            // Convert the list to a SortableBindingList
+            var sortableList = new SortableBindingList<InventoryItem>(items);
+
+            // Set the DataGridView's DataSource to the SortableBindingList
+            inventoryGridView.DataSource = sortableList;
+
+            // Configure DataGridView properties
+            inventoryGridView.ReadOnly = true;
+            inventoryGridView.AllowUserToAddRows = false;
+            inventoryGridView.AllowUserToDeleteRows = false;
+            inventoryGridView.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+
+            // Ensure all columns are visible and properly named
+            inventoryGridView.Columns["ItemId"].HeaderText = "Item ID";
+            inventoryGridView.Columns["Name"].HeaderText = "Item Name";
+            inventoryGridView.Columns["Quantity"].HeaderText = "Quantity";
+            inventoryGridView.Columns["Category"].HeaderText = "Category";
+
+            // Set column properties
+            inventoryGridView.Columns["ItemId"].ReadOnly = true;
+            inventoryGridView.Columns["Name"].ReadOnly = true;
+            inventoryGridView.Columns["Quantity"].ReadOnly = true;
+            inventoryGridView.Columns["Category"].ReadOnly = true;
+
+            // Apply the initial sort here, after the data has been loaded
+            inventoryGridView.Sort(inventoryGridView.Columns["ItemId"], ListSortDirection.Ascending);
+
+            // Attach the ColumnHeader_Click method to the ColumnHeaderMouseClick event
+            inventoryGridView.ColumnHeaderMouseClick -= ColumnHeader_Click; // Remove any existing handler
+            inventoryGridView.ColumnHeaderMouseClick += ColumnHeader_Click; // Add the new handler
+
             inventoryGridView.Refresh();
+        }
+
+        private void ColumnHeader_Click(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            DataGridViewColumn newColumn = inventoryGridView.Columns[e.ColumnIndex];
+            DataGridViewColumn oldColumn = inventoryGridView.SortedColumn;
+            ListSortDirection direction;
+
+            // If oldColumn is null, then the DataGridView is not currently sorted.
+            if (oldColumn != null)
+            {
+                // Sort the same column again, reversing the SortOrder.
+                if (oldColumn == newColumn &&
+                    inventoryGridView.SortOrder == SortOrder.Ascending)
+                {
+                    direction = ListSortDirection.Descending;
+                }
+                else
+                {
+                    // Sort a new column and remove the old SortGlyph.
+                    direction = ListSortDirection.Ascending;
+                    oldColumn.HeaderCell.SortGlyphDirection = SortOrder.None;
+                }
+            }
+            else
+            {
+                direction = ListSortDirection.Ascending;
+            }
+
+            // Sort the selected column.
+            inventoryGridView.Sort(newColumn, direction);
+            newColumn.HeaderCell.SortGlyphDirection =
+                direction == ListSortDirection.Ascending ?
+                SortOrder.Ascending : SortOrder.Descending;
         }
 
         private void CheckLowInventory()
@@ -59,6 +136,7 @@ namespace InventoryOrderSystem.App.Forms
                 txtItemId.Text = selectedItem.ItemId.ToString();
                 txtItemName.Text = selectedItem.Name;
                 txtQuantity.Text = selectedItem.Quantity.ToString();
+                cboCategory.SelectedItem = selectedItem.Category;
             }
         }
 
@@ -69,7 +147,8 @@ namespace InventoryOrderSystem.App.Forms
                 var newItem = new InventoryItem
                 {
                     Name = txtItemName.Text,
-                    Quantity = int.Parse(txtQuantity.Text)
+                    Quantity = int.Parse(txtQuantity.Text),
+                    Category = cboCategory.SelectedItem.ToString()
                 };
 
                 dbManager.AddNewInventoryItem(newItem);
@@ -91,7 +170,8 @@ namespace InventoryOrderSystem.App.Forms
                 {
                     ItemId = int.Parse(txtItemId.Text),
                     Name = txtItemName.Text,
-                    Quantity = int.Parse(txtQuantity.Text)
+                    Quantity = int.Parse(txtQuantity.Text),
+                    Category = cboCategory.SelectedItem.ToString()
                 };
 
                 dbManager.UpdateInventoryItem(updatedItem);
@@ -125,9 +205,12 @@ namespace InventoryOrderSystem.App.Forms
                         passwordForm.Text = "Enter Password";
                         passwordForm.Size = new Size(300, 150);
                         passwordForm.StartPosition = FormStartPosition.CenterParent;
+                        passwordForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                        passwordForm.MaximizeBox = false;
+                        passwordForm.MinimizeBox = false;
 
-                        Label passwordLabel = new Label() { Left = 20, Top = 20, Text = "Enter your password:" };
-                        TextBox passwordBox = new TextBox() { Left = 20, Top = 50, Width = 240, PasswordChar = '*' };
+                        Label passwordLabel = new Label() { Left = 20, Top = 20, Text = "Enter your password:", AutoSize = true };
+                        TextBox passwordBox = new TextBox() { Left = 20, Top = 50, Width = 240, PasswordChar = '*'};
                         Button confirmButton = new Button() { Text = "Confirm", Left = 100, Top = 80, DialogResult = DialogResult.OK };
 
                         confirmButton.Click += (s, evt) => { passwordForm.Close(); };
@@ -197,6 +280,7 @@ namespace InventoryOrderSystem.App.Forms
             txtItemId.Clear();
             txtItemName.Clear();
             txtQuantity.Clear();
+            cboCategory.SelectedIndex = 0;
             txtRestockQuantity.Clear();
         }
     }
