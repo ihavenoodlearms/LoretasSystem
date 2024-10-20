@@ -14,7 +14,7 @@ namespace InventoryOrderSystem.Utils
         protected override bool SupportsSortingCore => true;
 
         protected override bool IsSortedCore => _isSorted;
-
+        
         protected override PropertyDescriptor SortPropertyCore => _sortProperty;
 
         protected override ListSortDirection SortDirectionCore => _sortDirection;

@@ -120,6 +120,7 @@
     </Compile>
     <Compile Include="Models\InventoryItem.cs" />
     <Compile Include="Models\Order.cs" />
+    <Compile Include="Models\ProductCatalog.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -141,6 +142,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\LoginForm.resx">
       <DependentUpon>LoginForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\OrderForm.resx">
+      <DependentUpon>OrderForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\OrderMenuForm.resx">
       <DependentUpon>OrderMenuForm.cs</DependentUpon>

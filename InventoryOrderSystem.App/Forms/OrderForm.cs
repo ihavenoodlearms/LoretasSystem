@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
 using InventoryOrderingSystem;
 using InventoryOrderSystem.Models;
 using InventoryOrderSystem.Services;
+using InventoryOrderSystem.Utils;
 
 namespace InventoryOrderSystem.Forms
 {
@@ -12,7 +14,9 @@ namespace InventoryOrderSystem.Forms
     {
         private readonly DatabaseManager _dbManager;
         private List<Order> _orders;
+        private SortableBindingList<OrderViewModel> _bindingOrders;
         private readonly User _currentUser;
+        private OrderMenuForm _orderMenuForm;
 
         public OrderForm(User user)
         {
@@ -29,16 +33,18 @@ namespace InventoryOrderSystem.Forms
         private void LoadOrders()
         {
             _orders = _dbManager.GetAllOrders();
-            var flattenedOrders = _orders.Select(o => new
+            var orderViewModels = _orders.Select(o => new OrderViewModel
             {
-                o.OrderId,
-                o.UserId,
-                o.OrderDate,
-                o.TotalAmount,
-                o.PaymentMethod,
+                OrderId = o.OrderId,
+                UserId = o.UserId,
+                OrderDate = o.OrderDate,
+                TotalAmount = o.TotalAmount,
+                PaymentMethod = o.PaymentMethod,
                 OrderItemsCount = o.OrderItems.Count
             }).ToList();
-            dgvOrders.DataSource = flattenedOrders;
+
+            _bindingOrders = new SortableBindingList<OrderViewModel>(orderViewModels);
+            dgvOrders.DataSource = _bindingOrders;
             FormatDataGridView();
         }
 
@@ -49,31 +55,70 @@ namespace InventoryOrderSystem.Forms
             dgvOrders.Columns["OrderDate"].HeaderText = "Order Date";
             dgvOrders.Columns["TotalAmount"].HeaderText = "Total Amount";
             dgvOrders.Columns["PaymentMethod"].HeaderText = "Payment Method";
+            dgvOrders.Columns["OrderItemsCount"].HeaderText = "Items Count";
 
-            // Check if the OrderItems column exists before trying to access it
-            if (dgvOrders.Columns.Contains("OrderItems"))
-            {
-                dgvOrders.Columns["OrderItems"].Visible = false;
-            }
+            // Adjust column widths
+            dgvOrders.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
+            dgvOrders.Columns["OrderDate"].Width = 150; // Adjust as needed
+
+            // Enable sorting
+            dgvOrders.Sort(dgvOrders.Columns["OrderId"], ListSortDirection.Descending);
         }
+
         private void btnNewOrder_Click(object sender, EventArgs e)
         {
+            if (_orderMenuForm == null || _orderMenuForm.IsDisposed)
+            {
+                _orderMenuForm = new OrderMenuForm(_currentUser);
+                _orderMenuForm.OrderPlaced += OrderMenuForm_OrderPlaced;
+                _orderMenuForm.FormClosed += (s, args) => this.Show();
+            }
+            _orderMenuForm.Show();
             this.Hide();
-            new OrderMenuForm(_currentUser).Show();
         }
 
         private void OrderMenuForm_OrderPlaced(object sender, Order newOrder)
         {
-            _dbManager.AddOrder(newOrder);
-            LoadOrders();
+            // Ensure this method is called on the UI thread
+            if (InvokeRequired)
+            {
+                Invoke(new Action<object, Order>(OrderMenuForm_OrderPlaced), sender, newOrder);
+                return;
+            }
+
+            if (newOrder.OrderItems.Count == 0)
+            {
+                MessageBox.Show("Cannot place an order with no items.", "Empty Order", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Check if the order already exists to prevent duplication
+            if (!_orders.Any(o => o.OrderId == newOrder.OrderId))
+            {
+                _dbManager.AddOrder(newOrder);
+                LoadOrders();
+            }
+
+            // Close the OrderMenuForm
+            if (sender is OrderMenuForm orderMenuForm)
+            {
+                orderMenuForm.Close();
+            }
+
+            // Show this form
+            this.Show();
         }
 
         private void btnViewOrder_Click(object sender, EventArgs e)
         {
             if (dgvOrders.SelectedRows.Count > 0)
             {
-                Order selectedOrder = (Order)dgvOrders.SelectedRows[0].DataBoundItem;
-                MessageBox.Show(GetOrderDetails(selectedOrder), "Order Details", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                int orderId = Convert.ToInt32(dgvOrders.SelectedRows[0].Cells["OrderId"].Value);
+                Order selectedOrder = _orders.FirstOrDefault(o => o.OrderId == orderId);
+                if (selectedOrder != null)
+                {
+                    MessageBox.Show(GetOrderDetails(selectedOrder), "Order Details", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
             else
             {
@@ -116,5 +161,21 @@ namespace InventoryOrderSystem.Forms
                 }
             }
         }
+
+        private void btnBack_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            new DashboardForm(_currentUser).Show();
+        }
+    }
+
+    public class OrderViewModel
+    {
+        public int OrderId { get; set; }
+        public int UserId { get; set; }
+        public DateTime OrderDate { get; set; }
+        public decimal TotalAmount { get; set; }
+        public string PaymentMethod { get; set; }
+        public int OrderItemsCount { get; set; }
     }
 }

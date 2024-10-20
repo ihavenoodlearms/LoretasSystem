@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using InventoryOrderSystem.Forms;
 using InventoryOrderSystem.Models;
 using InventoryOrderSystem.Services;
+using InventoryOrderSystem;
 
 namespace InventoryOrderingSystem
 {
@@ -397,6 +398,7 @@ namespace InventoryOrderingSystem
                 Location = new Point(10, 20)
             };
             checkBox.CheckedChanged += ProductCheckBox_CheckedChanged;
+            productBox.Controls.Add(checkBox);
 
             NumericUpDown quantityUpDown = new NumericUpDown
             {
@@ -662,26 +664,84 @@ namespace InventoryOrderingSystem
                 }
 
                 decimal totalAmount = decimal.Parse(labelTotal.Text.Replace("Total: ₱", ""));
+                List<InventoryOrderSystem.Models.OrderItem> convertedItems = ConvertToOrderItems(orderItems);
+
+                if (convertedItems.Count == 0)
+                {
+                    MessageBox.Show("Error: Unable to process order items.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
                 Order newOrder = new Order
                 {
                     UserId = _currentUser.UserId,
                     OrderDate = DateTime.Now,
                     TotalAmount = totalAmount,
                     PaymentMethod = "Cash", // You can add a payment method selection if needed
-                    OrderItems = ConvertToOrderItems(orderItems),
+                    OrderItems = convertedItems,
                     Status = "Active"
                 };
 
-                try
+                OrderPlaced?.Invoke(this, newOrder);
+                ResetOrderForm();
+            }
+        }
+
+        private void ResetOrderForm()
+        {
+            // Clear the order items list
+            orderItems.Clear();
+
+            // Clear the listbox
+            listBoxOrderSummary.Items.Clear();
+
+            // Reset the total
+            labelTotal.Text = "Total: ₱0.00";
+
+            // Reset all product boxes
+            foreach (var productBox in productBoxes.Values)
+            {
+                var mainCheckBox = productBox.Controls.OfType<CheckBox>().FirstOrDefault();
+                if (mainCheckBox != null)
                 {
-                    _dbManager.AddOrder(newOrder);
-                    OrderPlaced?.Invoke(this, newOrder);
-                    MessageBox.Show("Order placed successfully!", "Order Placed", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    this.Close();
+                    mainCheckBox.Checked = false;
                 }
-                catch (Exception ex)
+
+                var quantityUpDown = productBox.Controls.OfType<NumericUpDown>().FirstOrDefault();
+                if (quantityUpDown != null)
                 {
-                    MessageBox.Show($"Error placing order: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    quantityUpDown.Value = 0;
+                }
+
+                var sizeComboBox = productBox.Controls.OfType<ComboBox>().FirstOrDefault();
+                if (sizeComboBox != null)
+                {
+                    sizeComboBox.SelectedIndex = 0;
+                }
+
+                var extraShotCheckBox = productBox.Controls.OfType<CheckBox>().ElementAtOrDefault(1);
+                if (extraShotCheckBox != null)
+                {
+                    extraShotCheckBox.Checked = false;
+                }
+
+                var addOnsPanel = productBox.Controls.OfType<Panel>().FirstOrDefault();
+                if (addOnsPanel != null)
+                {
+                    foreach (var addOnCheckBox in addOnsPanel.Controls.OfType<CheckBox>())
+                    {
+                        addOnCheckBox.Checked = false;
+                    }
+                }
+            }
+
+            // Optionally, reset the category view to the first category
+            if (flowLayoutPanelCategories.Controls.Count > 0)
+            {
+                var firstCategoryButton = flowLayoutPanelCategories.Controls.OfType<Button>().FirstOrDefault();
+                if (firstCategoryButton != null)
+                {
+                    CategoryButton_Click(firstCategoryButton, EventArgs.Empty);
                 }
             }
         }
@@ -691,15 +751,23 @@ namespace InventoryOrderingSystem
             List<InventoryOrderSystem.Models.OrderItem> dbOrderItems = new List<InventoryOrderSystem.Models.OrderItem>();
             foreach (var item in menuOrderItems)
             {
-                dbOrderItems.Add(new InventoryOrderSystem.Models.OrderItem
+                int itemId = ProductCatalog.GetProductId(item.Product.Name);
+                if (itemId != -1)
                 {
-                    ItemId = _dbManager.GetItemIdFromName(item.Product.Name),
-                    Quantity = item.Quantity,
-                    Price = item.CalculatePrice(),
-                    Size = item.Size,
-                    ExtraShot = item.ExtraShot,
-                    AddOns = item.AddOns
-                });
+                    dbOrderItems.Add(new InventoryOrderSystem.Models.OrderItem
+                    {
+                        ItemId = itemId,
+                        Quantity = item.Quantity,
+                        Price = item.CalculatePrice(),
+                        Size = item.Size,
+                        ExtraShot = item.ExtraShot,
+                        AddOns = item.AddOns
+                    });
+                }
+                else
+                {
+                    MessageBox.Show($"Warning: Item '{item.Product.Name}' not found in the catalog. It will be skipped.", "Item Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
             }
             return dbOrderItems;
         }
