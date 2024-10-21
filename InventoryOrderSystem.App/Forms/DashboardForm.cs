@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using InventoryOrderingSystem;
 using InventoryOrderSystem.App.Forms;
 using InventoryOrderSystem.Models;
+using InventoryOrderSystem.Services;
 
 namespace InventoryOrderSystem.Forms
 {
@@ -13,6 +14,9 @@ namespace InventoryOrderSystem.Forms
     {
         private User _currentUser;
         private bool sidebarExpanded = true;
+        private Panel pnlSettings;
+        private DatabaseManager _dbManager;
+        private DateTime currentDate;
 
         // Sample data - replace with actual data from your database
         private decimal totalSales = 0;
@@ -29,8 +33,11 @@ namespace InventoryOrderSystem.Forms
         {
             InitializeComponent();
             _currentUser = user;
+            _dbManager = new DatabaseManager();
+            currentDate = DateTime.Today;
             ApplyStyles();
             SetupDashboard();
+            CreateSettingsPanel();
         }
 
         private void ApplyStyles()
@@ -99,6 +106,23 @@ namespace InventoryOrderSystem.Forms
             dgvTopProducts.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             dgvTopProducts.ColumnHeadersDefaultCellStyle.BackColor = darkBrown;
             dgvTopProducts.ColumnHeadersDefaultCellStyle.ForeColor = cream;
+
+            // Set column headers
+            dgvTopProducts.Columns.Clear();
+            dgvTopProducts.Columns.Add("Product", "Product");
+            dgvTopProducts.Columns.Add("Quantity", "Quantity");
+            dgvTopProducts.Columns.Add("Revenue", "Revenue");
+
+            // Adjust column widths
+            dgvTopProducts.Columns["Product"].Width = 200;
+            dgvTopProducts.Columns["Quantity"].Width = 100;
+            dgvTopProducts.Columns["Revenue"].Width = 120;
+
+            // Align column headers
+            foreach (DataGridViewColumn column in dgvTopProducts.Columns)
+            {
+                column.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            }
         }
 
         private void StyleMenuButton()
@@ -124,6 +148,18 @@ namespace InventoryOrderSystem.Forms
             SetFormSize();
             InitializeDashboardData();
             UpdateDashboard();
+
+            var topProducts = _dbManager.GetTopProductsForDate(currentDate);
+            if (topProducts.Count > 0)
+            {
+                dgvTopProducts.Rows.Clear();
+                foreach (var product in topProducts)
+                {
+                    dgvTopProducts.Rows.Add(product.Product, product.Quantity, product.Revenue.ToString("C"));
+                }
+                RefreshDataGridView();
+            }
+
             AdjustMainPanelLayout();
 
             lblWelcome.Text = _currentUser != null ? $"Welcome, {_currentUser.Username}!" : "Welcome!";
@@ -134,6 +170,32 @@ namespace InventoryOrderSystem.Forms
             btnToggleSidebar.Visible = true;
             btnToggleSidebar.BringToFront();
             btnToggleSidebar.Location = new Point(pnlSidebar.Width + 12, 12);
+
+            btnSettings.Click += btnSettings_Click;
+
+            Button btnPreviousDay = new Button
+            {
+                Text = "<",
+                Size = new Size(30, 30),
+                Location = new Point(lblDate.Left - 40, lblDate.Top)
+            };
+            btnPreviousDay.Click += btnPreviousDay_Click;
+
+            Button btnNextDay = new Button
+            {
+                Text = ">",
+                Size = new Size(30, 30),
+                Location = new Point(lblDate.Right + 10, lblDate.Top)
+            };
+            btnNextDay.Click += btnNextDay_Click;
+
+            pnlMain.Controls.Add(btnPreviousDay);
+            pnlMain.Controls.Add(btnNextDay);
+        }
+
+        private void RefreshDataGridView()
+        {
+            dgvTopProducts.Refresh();
         }
 
         private void SetFormSize()
@@ -147,20 +209,15 @@ namespace InventoryOrderSystem.Forms
 
         private void InitializeDashboardData()
         {
-            // TODO: Fetch this data from your database
-            totalSales = 2450.00m;
-            transactionCount = 25;
-            topProducts = new List<(string, int, decimal)>
-            {
-                ("Americano", 15, 1125.00m),
-                ("Triple Chocolate Mocha", 10, 850.00m),
-                // Add more products as needed
-            };
+            // Fetch real-time data from the database
+            totalSales = _dbManager.GetTotalSalesForDate(currentDate);
+            transactionCount = _dbManager.GetTransactionCountForDate(currentDate);
+            topProducts = _dbManager.GetTopProductsForDate(currentDate);
         }
 
         private void UpdateDashboard()
         {
-            lblDate.Text = DateTime.Now.ToString("MM/dd/yyyy");
+            lblDate.Text = currentDate.ToString("MM/dd/yyyy");
             lblTotalSales.Text = $"Total Sales: {totalSales:C}";
             lblTransactionCount.Text = $"Transactions: {transactionCount}";
 
@@ -169,6 +226,88 @@ namespace InventoryOrderSystem.Forms
             {
                 dgvTopProducts.Rows.Add(product.Product, product.Quantity, product.Revenue.ToString("C"));
             }
+        }
+
+        // Add a method to change the current date
+        private void ChangeDate(DateTime newDate)
+        {
+            currentDate = newDate;
+            InitializeDashboardData();
+            UpdateDashboard();
+        }
+
+        // You might want to add buttons or a date picker to allow changing the date
+        private void btnPreviousDay_Click(object sender, EventArgs e)
+        {
+            ChangeDate(currentDate.AddDays(-1));
+        }
+
+        private void btnNextDay_Click(object sender, EventArgs e)
+        {
+            ChangeDate(currentDate.AddDays(1));
+        }
+
+        private void CreateSettingsPanel()
+        {
+            pnlSettings = new Panel
+            {
+                Visible = false,
+                BackColor = cream,
+                Size = new Size(300, 200),
+                Location = new Point((this.ClientSize.Width - 300) / 2, (this.ClientSize.Height - 200) / 2)
+            };
+
+            Label lblSettings = new Label
+            {
+                Text = "Settings",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = darkBrown,
+                AutoSize = true,
+                Location = new Point(10, 10)
+            };
+
+            Button btnSignOut = new Button
+            {
+                Text = "Sign Out",
+                Size = new Size(200, 40),
+                Location = new Point(50, 60),
+                BackColor = accentGreen,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat
+            };
+            btnSignOut.FlatAppearance.BorderSize = 0;
+            btnSignOut.Click += BtnSignOut_Click;
+
+            Button btnCloseSettings = new Button
+            {
+                Text = "Close",
+                Size = new Size(200, 40),
+                Location = new Point(50, 110),
+                BackColor = lightBrown,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat
+            };
+            btnCloseSettings.FlatAppearance.BorderSize = 0;
+            btnCloseSettings.Click += (s, e) => pnlSettings.Visible = false;
+
+            pnlSettings.Controls.AddRange(new Control[] { lblSettings, btnSignOut, btnCloseSettings });
+            this.Controls.Add(pnlSettings);
+            pnlSettings.BringToFront();
+        }
+
+        private void BtnSignOut_Click(object sender, EventArgs e)
+        {
+            DialogResult result = MessageBox.Show("Are you sure you want to sign out?", "Confirm Sign Out", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (result == DialogResult.Yes)
+            {
+                this.Close();
+                new LoginForm().Show();
+            }
+        }
+
+        private void btnSettings_Click(object sender, EventArgs e)
+        {
+            pnlSettings.Visible = true;
         }
 
         private void btnInventory_Click(object sender, EventArgs e)

@@ -28,6 +28,7 @@ namespace InventoryOrderSystem.Forms
             this.panelHeader = new System.Windows.Forms.Panel();
             this.btnBack = new System.Windows.Forms.Button();
             this.labelTitle = new System.Windows.Forms.Label();
+            this.btnVoidOrder = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvOrders)).BeginInit();
             this.panelHeader.SuspendLayout();
             this.SuspendLayout();
@@ -130,12 +131,28 @@ namespace InventoryOrderSystem.Forms
             this.labelTitle.Text = "Order Management";
             this.labelTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // btnVoidOrder
+            // 
+            this.btnVoidOrder.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.btnVoidOrder.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnVoidOrder.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnVoidOrder.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnVoidOrder.ForeColor = System.Drawing.Color.White;
+            this.btnVoidOrder.Location = new System.Drawing.Point(630, 370);
+            this.btnVoidOrder.Name = "btnVoidOrder";
+            this.btnVoidOrder.Size = new System.Drawing.Size(150, 40);
+            this.btnVoidOrder.TabIndex = 4;
+            this.btnVoidOrder.Text = "Void Order";
+            this.btnVoidOrder.UseVisualStyleBackColor = false;
+            this.btnVoidOrder.Click += new System.EventHandler(this.btnVoidOrder_Click_1);
+            // 
             // OrderForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(248)))), ((int)(((byte)(220)))));
             this.ClientSize = new System.Drawing.Size(800, 430);
+            this.Controls.Add(this.btnVoidOrder);
             this.Controls.Add(this.panelHeader);
             this.Controls.Add(this.dgvOrders);
             this.Controls.Add(this.btnNewOrder);
@@ -159,5 +176,6 @@ namespace InventoryOrderSystem.Forms
         private System.Windows.Forms.Panel panelHeader;
         private System.Windows.Forms.Label labelTitle;
         private Button btnBack;
+        private Button btnVoidOrder;
     }
 }

@@ -34,10 +34,10 @@
             this.lblTotalSales = new System.Windows.Forms.Label();
             this.lblTransactionCount = new System.Windows.Forms.Label();
             this.dgvTopProducts = new System.Windows.Forms.DataGridView();
-            this.tmrUpdateDashboard = new System.Windows.Forms.Timer(this.components);
             this.colProduct = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colQuantity = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colRevenue = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.tmrUpdateDashboard = new System.Windows.Forms.Timer(this.components);
             this.pnlSidebar.SuspendLayout();
             this.pnlLogo.SuspendLayout();
             this.pnlHeader.SuspendLayout();
@@ -67,6 +67,7 @@
             this.btnSettings.TabIndex = 4;
             this.btnSettings.Text = "Settings";
             this.btnSettings.UseVisualStyleBackColor = true;
+            this.btnSettings.Click += new System.EventHandler(this.btnSettings_Click);
             // 
             // btnReports
             // 
@@ -145,7 +146,7 @@
             this.lblWelcome.AutoSize = true;
             this.lblWelcome.Location = new System.Drawing.Point(632, 41);
             this.lblWelcome.Name = "lblWelcome";
-            this.lblWelcome.Size = new System.Drawing.Size(65, 13);
+            this.lblWelcome.Size = new System.Drawing.Size(58, 13);
             this.lblWelcome.TabIndex = 0;
             this.lblWelcome.Text = "Welcome, ";
             // 
@@ -187,7 +188,7 @@
             this.lblTotalSales.AutoSize = true;
             this.lblTotalSales.Location = new System.Drawing.Point(20, 50);
             this.lblTotalSales.Name = "lblTotalSales";
-            this.lblTotalSales.Size = new System.Drawing.Size(89, 13);
+            this.lblTotalSales.Size = new System.Drawing.Size(93, 13);
             this.lblTotalSales.TabIndex = 1;
             this.lblTotalSales.Text = "Total Sales: $0.00";
             // 
@@ -202,8 +203,8 @@
             // 
             // dgvTopProducts
             // 
-            this.dgvTopProducts.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
+            this.dgvTopProducts.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.dgvTopProducts.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvTopProducts.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -215,12 +216,6 @@
             this.dgvTopProducts.Name = "dgvTopProducts";
             this.dgvTopProducts.Size = new System.Drawing.Size(748, 489);
             this.dgvTopProducts.TabIndex = 3;
-            // 
-            // tmrUpdateDashboard
-            // 
-            this.tmrUpdateDashboard.Enabled = true;
-            this.tmrUpdateDashboard.Interval = 60000;
-            this.tmrUpdateDashboard.Tick += new System.EventHandler(this.tmrUpdateDashboard_Tick);
             // 
             // colProduct
             // 
@@ -236,6 +231,12 @@
             // 
             this.colRevenue.HeaderText = "Total Revenue";
             this.colRevenue.Name = "colRevenue";
+            // 
+            // tmrUpdateDashboard
+            // 
+            this.tmrUpdateDashboard.Enabled = true;
+            this.tmrUpdateDashboard.Interval = 60000;
+            this.tmrUpdateDashboard.Tick += new System.EventHandler(this.tmrUpdateDashboard_Tick);
             // 
             // DashboardForm
             // 

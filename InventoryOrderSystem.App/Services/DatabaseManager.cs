@@ -445,24 +445,34 @@ namespace InventoryOrderSystem.Services
                     try
                     {
                         string updateOrderQuery = @"
-                            UPDATE Orders 
-                            SET Status = 'Voided'
-                            WHERE OrderId = @OrderId";
-
+                    UPDATE Orders 
+                    SET Status = 'Voided'
+                    WHERE OrderId = @OrderId";
                         using (var command = new SQLiteCommand(updateOrderQuery, connection, transaction))
                         {
                             command.Parameters.AddWithValue("@OrderId", orderId);
-                            command.ExecuteNonQuery();
+                            int rowsAffected = command.ExecuteNonQuery();
+                            if (rowsAffected == 0)
+                            {
+                                throw new Exception("No order was updated. The order might not exist.");
+                            }
                         }
 
                         // Restore inventory
                         string restoreInventoryQuery = @"
-                            UPDATE InventoryItems
-                            SET Quantity = Quantity + OrderItems.Quantity
-                            FROM OrderItems
-                            WHERE OrderItems.OrderId = @OrderId
-                            AND InventoryItems.ItemId = OrderItems.ItemId";
-
+                    UPDATE InventoryItems
+                    SET Quantity = Quantity + (
+                        SELECT OrderItems.Quantity
+                        FROM OrderItems
+                        WHERE OrderItems.OrderId = @OrderId
+                        AND OrderItems.ItemId = InventoryItems.ItemId
+                    )
+                    WHERE EXISTS (
+                        SELECT 1
+                        FROM OrderItems
+                        WHERE OrderItems.OrderId = @OrderId
+                        AND OrderItems.ItemId = InventoryItems.ItemId
+                    )";
                         using (var command = new SQLiteCommand(restoreInventoryQuery, connection, transaction))
                         {
                             command.Parameters.AddWithValue("@OrderId", orderId);
@@ -471,10 +481,10 @@ namespace InventoryOrderSystem.Services
 
                         transaction.Commit();
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
                         transaction.Rollback();
-                        throw;
+                        throw new Exception($"Error voiding order: {ex.Message}", ex);
                     }
                 }
             }
@@ -570,6 +580,76 @@ namespace InventoryOrderSystem.Services
             }
 
             return orders;
+        }
+
+        public decimal GetTotalSalesForDate(DateTime date)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = @"
+                SELECT SUM(TotalAmount) 
+                FROM Orders 
+                WHERE date(OrderDate) = date(@Date) AND Status != 'Voided'";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Date", date.ToString("yyyy-MM-dd"));
+                    object result = command.ExecuteScalar();
+                    return result == DBNull.Value ? 0 : Convert.ToDecimal(result);
+                }
+            }
+        }
+
+        public int GetTransactionCountForDate(DateTime date)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = @"
+                SELECT COUNT(*) 
+                FROM Orders 
+                WHERE date(OrderDate) = date(@Date) AND Status != 'Voided'";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Date", date.ToString("yyyy-MM-dd"));
+                    return Convert.ToInt32(command.ExecuteScalar());
+                }
+            }
+        }
+
+        public List<(string Product, int Quantity, decimal Revenue)> GetTopProductsForDate(DateTime date, int topCount = 5)
+        {
+            var topProducts = new List<(string Product, int Quantity, decimal Revenue)>();
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = @"
+                SELECT i.Name, SUM(oi.Quantity) as TotalQuantity, SUM(oi.Price * oi.Quantity) as TotalRevenue
+                FROM OrderItems oi
+                JOIN Orders o ON oi.OrderId = o.OrderId
+                JOIN InventoryItems i ON oi.ItemId = i.ItemId
+                WHERE date(o.OrderDate) = date(@Date) AND o.Status != 'Voided'
+                GROUP BY i.ItemId
+                ORDER BY TotalRevenue DESC
+                LIMIT @TopCount";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Date", date.ToString("yyyy-MM-dd"));
+                    command.Parameters.AddWithValue("@TopCount", topCount);
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            topProducts.Add((
+                                reader.GetString(0),
+                                reader.GetInt32(1),
+                                reader.GetDecimal(2)
+                            ));
+                        }
+                    }
+                }
+            }
+            return topProducts;
         }
 
         private string GetDatabasePath()

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using InventoryOrderingSystem;
@@ -40,7 +41,8 @@ namespace InventoryOrderSystem.Forms
                 OrderDate = o.OrderDate,
                 TotalAmount = o.TotalAmount,
                 PaymentMethod = o.PaymentMethod,
-                OrderItemsCount = o.OrderItems.Count
+                OrderItemsCount = o.OrderItems.Count,
+                Status = o.Status
             }).ToList();
 
             _bindingOrders = new SortableBindingList<OrderViewModel>(orderViewModels);
@@ -56,6 +58,7 @@ namespace InventoryOrderSystem.Forms
             dgvOrders.Columns["TotalAmount"].HeaderText = "Total Amount";
             dgvOrders.Columns["PaymentMethod"].HeaderText = "Payment Method";
             dgvOrders.Columns["OrderItemsCount"].HeaderText = "Items Count";
+            dgvOrders.Columns["Status"].HeaderText = "Status";
 
             // Adjust column widths
             dgvOrders.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
@@ -63,6 +66,34 @@ namespace InventoryOrderSystem.Forms
 
             // Enable sorting
             dgvOrders.Sort(dgvOrders.Columns["OrderId"], ListSortDirection.Descending);
+
+            // Add the CellFormatting event handler
+            dgvOrders.CellFormatting += DgvOrders_CellFormatting;
+        }
+
+        private void DgvOrders_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.RowIndex >= 0)
+            {
+                DataGridViewRow row = dgvOrders.Rows[e.RowIndex];
+                string status = row.Cells["Status"].Value?.ToString();
+
+                if (status == "Voided")
+                {
+                    row.DefaultCellStyle.BackColor = Color.LightPink;
+                    row.DefaultCellStyle.ForeColor = Color.DarkRed;
+                }
+                else
+                {
+                    row.DefaultCellStyle.BackColor = dgvOrders.DefaultCellStyle.BackColor;
+                    row.DefaultCellStyle.ForeColor = dgvOrders.DefaultCellStyle.ForeColor;
+                }
+            }
+        }
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            base.OnFormClosing(e);
+            dgvOrders.CellFormatting -= DgvOrders_CellFormatting;
         }
 
         private void btnNewOrder_Click(object sender, EventArgs e)
@@ -143,21 +174,74 @@ namespace InventoryOrderSystem.Forms
             return details;
         }
 
-        public void VoidOrder(int orderId)
+        private void btnVoidOrder_Click_1(object sender, EventArgs e)
         {
-            DialogResult result = MessageBox.Show("Are you sure you want to void this order?", "Void Order", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (dgvOrders.SelectedRows.Count > 0)
+            {
+                int orderId = Convert.ToInt32(dgvOrders.SelectedRows[0].Cells["OrderId"].Value);
+                VoidOrderWithConfirmation(orderId);
+            }
+            else
+            {
+                MessageBox.Show("Please select an order to void.", "No Order Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void VoidOrderWithConfirmation(int orderId)
+        {
+            DialogResult result = MessageBox.Show("Are you sure you want to void this order?", "Confirm Void", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result == DialogResult.Yes)
             {
-                try
+                // Create and show password input dialog
+                using (var passwordForm = new Form())
                 {
-                    _dbManager.VoidOrder(orderId);
-                    MessageBox.Show("Order has been voided successfully.", "Order Voided", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadOrders();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"An error occurred while voiding the order: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    passwordForm.Text = "Enter Password";
+                    passwordForm.Size = new Size(300, 150);
+                    passwordForm.StartPosition = FormStartPosition.CenterParent;
+                    passwordForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                    passwordForm.MaximizeBox = false;
+                    passwordForm.MinimizeBox = false;
+
+                    Label passwordLabel = new Label() { Left = 20, Top = 20, Text = "Enter your password:", AutoSize = true };
+                    TextBox passwordBox = new TextBox() { Left = 20, Top = 50, Width = 240, PasswordChar = '*' };
+                    Button confirmButton = new Button() { Text = "Confirm", Left = 100, Top = 80, DialogResult = DialogResult.OK };
+
+                    confirmButton.Click += (s, evt) => { passwordForm.Close(); };
+
+                    passwordForm.Controls.Add(passwordLabel);
+                    passwordForm.Controls.Add(passwordBox);
+                    passwordForm.Controls.Add(confirmButton);
+
+                    passwordForm.AcceptButton = confirmButton;
+
+                    if (passwordForm.ShowDialog(this) == DialogResult.OK)
+                    {
+                        string enteredPassword = passwordBox.Text;
+
+                        // Verify the password
+                        if (_dbManager.VerifyPassword(_currentUser.UserId, enteredPassword))
+                        {
+                            try
+                            {
+                                _dbManager.VoidOrder(orderId);
+                                MessageBox.Show("Order has been voided successfully.", "Order Voided", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                LoadOrders();  // Refresh the orders list
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($"An error occurred while voiding the order: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show("Incorrect password. Order voiding canceled.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Order voiding canceled.", "Canceled", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
                 }
             }
         }
@@ -167,6 +251,7 @@ namespace InventoryOrderSystem.Forms
             this.Hide();
             new DashboardForm(_currentUser).Show();
         }
+
     }
 
     public class OrderViewModel
@@ -177,5 +262,6 @@ namespace InventoryOrderSystem.Forms
         public decimal TotalAmount { get; set; }
         public string PaymentMethod { get; set; }
         public int OrderItemsCount { get; set; }
+        public string Status { get; set; }  
     }
 }
