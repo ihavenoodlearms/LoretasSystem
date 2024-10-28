@@ -154,16 +154,16 @@ namespace InventoryOrderingSystem
                 },
                 {"Milk Tea Classic", new List<Product>
                     {
-                        new Product("Chocolate", 78.00m),
-                        new Product("Cookies and Cream", 78.00m),
-                        new Product("Dark Chocolate", 78.00m),
-                        new Product("Hazelnut", 78.00m),
-                        new Product("Matcha", 78.00m),
-                        new Product("Mocha", 78.00m),
-                        new Product("Okinawa", 78.00m),
-                        new Product("Taro", 78.00m),
-                        new Product("Ube", 78.00m),
-                        new Product("Wintermelon", 78.00m),
+                        new Product("Chocolate (Milk Tea)", 78.00m),
+                        new Product("Cookies and Cream (Milk Tea)", 78.00m),
+                        new Product("Dark Chocolate (Milk Tea)", 78.00m),
+                        new Product("Hazelnut (Milk Tea)", 78.00m),
+                        new Product("Matcha (Milk Tea)", 78.00m),
+                        new Product("Mocha (Milk Tea)", 78.00m),
+                        new Product("Okinawa (Milk Tea)", 78.00m),
+                        new Product("Taro (Milk Tea)", 78.00m),
+                        new Product("Ube (Milk Tea)", 78.00m),
+                        new Product("Wintermelon (Milk Tea)", 78.00m),
                     }
                 },
                 {"Fruit Milk", new List<Product>
@@ -184,10 +184,10 @@ namespace InventoryOrderingSystem
                 {"Iced Coffee", new List<Product>
                     {
                         new Product("Americano", 68.00m),
-                        new Product("Cafe Latte", 78.00m),
+                        new Product("Cafe Latte (Iced Coffe)", 78.00m),
                         new Product("Cafe Mocha", 78.00m),
                         new Product("Caramel Macchiato", 78.00m),
-                        new Product("Cappuccino", 78.00m),
+                        new Product("Cappuccino (Iced Coffee)", 78.00m),
                         new Product("Dirty Matcha", 138.00m),
                         new Product("French Vanilla", 78.00m),
                         new Product("Matcha Latte", 98.00m),
@@ -197,27 +197,31 @@ namespace InventoryOrderingSystem
                 },
                 {"Frappe/Coffee", new List<Product>
                     {
-                        new Product("Black Forest", 98.00m),
-                        new Product("Cafe Latte", 98.00m),
-                        new Product("Cappuccino", 98.00m),
-                        new Product("Caramel", 98.00m),
-                        new Product("Choc Chip", 98.00m),
-                        new Product("Cookies and Cream", 98.00m),
-                        new Product("Dark Chocolate", 98.00m),
-                        new Product("Double Dutch", 98.00m),
-                        new Product("Mango Graham", 98.00m),
-                        new Product("Matcha", 98.00m),
-                        new Product("Mocha", 98.00m),
-                        new Product("Strawberry", 98.00m),
-                        new Product("Vanilla", 98.00m),
+                        new Product("Black Forest (Coffee Frappe)", 98.00m),
+                        new Product("Cafe Latte (Coffee Frappe)", 98.00m),
+                        new Product("Cappuccino (Coffee Frappe)", 98.00m),
+                        new Product("Caramel (Coffee Frappe)", 98.00m),
+                        new Product("Choc Chip (Coffee Frappe)", 98.00m),
+                        new Product("Cookies and Cream (Coffee Frappe)", 98.00m),
+                        new Product("Dark Chocolate (Coffee Frappe)", 98.00m),
+                        new Product("Double Dutch (Coffee Frappe)", 98.00m),
+                        new Product("Mango Graham (Coffee Frappe)", 98.00m),
+                        new Product("Matcha (Coffee Frappe)", 98.00m),
+                        new Product("Mocha (Coffee Frappe)", 98.00m),
+                        new Product("Strawberry (Coffee Frappe)", 98.00m),
+                        new Product("Vanilla (Coffee Frappe)", 98.00m),
                     }
                 },
                 {"Garlic Parmesan & Buffalo Wings", new List<Product>
                     {
-                        new Product("3 pcs", 109.00m),
-                        new Product("4 pcs", 139.00m),
-                        new Product("3 pcs • rice", 139.00m),
-                        new Product("4 pcs • rice", 169.00m),
+                        new Product("Garlic Parmesan 3 pcs", 109.00m),
+                        new Product("Buffalo Wings 3 pcs", 109.00m),
+                        new Product("Garlic Parmesan 4 pcs", 139.00m),
+                        new Product("Buffalo Wings 4 pcs", 139.00m),
+                        new Product("Garlic Parmesan 3 pcs • rice", 139.00m),
+                        new Product("Buffalo Wings 3 pcs • rice", 139.00m),
+                        new Product("Garlic Parmesan 4 pcs • rice", 169.00m),
+                        new Product("Buffalo Wings 4 pcs • rice", 169.00m),
                     }
                 },
                 {"Chicken Burger", new List<Product>
@@ -757,6 +761,7 @@ namespace InventoryOrderingSystem
                     dbOrderItems.Add(new InventoryOrderSystem.Models.OrderItem
                     {
                         ItemId = itemId,
+                        ProductName = item.Product.Name,
                         Quantity = item.Quantity,
                         Price = item.CalculatePrice(),
                         Size = item.Size,
@@ -806,6 +811,7 @@ namespace InventoryOrderingSystem
         public int OrderItemId { get; set; }
         public int OrderId { get; set; }
         public int ItemId { get; set; }
+        public string ProductName { get; set; }
         public Product Product { get; set; }
         public string Size { get; set; }
         public bool ExtraShot { get; set; }
@@ -818,6 +824,7 @@ namespace InventoryOrderingSystem
         public OrderItem(Product product, string size, bool extraShot, int quantity, List<string> addOns)
         {
             Product = product;
+            ProductName = product.Name;
             Size = size;
             ExtraShot = extraShot;
             Quantity = quantity;

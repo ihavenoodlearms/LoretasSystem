@@ -21,6 +21,7 @@ namespace InventoryOrderSystem.Models
         public int OrderItemId { get; set; }
         public int OrderId { get; set; }
         public int ItemId { get; set; }
+        public string ProductName { get; set; }
         public int Quantity { get; set; }
         public decimal Price { get; set; } // Added Price property
         public string Size { get; set; }

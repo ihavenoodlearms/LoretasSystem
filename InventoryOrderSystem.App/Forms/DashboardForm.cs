@@ -17,6 +17,7 @@ namespace InventoryOrderSystem.Forms
         private Panel pnlSettings;
         private DatabaseManager _dbManager;
         private DateTime currentDate;
+        private OrderMenuForm _orderMenuForm;
 
         // Sample data - replace with actual data from your database
         private decimal totalSales = 0;
@@ -361,8 +362,21 @@ namespace InventoryOrderSystem.Forms
 
         private void btnMenu_Click(object sender, EventArgs e)
         {
+            if (_orderMenuForm == null || _orderMenuForm.IsDisposed)
+            {
+                _orderMenuForm = new OrderMenuForm(_currentUser);
+                _orderMenuForm.OrderPlaced += OrderMenuForm_OrderPlaced;
+                _orderMenuForm.FormClosed += (s, args) => this.Show();
+            }
+            _orderMenuForm.Show();
             this.Hide();
-            new OrderMenuForm(_currentUser).Show();
+        }
+
+        private void OrderMenuForm_OrderPlaced(object sender, Order newOrder)
+        {
+            // Refresh the dashboard data
+            InitializeDashboardData();
+            UpdateDashboard();
         }
 
         private void AdjustMainPanelLayout()

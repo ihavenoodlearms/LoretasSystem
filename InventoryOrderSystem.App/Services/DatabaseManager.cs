@@ -65,11 +65,13 @@ namespace InventoryOrderSystem.Services
                     command.ExecuteNonQuery();
 
                     // Create OrderItems table
+                    // Create OrderItems table
                     command.CommandText = @"
                         CREATE TABLE IF NOT EXISTS OrderItems (
                             OrderItemId INTEGER PRIMARY KEY AUTOINCREMENT,
                             OrderId INTEGER NOT NULL,
                             ItemId INTEGER NOT NULL,
+                            ProductName TEXT NOT NULL,
                             Quantity INTEGER NOT NULL,
                             Price REAL NOT NULL,
                             FOREIGN KEY(OrderId) REFERENCES Orders(OrderId),
@@ -328,13 +330,14 @@ namespace InventoryOrderSystem.Services
                             foreach (var item in order.OrderItems)
                             {
                                 string insertOrderItemQuery = @"
-                                    INSERT INTO OrderItems (OrderId, ItemId, Quantity, Price)
-                                    VALUES (@OrderId, @ItemId, @Quantity, @Price)";
+                                INSERT INTO OrderItems (OrderId, ItemId, ProductName, Quantity, Price)
+                                VALUES (@OrderId, @ItemId, @ProductName, @Quantity, @Price)";
 
                                 using (var itemCommand = new SQLiteCommand(insertOrderItemQuery, connection, transaction))
                                 {
                                     itemCommand.Parameters.AddWithValue("@OrderId", orderId);
                                     itemCommand.Parameters.AddWithValue("@ItemId", item.ItemId);
+                                    itemCommand.Parameters.AddWithValue("@ProductName", item.ProductName);
                                     itemCommand.Parameters.AddWithValue("@Quantity", item.Quantity);
                                     itemCommand.Parameters.AddWithValue("@Price", item.Price);
                                     itemCommand.ExecuteNonQuery();
@@ -374,10 +377,10 @@ namespace InventoryOrderSystem.Services
             {
                 connection.Open();
                 string query = @"
-                    SELECT o.*, oi.OrderItemId, oi.ItemId, oi.Quantity, oi.Price 
-                    FROM Orders o
-                    LEFT JOIN OrderItems oi ON o.OrderId = oi.OrderId
-                    ORDER BY o.OrderDate DESC";
+            SELECT o.*, oi.OrderItemId, oi.ItemId, oi.ProductName, oi.Quantity, oi.Price 
+            FROM Orders o
+            LEFT JOIN OrderItems oi ON o.OrderId = oi.OrderId
+            ORDER BY o.OrderDate DESC";
 
                 using (var command = new SQLiteCommand(query, connection))
                 {
@@ -418,6 +421,7 @@ namespace InventoryOrderSystem.Services
                                     OrderItemId = reader.GetInt32(reader.GetOrdinal("OrderItemId")),
                                     OrderId = orderId,
                                     ItemId = reader.GetInt32(reader.GetOrdinal("ItemId")),
+                                    ProductName = reader.GetString(reader.GetOrdinal("ProductName")),
                                     Quantity = reader.GetInt32(reader.GetOrdinal("Quantity")),
                                     Price = reader.GetDecimal(reader.GetOrdinal("Price"))
                                 });
@@ -624,14 +628,13 @@ namespace InventoryOrderSystem.Services
             {
                 connection.Open();
                 string query = @"
-                SELECT i.Name, SUM(oi.Quantity) as TotalQuantity, SUM(oi.Price * oi.Quantity) as TotalRevenue
-                FROM OrderItems oi
-                JOIN Orders o ON oi.OrderId = o.OrderId
-                JOIN InventoryItems i ON oi.ItemId = i.ItemId
-                WHERE date(o.OrderDate) = date(@Date) AND o.Status != 'Voided'
-                GROUP BY i.ItemId
-                ORDER BY TotalRevenue DESC
-                LIMIT @TopCount";
+        SELECT oi.ProductName, SUM(oi.Quantity) as TotalQuantity, SUM(oi.Price * oi.Quantity) as TotalRevenue
+        FROM OrderItems oi
+        JOIN Orders o ON oi.OrderId = o.OrderId
+        WHERE date(o.OrderDate) = date(@Date) AND o.Status != 'Voided'
+        GROUP BY oi.ProductName
+        ORDER BY TotalRevenue DESC
+        LIMIT @TopCount";
                 using (var command = new SQLiteCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@Date", date.ToString("yyyy-MM-dd"));
