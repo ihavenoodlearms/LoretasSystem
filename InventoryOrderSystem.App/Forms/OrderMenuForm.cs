@@ -184,7 +184,7 @@ namespace InventoryOrderingSystem
                 {"Iced Coffee", new List<Product>
                     {
                         new Product("Americano", 68.00m),
-                        new Product("Cafe Latte (Iced Coffe)", 78.00m),
+                        new Product("Cafe Latte (Iced Coffee)", 78.00m),
                         new Product("Cafe Mocha", 78.00m),
                         new Product("Caramel Macchiato", 78.00m),
                         new Product("Cappuccino (Iced Coffee)", 78.00m),

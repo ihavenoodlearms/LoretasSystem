@@ -1,8 +1,4 @@
-﻿using System;
-using System.Drawing;
-using System.Windows.Forms;
-
-namespace InventoryOrderSystem.Forms
+﻿namespace InventoryOrderSystem.Forms
 {
     partial class OrderForm
     {
@@ -17,147 +13,145 @@ namespace InventoryOrderSystem.Forms
             base.Dispose(disposing);
         }
 
+        #region Windows Form Designer generated code
+
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle13 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle14 = new System.Windows.Forms.DataGridViewCellStyle();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle15 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dgvOrders = new System.Windows.Forms.DataGridView();
+            this.buttonPanel = new System.Windows.Forms.Panel();
             this.btnNewOrder = new System.Windows.Forms.Button();
             this.btnViewOrder = new System.Windows.Forms.Button();
-            this.panelHeader = new System.Windows.Forms.Panel();
-            this.btnBack = new System.Windows.Forms.Button();
-            this.labelTitle = new System.Windows.Forms.Label();
             this.btnVoidOrder = new System.Windows.Forms.Button();
+            this.btnPayOrder = new System.Windows.Forms.Button();
+            this.btnBack = new System.Windows.Forms.Button();
+            this.headerLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dgvOrders)).BeginInit();
-            this.panelHeader.SuspendLayout();
+            this.buttonPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // dgvOrders
             // 
-            dataGridViewCellStyle13.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(248)))), ((int)(((byte)(220)))));
-            this.dgvOrders.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle13;
-            this.dgvOrders.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.dgvOrders.AllowUserToAddRows = false;
+            this.dgvOrders.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.dgvOrders.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(248)))), ((int)(((byte)(220)))));
+            this.dgvOrders.BackgroundColor = System.Drawing.SystemColors.Control;
             this.dgvOrders.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.dgvOrders.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
-            dataGridViewCellStyle14.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-            dataGridViewCellStyle14.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(139)))), ((int)(((byte)(69)))), ((int)(((byte)(19)))));
-            dataGridViewCellStyle14.Font = new System.Drawing.Font("Segoe UI", 9F);
-            dataGridViewCellStyle14.ForeColor = System.Drawing.Color.White;
-            dataGridViewCellStyle14.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle14.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle14.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.dgvOrders.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle14;
-            this.dgvOrders.ColumnHeadersHeight = 40;
-            this.dgvOrders.EnableHeadersVisualStyles = false;
-            this.dgvOrders.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(139)))), ((int)(((byte)(69)))), ((int)(((byte)(19)))));
-            this.dgvOrders.Location = new System.Drawing.Point(20, 80);
+            this.dgvOrders.Location = new System.Drawing.Point(12, 86);
+            this.dgvOrders.Margin = new System.Windows.Forms.Padding(12);
             this.dgvOrders.MultiSelect = false;
             this.dgvOrders.Name = "dgvOrders";
-            dataGridViewCellStyle15.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(235)))), ((int)(((byte)(205)))));
-            this.dgvOrders.RowsDefaultCellStyle = dataGridViewCellStyle15;
-            this.dgvOrders.RowTemplate.Height = 30;
+            this.dgvOrders.ReadOnly = true;
             this.dgvOrders.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvOrders.Size = new System.Drawing.Size(760, 280);
+            this.dgvOrders.Size = new System.Drawing.Size(976, 412);
             this.dgvOrders.TabIndex = 1;
+            // 
+            // buttonPanel
+            // 
+            this.buttonPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(230)))), ((int)(((byte)(210)))), ((int)(((byte)(181)))));
+            this.buttonPanel.Controls.Add(this.btnNewOrder);
+            this.buttonPanel.Controls.Add(this.btnViewOrder);
+            this.buttonPanel.Controls.Add(this.btnVoidOrder);
+            this.buttonPanel.Controls.Add(this.btnPayOrder);
+            this.buttonPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.buttonPanel.Location = new System.Drawing.Point(0, 510);
+            this.buttonPanel.Name = "buttonPanel";
+            this.buttonPanel.Size = new System.Drawing.Size(1000, 90);
+            this.buttonPanel.TabIndex = 2;
             // 
             // btnNewOrder
             // 
             this.btnNewOrder.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(91)))), ((int)(((byte)(123)))), ((int)(((byte)(122)))));
-            this.btnNewOrder.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnNewOrder.FlatAppearance.BorderSize = 0;
             this.btnNewOrder.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnNewOrder.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnNewOrder.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.btnNewOrder.ForeColor = System.Drawing.Color.White;
-            this.btnNewOrder.Location = new System.Drawing.Point(20, 370);
+            this.btnNewOrder.Location = new System.Drawing.Point(12, 27);
             this.btnNewOrder.Name = "btnNewOrder";
-            this.btnNewOrder.Size = new System.Drawing.Size(150, 40);
-            this.btnNewOrder.TabIndex = 2;
+            this.btnNewOrder.Size = new System.Drawing.Size(150, 35);
+            this.btnNewOrder.TabIndex = 0;
             this.btnNewOrder.Text = "Make Order";
             this.btnNewOrder.UseVisualStyleBackColor = false;
-            this.btnNewOrder.Click += new System.EventHandler(this.btnNewOrder_Click);
             // 
             // btnViewOrder
             // 
-            this.btnViewOrder.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(139)))), ((int)(((byte)(69)))), ((int)(((byte)(19)))));
-            this.btnViewOrder.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.btnViewOrder.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(139)))), ((int)(((byte)(68)))), ((int)(((byte)(19)))));
+            this.btnViewOrder.FlatAppearance.BorderSize = 0;
             this.btnViewOrder.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnViewOrder.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnViewOrder.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.btnViewOrder.ForeColor = System.Drawing.Color.White;
-            this.btnViewOrder.Location = new System.Drawing.Point(190, 370);
+            this.btnViewOrder.Location = new System.Drawing.Point(168, 27);
             this.btnViewOrder.Name = "btnViewOrder";
-            this.btnViewOrder.Size = new System.Drawing.Size(150, 40);
-            this.btnViewOrder.TabIndex = 3;
+            this.btnViewOrder.Size = new System.Drawing.Size(150, 35);
+            this.btnViewOrder.TabIndex = 1;
             this.btnViewOrder.Text = "View Order";
             this.btnViewOrder.UseVisualStyleBackColor = false;
-            this.btnViewOrder.Click += new System.EventHandler(this.btnViewOrder_Click);
             // 
-            // panelHeader
+            // btnVoidOrder
             // 
-            this.panelHeader.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(74)))), ((int)(((byte)(44)))), ((int)(((byte)(42)))));
-            this.panelHeader.Controls.Add(this.btnBack);
-            this.panelHeader.Controls.Add(this.labelTitle);
-            this.panelHeader.Dock = System.Windows.Forms.DockStyle.Top;
-            this.panelHeader.Location = new System.Drawing.Point(0, 0);
-            this.panelHeader.Name = "panelHeader";
-            this.panelHeader.Size = new System.Drawing.Size(800, 60);
-            this.panelHeader.TabIndex = 0;
+            this.btnVoidOrder.BackColor = System.Drawing.Color.Firebrick;
+            this.btnVoidOrder.FlatAppearance.BorderSize = 0;
+            this.btnVoidOrder.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnVoidOrder.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnVoidOrder.ForeColor = System.Drawing.Color.White;
+            this.btnVoidOrder.Location = new System.Drawing.Point(838, 27);
+            this.btnVoidOrder.Name = "btnVoidOrder";
+            this.btnVoidOrder.Size = new System.Drawing.Size(150, 35);
+            this.btnVoidOrder.TabIndex = 2;
+            this.btnVoidOrder.Text = "Void Order";
+            this.btnVoidOrder.UseVisualStyleBackColor = false;
+            // 
+            // btnPayOrder
+            // 
+            this.btnPayOrder.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(74)))), ((int)(((byte)(44)))), ((int)(((byte)(42)))));
+            this.btnPayOrder.FlatAppearance.BorderSize = 0;
+            this.btnPayOrder.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnPayOrder.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnPayOrder.ForeColor = System.Drawing.Color.White;
+            this.btnPayOrder.Location = new System.Drawing.Point(324, 27);
+            this.btnPayOrder.Name = "btnPayOrder";
+            this.btnPayOrder.Size = new System.Drawing.Size(150, 35);
+            this.btnPayOrder.TabIndex = 3;
+            this.btnPayOrder.Text = "Process Payment";
+            this.btnPayOrder.UseVisualStyleBackColor = false;
             // 
             // btnBack
             // 
             this.btnBack.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(74)))), ((int)(((byte)(44)))), ((int)(((byte)(42)))));
             this.btnBack.FlatAppearance.BorderSize = 0;
             this.btnBack.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnBack.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnBack.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.btnBack.ForeColor = System.Drawing.Color.White;
-            this.btnBack.Location = new System.Drawing.Point(12, 13);
+            this.btnBack.Location = new System.Drawing.Point(0, 18);
             this.btnBack.Name = "btnBack";
-            this.btnBack.Size = new System.Drawing.Size(125, 30);
-            this.btnBack.TabIndex = 11;
-            this.btnBack.Text = "Back to  Dashboard";
+            this.btnBack.Size = new System.Drawing.Size(150, 35);
+            this.btnBack.TabIndex = 4;
+            this.btnBack.Text = "Back to Dashboard";
             this.btnBack.UseVisualStyleBackColor = false;
-            this.btnBack.Click += new System.EventHandler(this.btnBack_Click);
             // 
-            // labelTitle
+            // headerLabel
             // 
-            this.labelTitle.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.labelTitle.Font = new System.Drawing.Font("Segoe UI", 18F, System.Drawing.FontStyle.Bold);
-            this.labelTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(235)))), ((int)(((byte)(205)))));
-            this.labelTitle.Location = new System.Drawing.Point(0, 0);
-            this.labelTitle.Name = "labelTitle";
-            this.labelTitle.Size = new System.Drawing.Size(800, 60);
-            this.labelTitle.TabIndex = 0;
-            this.labelTitle.Text = "Order Management";
-            this.labelTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // btnVoidOrder
-            // 
-            this.btnVoidOrder.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
-            this.btnVoidOrder.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.btnVoidOrder.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnVoidOrder.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
-            this.btnVoidOrder.ForeColor = System.Drawing.Color.White;
-            this.btnVoidOrder.Location = new System.Drawing.Point(630, 370);
-            this.btnVoidOrder.Name = "btnVoidOrder";
-            this.btnVoidOrder.Size = new System.Drawing.Size(150, 40);
-            this.btnVoidOrder.TabIndex = 4;
-            this.btnVoidOrder.Text = "Void Order";
-            this.btnVoidOrder.UseVisualStyleBackColor = false;
-            this.btnVoidOrder.Click += new System.EventHandler(this.btnVoidOrder_Click_1);
+            this.headerLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(74)))), ((int)(((byte)(44)))), ((int)(((byte)(42)))));
+            this.headerLabel.Dock = System.Windows.Forms.DockStyle.Top;
+            this.headerLabel.Font = new System.Drawing.Font("Segoe UI", 15.75F, System.Drawing.FontStyle.Bold);
+            this.headerLabel.ForeColor = System.Drawing.Color.White;
+            this.headerLabel.Location = new System.Drawing.Point(0, 0);
+            this.headerLabel.Name = "headerLabel";
+            this.headerLabel.Size = new System.Drawing.Size(1000, 74);
+            this.headerLabel.TabIndex = 0;
+            this.headerLabel.Text = "Order Management";
+            this.headerLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // OrderForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(248)))), ((int)(((byte)(220)))));
-            this.ClientSize = new System.Drawing.Size(800, 430);
-            this.Controls.Add(this.btnVoidOrder);
-            this.Controls.Add(this.panelHeader);
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(230)))), ((int)(((byte)(210)))), ((int)(((byte)(181)))));
+            this.ClientSize = new System.Drawing.Size(1000, 600);
+            this.Controls.Add(this.btnBack);
+            this.Controls.Add(this.headerLabel);
             this.Controls.Add(this.dgvOrders);
-            this.Controls.Add(this.btnNewOrder);
-            this.Controls.Add(this.btnViewOrder);
-            this.Font = new System.Drawing.Font("Segoe UI", 9F);
+            this.Controls.Add(this.buttonPanel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.Name = "OrderForm";
@@ -165,17 +159,20 @@ namespace InventoryOrderSystem.Forms
             this.Text = "Order Management";
             this.Load += new System.EventHandler(this.OrderForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgvOrders)).EndInit();
-            this.panelHeader.ResumeLayout(false);
+            this.buttonPanel.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
 
+        #endregion
+
         private System.Windows.Forms.DataGridView dgvOrders;
+        private System.Windows.Forms.Panel buttonPanel;
         private System.Windows.Forms.Button btnNewOrder;
         private System.Windows.Forms.Button btnViewOrder;
-        private System.Windows.Forms.Panel panelHeader;
-        private System.Windows.Forms.Label labelTitle;
-        private Button btnBack;
-        private Button btnVoidOrder;
+        private System.Windows.Forms.Button btnVoidOrder;
+        private System.Windows.Forms.Button btnPayOrder;
+        private System.Windows.Forms.Button btnBack;
+        private System.Windows.Forms.Label headerLabel;
     }
 }

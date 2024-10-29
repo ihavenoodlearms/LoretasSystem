@@ -60,6 +60,8 @@ namespace InventoryOrderSystem.Services
                             TotalAmount REAL NOT NULL,
                             PaymentMethod TEXT NOT NULL,
                             Status TEXT NOT NULL DEFAULT 'Active',
+                            AmountPaid REAL,
+                            ChangeAmount REAL,
                             FOREIGN KEY(UserId) REFERENCES Users(UserId)
                         )";
                     command.ExecuteNonQuery();
@@ -377,7 +379,9 @@ namespace InventoryOrderSystem.Services
             {
                 connection.Open();
                 string query = @"
-            SELECT o.*, oi.OrderItemId, oi.ItemId, oi.ProductName, oi.Quantity, oi.Price 
+            SELECT o.OrderId, o.UserId, o.OrderDate, o.TotalAmount, o.PaymentMethod, o.Status, 
+                   o.AmountPaid, o.ChangeAmount,
+                   oi.OrderItemId, oi.ItemId, oi.ProductName, oi.Quantity, oi.Price 
             FROM Orders o
             LEFT JOIN OrderItems oi ON o.OrderId = oi.OrderId
             ORDER BY o.OrderDate DESC";
@@ -408,6 +412,11 @@ namespace InventoryOrderSystem.Services
                                     TotalAmount = reader.GetDecimal(reader.GetOrdinal("TotalAmount")),
                                     PaymentMethod = reader.GetString(reader.GetOrdinal("PaymentMethod")),
                                     Status = reader.GetString(reader.GetOrdinal("Status")),
+                                    // Add these lines to properly read payment details
+                                    AmountPaid = reader.IsDBNull(reader.GetOrdinal("AmountPaid")) ?
+                                        null : (decimal?)reader.GetDecimal(reader.GetOrdinal("AmountPaid")),
+                                    ChangeAmount = reader.IsDBNull(reader.GetOrdinal("ChangeAmount")) ?
+                                        null : (decimal?)reader.GetDecimal(reader.GetOrdinal("ChangeAmount")),
                                     OrderItems = new List<OrderItem>()
                                 };
 
@@ -628,13 +637,13 @@ namespace InventoryOrderSystem.Services
             {
                 connection.Open();
                 string query = @"
-        SELECT oi.ProductName, SUM(oi.Quantity) as TotalQuantity, SUM(oi.Price * oi.Quantity) as TotalRevenue
-        FROM OrderItems oi
-        JOIN Orders o ON oi.OrderId = o.OrderId
-        WHERE date(o.OrderDate) = date(@Date) AND o.Status != 'Voided'
-        GROUP BY oi.ProductName
-        ORDER BY TotalRevenue DESC
-        LIMIT @TopCount";
+                    SELECT oi.ProductName, SUM(oi.Quantity) as TotalQuantity, SUM(oi.Price * oi.Quantity) as TotalRevenue
+                    FROM OrderItems oi
+                    JOIN Orders o ON oi.OrderId = o.OrderId
+                    WHERE date(o.OrderDate) = date(@Date) AND o.Status != 'Voided'
+                    GROUP BY oi.ProductName
+                    ORDER BY TotalRevenue DESC
+                    LIMIT @TopCount";
                 using (var command = new SQLiteCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@Date", date.ToString("yyyy-MM-dd"));
@@ -653,6 +662,46 @@ namespace InventoryOrderSystem.Services
                 }
             }
             return topProducts;
+        }
+
+        public void MarkOrderAsPaid(int orderId, decimal amountPaid, decimal change)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        string updateOrderQuery = @"
+                        UPDATE Orders 
+                        SET Status = 'Paid', 
+                            AmountPaid = @AmountPaid,
+                            ChangeAmount = @Change
+                        WHERE OrderId = @OrderId";
+
+                        using (var command = new SQLiteCommand(updateOrderQuery, connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@OrderId", orderId);
+                            command.Parameters.AddWithValue("@AmountPaid", amountPaid);
+                            command.Parameters.AddWithValue("@Change", change);
+                            int rowsAffected = command.ExecuteNonQuery();
+
+                            if (rowsAffected == 0)
+                            {
+                                throw new Exception("No order was updated. The order might not exist.");
+                            }
+                        }
+
+                        transaction.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        throw new Exception($"Error marking order as paid: {ex.Message}", ex);
+                    }
+                }
+            }
         }
 
         private string GetDatabasePath()

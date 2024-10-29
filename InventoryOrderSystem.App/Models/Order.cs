@@ -13,6 +13,8 @@ namespace InventoryOrderSystem.Models
         public decimal TotalAmount { get; set; }
         public string PaymentMethod { get; set; }
         public string Status { get; set; } // Added Status property
+        public decimal? AmountPaid { get; set; }
+        public decimal? ChangeAmount { get; set; }
         public List<OrderItem> OrderItems { get; set; }
     }
 

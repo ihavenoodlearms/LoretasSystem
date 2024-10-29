@@ -24,6 +24,18 @@ namespace InventoryOrderSystem.Forms
             InitializeComponent();
             _dbManager = new DatabaseManager();
             _currentUser = user;
+            SetupEventHandlers();
+
+        }
+
+        private void SetupEventHandlers()
+        {
+            // Wire up the button click events
+            btnNewOrder.Click += btnNewOrder_Click;
+            btnViewOrder.Click += btnViewOrder_Click;
+            btnVoidOrder.Click += btnVoidOrder_Click_1;
+            btnPayOrder.Click += BtnPayOrder_Click;
+            btnBack.Click += btnBack_Click;
         }
 
         private void OrderForm_Load(object sender, EventArgs e)
@@ -42,7 +54,9 @@ namespace InventoryOrderSystem.Forms
                 TotalAmount = o.TotalAmount,
                 PaymentMethod = o.PaymentMethod,
                 OrderItemsCount = o.OrderItems.Count,
-                Status = o.Status
+                Status = o.Status,
+                AmountPaid = o.AmountPaid,      // Add this
+                ChangeAmount = o.ChangeAmount    // Add this
             }).ToList();
 
             _bindingOrders = new SortableBindingList<OrderViewModel>(orderViewModels);
@@ -59,16 +73,254 @@ namespace InventoryOrderSystem.Forms
             dgvOrders.Columns["PaymentMethod"].HeaderText = "Payment Method";
             dgvOrders.Columns["OrderItemsCount"].HeaderText = "Items Count";
             dgvOrders.Columns["Status"].HeaderText = "Status";
+            dgvOrders.Columns["AmountPaid"].HeaderText = "Amount Paid";
+            dgvOrders.Columns["ChangeAmount"].HeaderText = "Change Amount";
 
-            // Adjust column widths
-            dgvOrders.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
-            dgvOrders.Columns["OrderDate"].Width = 150; // Adjust as needed
+            // Format currency columns
+            dgvOrders.Columns["TotalAmount"].DefaultCellStyle.Format = "C2";
+            dgvOrders.Columns["AmountPaid"].DefaultCellStyle.Format = "C2";
+            dgvOrders.Columns["ChangeAmount"].DefaultCellStyle.Format = "C2";
+
+            // Make DataGridView fill the space
+            dgvOrders.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
+            dgvOrders.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+
+            // Set preferred column widths (adjust percentages as needed)
+            dgvOrders.Columns["OrderId"].FillWeight = 8;
+            dgvOrders.Columns["UserId"].FillWeight = 8;
+            dgvOrders.Columns["OrderDate"].FillWeight = 15;
+            dgvOrders.Columns["TotalAmount"].FillWeight = 12;
+            dgvOrders.Columns["PaymentMethod"].FillWeight = 12;
+            dgvOrders.Columns["OrderItemsCount"].FillWeight = 10;
+            dgvOrders.Columns["Status"].FillWeight = 10;
+            dgvOrders.Columns["AmountPaid"].FillWeight = 12;
+            dgvOrders.Columns["ChangeAmount"].FillWeight = 13;
 
             // Enable sorting
             dgvOrders.Sort(dgvOrders.Columns["OrderId"], ListSortDirection.Descending);
 
             // Add the CellFormatting event handler
             dgvOrders.CellFormatting += DgvOrders_CellFormatting;
+        }
+
+        private void InitializeDataGridView()
+        {
+            // Initialize DataGridView
+            dgvOrders = new DataGridView();
+            ((System.ComponentModel.ISupportInitialize)(dgvOrders)).BeginInit();
+
+            // Basic form settings
+            this.Text = "Order Management";
+            this.Size = new Size(1000, 600);
+            this.StartPosition = FormStartPosition.CenterScreen;
+
+            // Configure DataGridView
+            dgvOrders.Dock = DockStyle.Top;
+            dgvOrders.Height = 450;
+            dgvOrders.MultiSelect = false;
+            dgvOrders.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvOrders.ReadOnly = true;
+            dgvOrders.AllowUserToAddRows = false;
+            this.Controls.Add(dgvOrders);
+
+            // Create button panel
+            Panel buttonPanel = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 100
+            };
+            this.Controls.Add(buttonPanel);
+
+            // Initialize buttons
+            Button btnNewOrder = new Button
+            {
+                Text = "New Order",
+                Location = new Point(20, 20),
+                Size = new Size(120, 35),
+                BackColor = Color.FromArgb(74, 44, 42),
+                ForeColor = Color.White
+            };
+            btnNewOrder.Click += btnNewOrder_Click;
+
+            Button btnViewOrder = new Button
+            {
+                Text = "View Order",
+                Location = new Point(btnNewOrder.Right + 10, 20),
+                Size = new Size(120, 35),
+                BackColor = Color.FromArgb(74, 44, 42),
+                ForeColor = Color.White
+            };
+            btnViewOrder.Click += btnViewOrder_Click;
+
+            Button btnVoidOrder = new Button
+            {
+                Text = "Void Order",
+                Location = new Point(btnViewOrder.Right + 10, 20),
+                Size = new Size(120, 35),
+                BackColor = Color.FromArgb(74, 44, 42),
+                ForeColor = Color.White
+            };
+            btnVoidOrder.Click += btnVoidOrder_Click_1;
+
+            Button btnPayOrder = new Button
+            {
+                Text = "Process Payment",
+                Location = new Point(btnVoidOrder.Right + 10, 20),
+                Size = new Size(120, 35),
+                BackColor = Color.FromArgb(74, 44, 42),
+                ForeColor = Color.White
+            };
+            btnPayOrder.Click += BtnPayOrder_Click;
+
+            Button btnBack = new Button
+            {
+                Text = "Back",
+                Location = new Point(btnPayOrder.Right + 10, 20),
+                Size = new Size(120, 35),
+                BackColor = Color.FromArgb(74, 44, 42),
+                ForeColor = Color.White
+            };
+            btnBack.Click += btnBack_Click;
+
+            buttonPanel.Controls.AddRange(new Control[] {
+                btnNewOrder, btnViewOrder, btnVoidOrder, btnPayOrder, btnBack
+            });
+
+            ((System.ComponentModel.ISupportInitialize)(dgvOrders)).EndInit();
+        }
+
+        private void BtnPayOrder_Click(object sender, EventArgs e)
+        {
+            if (dgvOrders.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Please select an order to process payment.", "No Order Selected",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var selectedRow = dgvOrders.SelectedRows[0];
+            string currentStatus = selectedRow.Cells["Status"].Value.ToString();
+
+            if (currentStatus == "Paid")
+            {
+                MessageBox.Show("This order has already been paid.", "Already Paid",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (currentStatus == "Voided")
+            {
+                MessageBox.Show("Cannot process payment for a voided order.", "Order Voided",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            int orderId = Convert.ToInt32(selectedRow.Cells["OrderId"].Value);
+            decimal totalAmount = Convert.ToDecimal(selectedRow.Cells["TotalAmount"].Value);
+
+            using (var paymentForm = new Form())
+            {
+                paymentForm.Text = "Process Payment";
+                paymentForm.Size = new Size(300, 200);
+                paymentForm.StartPosition = FormStartPosition.CenterParent;
+                paymentForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                paymentForm.MaximizeBox = false;
+                paymentForm.MinimizeBox = false;
+
+                Label totalLabel = new Label
+                {
+                    Text = $"Total Amount: ₱{totalAmount:F2}",
+                    Location = new Point(20, 20),
+                    AutoSize = true
+                };
+
+                Label amountPaidLabel = new Label
+                {
+                    Text = "Amount Paid:",
+                    Location = new Point(20, 50),
+                    AutoSize = true
+                };
+
+                TextBox amountPaidBox = new TextBox
+                {
+                    Location = new Point(120, 47),
+                    Width = 140
+                };
+
+                Label changeLabel = new Label
+                {
+                    Text = "Change: ₱0.00",
+                    Location = new Point(20, 80),
+                    AutoSize = true
+                };
+
+                amountPaidBox.TextChanged += (s, evt) =>
+                {
+                    if (decimal.TryParse(amountPaidBox.Text, out decimal amountPaid))
+                    {
+                        decimal change = amountPaid - totalAmount;
+                        changeLabel.Text = $"Change: ₱{Math.Max(0, change):F2}";
+                    }
+                    else
+                    {
+                        changeLabel.Text = "Change: ₱0.00";
+                    }
+                };
+
+                Button confirmButton = new Button
+                {
+                    Text = "Confirm Payment",
+                    Location = new Point(85, 120),
+                    Size = new Size(120, 30),
+                    DialogResult = DialogResult.OK
+                };
+
+                confirmButton.Click += (s, evt) =>
+                {
+                    if (!decimal.TryParse(amountPaidBox.Text, out decimal amountPaid))
+                    {
+                        MessageBox.Show("Please enter a valid amount.", "Invalid Amount",
+                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    if (amountPaid < totalAmount)
+                    {
+                        MessageBox.Show("Amount paid must be greater than or equal to the total amount.",
+                            "Insufficient Amount", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    paymentForm.Close();
+                };
+
+                paymentForm.Controls.AddRange(new Control[] {
+                    totalLabel, amountPaidLabel, amountPaidBox, changeLabel, confirmButton
+                });
+
+                if (paymentForm.ShowDialog() == DialogResult.OK)
+                {
+                    decimal amountPaid = decimal.Parse(amountPaidBox.Text);
+                    decimal change = amountPaid - totalAmount;
+
+                    try
+                    {
+                        _dbManager.MarkOrderAsPaid(orderId, amountPaid, change);
+
+                        // Update the DataGridView
+                        selectedRow.DefaultCellStyle.BackColor = Color.LightGreen;
+                        selectedRow.Cells["Status"].Value = "Paid";
+
+                        MessageBox.Show($"Payment processed successfully!\nChange: ₱{change:F2}",
+                            "Payment Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error processing payment: {ex.Message}",
+                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
         }
 
         private void DgvOrders_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
@@ -83,17 +335,17 @@ namespace InventoryOrderSystem.Forms
                     row.DefaultCellStyle.BackColor = Color.LightPink;
                     row.DefaultCellStyle.ForeColor = Color.DarkRed;
                 }
+                else if (status == "Paid")
+                {
+                    row.DefaultCellStyle.BackColor = Color.LightGreen;
+                    row.DefaultCellStyle.ForeColor = Color.DarkGreen;
+                }
                 else
                 {
                     row.DefaultCellStyle.BackColor = dgvOrders.DefaultCellStyle.BackColor;
                     row.DefaultCellStyle.ForeColor = dgvOrders.DefaultCellStyle.ForeColor;
                 }
             }
-        }
-        protected override void OnFormClosing(FormClosingEventArgs e)
-        {
-            base.OnFormClosing(e);
-            dgvOrders.CellFormatting -= DgvOrders_CellFormatting;
         }
 
         private void btnNewOrder_Click(object sender, EventArgs e)
@@ -110,7 +362,6 @@ namespace InventoryOrderSystem.Forms
 
         private void OrderMenuForm_OrderPlaced(object sender, Order newOrder)
         {
-            // Ensure this method is called on the UI thread
             if (InvokeRequired)
             {
                 Invoke(new Action<object, Order>(OrderMenuForm_OrderPlaced), sender, newOrder);
@@ -119,24 +370,22 @@ namespace InventoryOrderSystem.Forms
 
             if (newOrder.OrderItems.Count == 0)
             {
-                MessageBox.Show("Cannot place an order with no items.", "Empty Order", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Cannot place an order with no items.", "Empty Order",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // Check if the order already exists to prevent duplication
             if (!_orders.Any(o => o.OrderId == newOrder.OrderId))
             {
                 _dbManager.AddOrder(newOrder);
                 LoadOrders();
             }
 
-            // Close the OrderMenuForm
             if (sender is OrderMenuForm orderMenuForm)
             {
                 orderMenuForm.Close();
             }
 
-            // Show this form
             this.Show();
         }
 
@@ -148,27 +397,30 @@ namespace InventoryOrderSystem.Forms
                 Order selectedOrder = _orders.FirstOrDefault(o => o.OrderId == orderId);
                 if (selectedOrder != null)
                 {
-                    MessageBox.Show(GetOrderDetails(selectedOrder), "Order Details", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(GetOrderDetails(selectedOrder), "Order Details",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
             else
             {
-                MessageBox.Show("Please select an order to view.", "No Order Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Please select an order to view.", "No Order Selected",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
         private string GetOrderDetails(Order order)
         {
             string details = $"Order ID: {order.OrderId}\n" +
-                             $"User ID: {order.UserId}\n" +
-                             $"Order Date: {order.OrderDate}\n" +
-                             $"Total Amount: {order.TotalAmount:C}\n" +
-                             $"Payment Method: {order.PaymentMethod}\n\n" +
-                             "Order Items:\n";
+                           $"User ID: {order.UserId}\n" +
+                           $"Order Date: {order.OrderDate}\n" +
+                           $"Total Amount: {order.TotalAmount:C}\n" +
+                           $"Payment Method: {order.PaymentMethod}\n" +
+                           $"Status: {order.Status}\n\n" +
+                           "Order Items:\n";
 
             foreach (var item in order.OrderItems)
             {
-                details += $"- Item ID: {item.ItemId}, Quantity: {item.Quantity}, Price: {item.Price:C}\n";
+                details += $"- {item.ProductName}, Quantity: {item.Quantity}, Price: {item.Price:C}\n";
             }
 
             return details;
@@ -183,7 +435,8 @@ namespace InventoryOrderSystem.Forms
             }
             else
             {
-                MessageBox.Show("Please select an order to void.", "No Order Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Please select an order to void.", "No Order Selected",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -193,7 +446,6 @@ namespace InventoryOrderSystem.Forms
 
             if (result == DialogResult.Yes)
             {
-                // Create and show password input dialog
                 using (var passwordForm = new Form())
                 {
                     passwordForm.Text = "Enter Password";
@@ -203,9 +455,29 @@ namespace InventoryOrderSystem.Forms
                     passwordForm.MaximizeBox = false;
                     passwordForm.MinimizeBox = false;
 
-                    Label passwordLabel = new Label() { Left = 20, Top = 20, Text = "Enter your password:", AutoSize = true };
-                    TextBox passwordBox = new TextBox() { Left = 20, Top = 50, Width = 240, PasswordChar = '*' };
-                    Button confirmButton = new Button() { Text = "Confirm", Left = 100, Top = 80, DialogResult = DialogResult.OK };
+                    Label passwordLabel = new Label()
+                    {
+                        Left = 20,
+                        Top = 20,
+                        Text = "Enter your password:",
+                        AutoSize = true
+                    };
+
+                    TextBox passwordBox = new TextBox()
+                    {
+                        Left = 20,
+                        Top = 50,
+                        Width = 240,
+                        PasswordChar = '*'
+                    };
+
+                    Button confirmButton = new Button()
+                    {
+                        Text = "Confirm",
+                        Left = 100,
+                        Top = 80,
+                        DialogResult = DialogResult.OK
+                    };
 
                     confirmButton.Click += (s, evt) => { passwordForm.Close(); };
 
@@ -225,22 +497,26 @@ namespace InventoryOrderSystem.Forms
                             try
                             {
                                 _dbManager.VoidOrder(orderId);
-                                MessageBox.Show("Order has been voided successfully.", "Order Voided", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                MessageBox.Show("Order has been voided successfully.", "Order Voided",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Information);
                                 LoadOrders();  // Refresh the orders list
                             }
                             catch (Exception ex)
                             {
-                                MessageBox.Show($"An error occurred while voiding the order: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                MessageBox.Show($"An error occurred while voiding the order: {ex.Message}",
+                                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
                         }
                         else
                         {
-                            MessageBox.Show("Incorrect password. Order voiding canceled.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            MessageBox.Show("Incorrect password. Order voiding canceled.",
+                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                     }
                     else
                     {
-                        MessageBox.Show("Order voiding canceled.", "Canceled", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show("Order voiding canceled.", "Canceled",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 }
             }
@@ -252,16 +528,10 @@ namespace InventoryOrderSystem.Forms
             new DashboardForm(_currentUser).Show();
         }
 
-    }
-
-    public class OrderViewModel
-    {
-        public int OrderId { get; set; }
-        public int UserId { get; set; }
-        public DateTime OrderDate { get; set; }
-        public decimal TotalAmount { get; set; }
-        public string PaymentMethod { get; set; }
-        public int OrderItemsCount { get; set; }
-        public string Status { get; set; }  
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            base.OnFormClosing(e);
+            dgvOrders.CellFormatting -= DgvOrders_CellFormatting;
+        }
     }
 }
