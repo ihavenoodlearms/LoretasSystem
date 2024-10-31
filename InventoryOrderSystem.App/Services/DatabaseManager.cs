@@ -13,6 +13,154 @@ namespace InventoryOrderSystem.Services
         private readonly string connectionString;
         private const int LowInventoryThreshold = 10;
 
+        public OrderStatistics GetOrderStatistics()
+        {
+            var statistics = new OrderStatistics();
+
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+
+                // Total received orders (all orders)
+                string receivedQuery = "SELECT COUNT(*) FROM Orders";
+                using (var command = new SQLiteCommand(receivedQuery, connection))
+                {
+                    statistics.ReceivedCount = Convert.ToInt32(command.ExecuteScalar());
+                }
+
+                // Processing orders (not paid and not voided)
+                string processingQuery = "SELECT COUNT(*) FROM Orders WHERE Status = 'Active'";
+                using (var command = new SQLiteCommand(processingQuery, connection))
+                {
+                    statistics.ProcessingCount = Convert.ToInt32(command.ExecuteScalar());
+                }
+
+                // Paid orders
+                string paidQuery = "SELECT COUNT(*) FROM Orders WHERE Status = 'Paid'";
+                using (var command = new SQLiteCommand(paidQuery, connection))
+                {
+                    statistics.PaidCount = Convert.ToInt32(command.ExecuteScalar());
+                }
+
+                // Cancelled/Voided orders
+                string cancelledQuery = "SELECT COUNT(*) FROM Orders WHERE Status = 'Voided'";
+                using (var command = new SQLiteCommand(cancelledQuery, connection))
+                {
+                    statistics.CancelledCount = Convert.ToInt32(command.ExecuteScalar());
+                }
+            }
+
+            return statistics;
+        }
+
+        public OrderStatistics GetOrderStatisticsForDate(DateTime date)
+        {
+            var statistics = new OrderStatistics();
+
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string dateStr = date.ToString("yyyy-MM-dd");
+
+                // Total received orders for date
+                string receivedQuery = "SELECT COUNT(*) FROM Orders WHERE date(OrderDate) = date(@Date)";
+                using (var command = new SQLiteCommand(receivedQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@Date", dateStr);
+                    statistics.ReceivedCount = Convert.ToInt32(command.ExecuteScalar());
+                }
+
+                // Processing orders for date
+                string processingQuery = "SELECT COUNT(*) FROM Orders WHERE date(OrderDate) = date(@Date) AND Status = 'Active'";
+                using (var command = new SQLiteCommand(processingQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@Date", dateStr);
+                    statistics.ProcessingCount = Convert.ToInt32(command.ExecuteScalar());
+                }
+
+                // Paid orders for date
+                string paidQuery = "SELECT COUNT(*) FROM Orders WHERE date(OrderDate) = date(@Date) AND Status = 'Paid'";
+                using (var command = new SQLiteCommand(paidQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@Date", dateStr);
+                    statistics.PaidCount = Convert.ToInt32(command.ExecuteScalar());
+                }
+
+                // Cancelled orders for date
+                string cancelledQuery = "SELECT COUNT(*) FROM Orders WHERE date(OrderDate) = date(@Date) AND Status = 'Voided'";
+                using (var command = new SQLiteCommand(cancelledQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@Date", dateStr);
+                    statistics.CancelledCount = Convert.ToInt32(command.ExecuteScalar());
+                }
+            }
+
+            return statistics;
+        }
+
+        public OrderStatistics GetOrderStatisticsForDateRange(DateTime startDate, DateTime endDate)
+        {
+            var statistics = new OrderStatistics();
+
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+
+                // Total received orders in range
+                string receivedQuery = @"
+                    SELECT COUNT(*) 
+                    FROM Orders 
+                    WHERE date(OrderDate) BETWEEN date(@StartDate) AND date(@EndDate)";
+                using (var command = new SQLiteCommand(receivedQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@StartDate", startDate.ToString("yyyy-MM-dd"));
+                    command.Parameters.AddWithValue("@EndDate", endDate.ToString("yyyy-MM-dd"));
+                    statistics.ReceivedCount = Convert.ToInt32(command.ExecuteScalar());
+                }
+
+                // Processing orders in range
+                string processingQuery = @"
+                    SELECT COUNT(*) 
+                    FROM Orders 
+                    WHERE date(OrderDate) BETWEEN date(@StartDate) AND date(@EndDate) 
+                    AND Status = 'Active'";
+                using (var command = new SQLiteCommand(processingQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@StartDate", startDate.ToString("yyyy-MM-dd"));
+                    command.Parameters.AddWithValue("@EndDate", endDate.ToString("yyyy-MM-dd"));
+                    statistics.ProcessingCount = Convert.ToInt32(command.ExecuteScalar());
+                }
+
+                // Paid orders in range
+                string paidQuery = @"
+                    SELECT COUNT(*) 
+                    FROM Orders 
+                    WHERE date(OrderDate) BETWEEN date(@StartDate) AND date(@EndDate) 
+                    AND Status = 'Paid'";
+                using (var command = new SQLiteCommand(paidQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@StartDate", startDate.ToString("yyyy-MM-dd"));
+                    command.Parameters.AddWithValue("@EndDate", endDate.ToString("yyyy-MM-dd"));
+                    statistics.PaidCount = Convert.ToInt32(command.ExecuteScalar());
+                }
+
+                // Cancelled orders in range
+                string cancelledQuery = @"
+                    SELECT COUNT(*) 
+                    FROM Orders 
+                    WHERE date(OrderDate) BETWEEN date(@StartDate) AND date(@EndDate) 
+                    AND Status = 'Voided'";
+                using (var command = new SQLiteCommand(cancelledQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@StartDate", startDate.ToString("yyyy-MM-dd"));
+                    command.Parameters.AddWithValue("@EndDate", endDate.ToString("yyyy-MM-dd"));
+                    statistics.CancelledCount = Convert.ToInt32(command.ExecuteScalar());
+                }
+            }
+
+            return statistics;
+        }
+
         public DatabaseManager()
         {
             connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
@@ -702,6 +850,11 @@ namespace InventoryOrderSystem.Services
                     }
                 }
             }
+        }
+
+        public string GetConnectionString()
+        {
+            return connectionString;
         }
 
         private string GetDatabasePath()

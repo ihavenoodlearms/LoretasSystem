@@ -1,4 +1,7 @@
-﻿namespace InventoryOrderSystem.Forms
+﻿using System.Drawing;
+using System.Windows.Forms;
+
+namespace InventoryOrderSystem.Forms
 {
     partial class DashboardForm
     {
@@ -203,8 +206,8 @@
             // 
             // dgvTopProducts
             // 
-            this.dgvTopProducts.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-            | System.Windows.Forms.AnchorStyles.Left)
+            this.dgvTopProducts.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.dgvTopProducts.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvTopProducts.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -214,7 +217,7 @@
             this.colRevenue});
             this.dgvTopProducts.Location = new System.Drawing.Point(20, 120);
             this.dgvTopProducts.Name = "dgvTopProducts";
-            this.dgvTopProducts.Size = new System.Drawing.Size(748, 489);
+            this.dgvTopProducts.Size = new System.Drawing.Size(748, 200);
             this.dgvTopProducts.TabIndex = 3;
             // 
             // colProduct
@@ -263,6 +266,20 @@
 
         #endregion
 
+        private System.Windows.Forms.Panel pnlOrderStats;
+        private System.Windows.Forms.Label lblOrderStatsTitle;
+        private System.Windows.Forms.Panel pnlReceived;
+        private System.Windows.Forms.Panel pnlProcessing;
+        private System.Windows.Forms.Panel pnlPaid;
+        private System.Windows.Forms.Panel pnlCancelled;
+        private System.Windows.Forms.Label lblReceived;
+        private System.Windows.Forms.Label lblProcessing;
+        private System.Windows.Forms.Label lblPaid;
+        private System.Windows.Forms.Label lblCancelled;
+        private System.Windows.Forms.Label lblReceivedTitle;
+        private System.Windows.Forms.Label lblProcessingTitle;
+        private System.Windows.Forms.Label lblPaidTitle;
+        private System.Windows.Forms.Label lblCancelledTitle;
         private System.Windows.Forms.Panel pnlSidebar;
         private System.Windows.Forms.Button btnInventory;
         private System.Windows.Forms.Panel pnlLogo;
@@ -283,5 +300,94 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn colProduct;
         private System.Windows.Forms.DataGridViewTextBoxColumn colQuantity;
         private System.Windows.Forms.DataGridViewTextBoxColumn colRevenue;
+
+        private void InitializeOrderStatistics()
+        {
+            // Order Statistics Panel
+            pnlOrderStats = new Panel();
+            pnlOrderStats.Size = new Size(868, 200);
+            pnlOrderStats.Location = new Point(20, 340);
+            pnlOrderStats.BackColor = lightBrown;  // Changed from slate-800 to lightBrown
+            pnlOrderStats.Padding = new Padding(15);
+
+            // Title
+            lblOrderStatsTitle = new Label();
+            lblOrderStatsTitle.Text = "Order Statistics";
+            lblOrderStatsTitle.ForeColor = cream;  // Changed to cream to match café theme
+            lblOrderStatsTitle.Font = new Font("Segoe UI", 12, FontStyle.Bold);
+            lblOrderStatsTitle.Location = new Point(15, 15);
+            lblOrderStatsTitle.AutoSize = true;
+
+            // Initialize labels first
+            lblReceived = new Label();
+            lblProcessing = new Label();
+            lblPaid = new Label();
+            lblCancelled = new Label();
+
+            lblReceivedTitle = new Label();
+            lblProcessingTitle = new Label();
+            lblPaidTitle = new Label();
+            lblCancelledTitle = new Label();
+
+            // Create statistics panels
+            pnlReceived = new Panel();
+            pnlProcessing = new Panel();
+            pnlPaid = new Panel();
+            pnlCancelled = new Panel();
+
+            // Create statistics panels with the initialized labels - adjust spacing
+            CreateStatPanel(pnlReceived, lblReceived, lblReceivedTitle, "Received",
+                Color.FromArgb(59, 130, 246), new Point(15, 50));
+            CreateStatPanel(pnlProcessing, lblProcessing, lblProcessingTitle, "Processing",
+                Color.FromArgb(251, 146, 60), new Point(200, 50));
+            CreateStatPanel(pnlPaid, lblPaid, lblPaidTitle, "Paid",
+                Color.FromArgb(34, 197, 94), new Point(385, 50));
+            CreateStatPanel(pnlCancelled, lblCancelled, lblCancelledTitle, "Cancelled",
+                Color.FromArgb(239, 68, 68), new Point(570, 50));
+
+            // Add all controls to the panel
+            pnlOrderStats.Controls.Add(lblOrderStatsTitle);
+            pnlOrderStats.Controls.Add(pnlReceived);
+            pnlOrderStats.Controls.Add(pnlProcessing);
+            pnlOrderStats.Controls.Add(pnlPaid);
+            pnlOrderStats.Controls.Add(pnlCancelled);
+
+            // Add the panel to the main form
+            this.pnlMain.Controls.Add(pnlOrderStats);
+        }
+
+        private void CreateStatPanel(Panel panel, Label valueLabel, Label titleLabel, string title, Color backgroundColor, Point location)
+        {
+            // Set up panel
+            panel.Size = new Size(165, 80);
+            panel.Location = location;
+            panel.BackColor = backgroundColor;
+            panel.Padding = new Padding(10);
+
+            // Add subtle border
+            panel.Paint += (sender, e) => {
+                var p = sender as Panel;
+                e.Graphics.DrawRectangle(new Pen(Color.FromArgb(30, Color.White), 1),
+                    0, 0, p.Width - 1, p.Height - 1);
+            };
+
+            // Set up title label
+            titleLabel.Text = title;
+            titleLabel.ForeColor = cream;  // Changed to cream
+            titleLabel.Font = new Font("Segoe UI", 10, FontStyle.Regular);
+            titleLabel.Location = new Point(10, 10);
+            titleLabel.AutoSize = true;
+
+            // Set up value label
+            valueLabel.Text = "0";
+            valueLabel.ForeColor = cream;  // Changed to cream
+            valueLabel.Font = new Font("Segoe UI", 18, FontStyle.Bold);
+            valueLabel.Location = new Point(10, 35);
+            valueLabel.AutoSize = true;
+
+            // Add labels to panel
+            panel.Controls.Add(titleLabel);
+            panel.Controls.Add(valueLabel);
+        }
     }
 }

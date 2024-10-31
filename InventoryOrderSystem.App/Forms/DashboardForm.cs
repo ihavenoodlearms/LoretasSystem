@@ -7,6 +7,7 @@ using InventoryOrderingSystem;
 using InventoryOrderSystem.App.Forms;
 using InventoryOrderSystem.Models;
 using InventoryOrderSystem.Services;
+using System.Data.SQLite;
 
 namespace InventoryOrderSystem.Forms
 {
@@ -30,15 +31,66 @@ namespace InventoryOrderSystem.Forms
         private Color lightBrown = Color.FromArgb(140, 105, 84);
         private Color accentGreen = Color.FromArgb(91, 123, 122);
 
+        // Add these properties to track statistics
+        private int receivedOrders = 0;
+        private int processingOrders = 0;
+        private int paidOrders = 0;
+        private int cancelledOrders = 0;
+
+        // Add this method to update order statistics
+        private void UpdateOrderStatistics()
+        {
+            using (var connection = new SQLiteConnection(_dbManager.GetConnectionString()))
+            {
+                connection.Open();
+
+                // Get total received orders
+                string receivedQuery = "SELECT COUNT(*) FROM Orders";
+                using (var command = new SQLiteCommand(receivedQuery, connection))
+                {
+                    receivedOrders = Convert.ToInt32(command.ExecuteScalar());
+                }
+
+                // Get processing orders (not paid and not voided)
+                string processingQuery = "SELECT COUNT(*) FROM Orders WHERE Status = 'Active'";
+                using (var command = new SQLiteCommand(processingQuery, connection))
+                {
+                    processingOrders = Convert.ToInt32(command.ExecuteScalar());
+                }
+
+                // Get paid orders
+                string paidQuery = "SELECT COUNT(*) FROM Orders WHERE Status = 'Paid'";
+                using (var command = new SQLiteCommand(paidQuery, connection))
+                {
+                    paidOrders = Convert.ToInt32(command.ExecuteScalar());
+                }
+
+                // Get cancelled/voided orders
+                string cancelledQuery = "SELECT COUNT(*) FROM Orders WHERE Status = 'Voided'";
+                using (var command = new SQLiteCommand(cancelledQuery, connection))
+                {
+                    cancelledOrders = Convert.ToInt32(command.ExecuteScalar());
+                }
+            }
+
+            // Update the labels
+            lblReceived.Text = receivedOrders.ToString();
+            lblProcessing.Text = processingOrders.ToString();
+            lblPaid.Text = paidOrders.ToString();
+            lblCancelled.Text = cancelledOrders.ToString();
+        }
+
         public DashboardForm(User user)
         {
             InitializeComponent();
+            InitializeOrderStatistics();
             _currentUser = user;
-            _dbManager = new DatabaseManager();
+            _dbManager = new DatabaseManager();  // Make sure this line exists
             currentDate = DateTime.Today;
             ApplyStyles();
             SetupDashboard();
             CreateSettingsPanel();
+            UpdateOrderStatistics();
         }
 
         private void ApplyStyles()
@@ -227,6 +279,32 @@ namespace InventoryOrderSystem.Forms
             {
                 dgvTopProducts.Rows.Add(product.Product, product.Quantity, product.Revenue.ToString("C"));
             }
+
+                var statistics = _dbManager.GetOrderStatisticsForDate(currentDate);
+                Console.WriteLine($"Statistics object is null: {statistics == null}");
+
+                if (statistics != null)
+                {
+                    if (lblReceived != null)
+                    {
+                        lblReceived.Text = statistics.ReceivedCount.ToString();
+                    }
+                    else
+                    {
+                        Console.WriteLine("lblReceived is null");
+                    }
+                    // Similar checks for other labels...
+                }
+                else
+                {
+                    Console.WriteLine("Statistics object is null");
+                }
+
+                // Update the statistic labels
+                lblReceived.Text = statistics.ReceivedCount.ToString();
+                lblProcessing.Text = statistics.ProcessingCount.ToString();
+                lblPaid.Text = statistics.PaidCount.ToString();
+                lblCancelled.Text = statistics.CancelledCount.ToString();
         }
 
         // Add a method to change the current date
@@ -237,15 +315,16 @@ namespace InventoryOrderSystem.Forms
             UpdateDashboard();
         }
 
-        // You might want to add buttons or a date picker to allow changing the date
         private void btnPreviousDay_Click(object sender, EventArgs e)
         {
             ChangeDate(currentDate.AddDays(-1));
+            UpdateDashboard(); // This will now update both regular dashboard and statistics
         }
 
         private void btnNextDay_Click(object sender, EventArgs e)
         {
             ChangeDate(currentDate.AddDays(1));
+            UpdateDashboard(); // This will now update both regular dashboard and statistics
         }
 
         private void CreateSettingsPanel()
@@ -388,6 +467,7 @@ namespace InventoryOrderSystem.Forms
         private void tmrUpdateDashboard_Tick(object sender, EventArgs e)
         {
             UpdateDashboard();
+            UpdateOrderStatistics();
         }
     }
 }

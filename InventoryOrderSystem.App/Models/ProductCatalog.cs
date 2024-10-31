@@ -110,7 +110,7 @@ namespace InventoryOrderSystem
                 {"Cookies", new Product("Cookies", 50.00m, 79)},
 
                 {"Chocolate (Classic)", new Product("Chocolate (Classic)", 80.00m, 80)},
-                {"Maple w/ Butter(Classic", new Product("Maple w/ Butter(Classic", 80.00m, 81)},
+                {"Maple w/ Butter(Classic)", new Product("Maple w/ Butter(Classic)", 80.00m, 81)},
                 {"Nutella (Classic)", new Product("Nutella (Classic)", 90.00m, 82)},
                 {"Matcha (Classic)", new Product("Matcha (Classic)", 90.00m, 83)},
                 {"Peanut Butter (Classic)", new Product("CooPeanut Butter (Classic)kies", 90.00m, 84)},

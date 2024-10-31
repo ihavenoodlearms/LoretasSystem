@@ -120,6 +120,7 @@
     </Compile>
     <Compile Include="Models\InventoryItem.cs" />
     <Compile Include="Models\Order.cs" />
+    <Compile Include="Models\OrderStatistics.cs" />
     <Compile Include="Models\OrderViewModel.cs" />
     <Compile Include="Models\ProductCatalog.cs" />
     <Compile Include="Models\User.cs" />
