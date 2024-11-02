@@ -206,8 +206,8 @@ namespace InventoryOrderSystem.Forms
             // 
             // dgvTopProducts
             // 
-            this.dgvTopProducts.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.dgvTopProducts.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.dgvTopProducts.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dgvTopProducts.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -216,6 +216,7 @@ namespace InventoryOrderSystem.Forms
             this.colQuantity,
             this.colRevenue});
             this.dgvTopProducts.Location = new System.Drawing.Point(20, 120);
+            this.dgvTopProducts.MinimumSize = new System.Drawing.Size(0, 200);
             this.dgvTopProducts.Name = "dgvTopProducts";
             this.dgvTopProducts.Size = new System.Drawing.Size(748, 200);
             this.dgvTopProducts.TabIndex = 3;
@@ -250,6 +251,8 @@ namespace InventoryOrderSystem.Forms
             this.Controls.Add(this.pnlHeader);
             this.Controls.Add(this.pnlSidebar);
             this.Controls.Add(this.btnToggleSidebar);
+            this.FormBorderStyle = FormBorderStyle.Sizable;  // Allow resizing
+            this.MaximizeBox = true;  // Allow maximizing
             this.MinimumSize = new System.Drawing.Size(1024, 768);
             this.Name = "DashboardForm";
             this.Text = "Dashboard - Loreta\'s Cafe";
@@ -305,89 +308,146 @@ namespace InventoryOrderSystem.Forms
         {
             // Order Statistics Panel
             pnlOrderStats = new Panel();
-            pnlOrderStats.Size = new Size(868, 200);
-            pnlOrderStats.Location = new Point(20, 340);
-            pnlOrderStats.BackColor = lightBrown;  // Changed from slate-800 to lightBrown
+            pnlOrderStats.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top;
+            pnlOrderStats.Size = new Size(pnlMain.Width - 40, 180);
+            pnlOrderStats.Location = new Point(20, dgvTopProducts.Bottom + 20);
+            pnlOrderStats.BackColor = cream;
+            pnlOrderStats.MinimumSize = new Size(700, 180);
             pnlOrderStats.Padding = new Padding(15);
+
+            // Title Panel for center alignment
+            Panel titlePanel = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 40,
+                BackColor = Color.Transparent
+            };
 
             // Title
             lblOrderStatsTitle = new Label();
             lblOrderStatsTitle.Text = "Order Statistics";
-            lblOrderStatsTitle.ForeColor = cream;  // Changed to cream to match café theme
+            lblOrderStatsTitle.ForeColor = darkBrown;
             lblOrderStatsTitle.Font = new Font("Segoe UI", 12, FontStyle.Bold);
-            lblOrderStatsTitle.Location = new Point(15, 15);
             lblOrderStatsTitle.AutoSize = true;
+            lblOrderStatsTitle.Location = new Point(
+                (pnlOrderStats.Width - lblOrderStatsTitle.Width) / 2, 10);
+            lblOrderStatsTitle.Anchor = AnchorStyles.None;
 
-            // Initialize labels first
-            lblReceived = new Label();
-            lblProcessing = new Label();
-            lblPaid = new Label();
-            lblCancelled = new Label();
+            titlePanel.Controls.Add(lblOrderStatsTitle);
 
-            lblReceivedTitle = new Label();
-            lblProcessingTitle = new Label();
-            lblPaidTitle = new Label();
-            lblCancelledTitle = new Label();
+            // Stats Container Panel
+            Panel statsContainer = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.Transparent
+            };
 
-            // Create statistics panels
-            pnlReceived = new Panel();
-            pnlProcessing = new Panel();
-            pnlPaid = new Panel();
-            pnlCancelled = new Panel();
+            // Create and initialize labels
+            InitializeLabels();
 
-            // Create statistics panels with the initialized labels - adjust spacing
-            CreateStatPanel(pnlReceived, lblReceived, lblReceivedTitle, "Received",
-                Color.FromArgb(59, 130, 246), new Point(15, 50));
-            CreateStatPanel(pnlProcessing, lblProcessing, lblProcessingTitle, "Processing",
-                Color.FromArgb(251, 146, 60), new Point(200, 50));
-            CreateStatPanel(pnlPaid, lblPaid, lblPaidTitle, "Paid",
-                Color.FromArgb(34, 197, 94), new Point(385, 50));
-            CreateStatPanel(pnlCancelled, lblCancelled, lblCancelledTitle, "Cancelled",
-                Color.FromArgb(239, 68, 68), new Point(570, 50));
+            // Create statistics panels with the new layout
+            CreateStatisticPanels(statsContainer);
 
-            // Add all controls to the panel
-            pnlOrderStats.Controls.Add(lblOrderStatsTitle);
-            pnlOrderStats.Controls.Add(pnlReceived);
-            pnlOrderStats.Controls.Add(pnlProcessing);
-            pnlOrderStats.Controls.Add(pnlPaid);
-            pnlOrderStats.Controls.Add(pnlCancelled);
+            // Add panels to main stats panel
+            pnlOrderStats.Controls.Add(statsContainer);
+            pnlOrderStats.Controls.Add(titlePanel);
 
-            // Add the panel to the main form
             this.pnlMain.Controls.Add(pnlOrderStats);
         }
 
-        private void CreateStatPanel(Panel panel, Label valueLabel, Label titleLabel, string title, Color backgroundColor, Point location)
+        private void CreateStatisticPanels(Panel container)
         {
-            // Set up panel
-            panel.Size = new Size(165, 80);
-            panel.Location = location;
-            panel.BackColor = backgroundColor;
-            panel.Padding = new Padding(10);
-
-            // Add subtle border
-            panel.Paint += (sender, e) => {
-                var p = sender as Panel;
-                e.Graphics.DrawRectangle(new Pen(Color.FromArgb(30, Color.White), 1),
-                    0, 0, p.Width - 1, p.Height - 1);
+            // TableLayoutPanel for responsive grid layout
+            TableLayoutPanel table = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 4,
+                RowCount = 1,
+                Padding = new Padding(10)
             };
 
-            // Set up title label
+            // Set column styles to make them equal width and responsive
+            for (int i = 0; i < 4; i++)
+            {
+                table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
+            }
+
+            // Create the stat panels
+            pnlReceived = CreateStatPanel("Received", lblReceived, lblReceivedTitle, darkBrown);
+            pnlProcessing = CreateStatPanel("Processing", lblProcessing, lblProcessingTitle, darkBrown);
+            pnlPaid = CreateStatPanel("Paid", lblPaid, lblPaidTitle, darkBrown);
+            pnlCancelled = CreateStatPanel("Cancelled", lblCancelled, lblCancelledTitle, darkBrown);
+
+            // Add panels to table
+            table.Controls.Add(pnlReceived, 0, 0);
+            table.Controls.Add(pnlProcessing, 1, 0);
+            table.Controls.Add(pnlPaid, 2, 0);
+            table.Controls.Add(pnlCancelled, 3, 0);
+
+            // Set spacing between panels
+            table.Margin = new Padding(0, 10, 0, 0);
+            table.Padding = new Padding(10);
+
+            container.Controls.Add(table);
+        }
+
+        private Panel CreateStatPanel(string title, Label valueLabel, Label titleLabel, Color backgroundColor)
+        {
+            Panel panel = new Panel
+            {
+                BackColor = backgroundColor,
+                Dock = DockStyle.Fill,
+                Margin = new Padding(10)
+            };
+
+            // Container for content to center it vertically
+            TableLayoutPanel content = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                RowCount = 2,
+                ColumnCount = 1,
+                Padding = new Padding(5)
+            };
+
+            content.RowStyles.Add(new RowStyle(SizeType.Percent, 40F));
+            content.RowStyles.Add(new RowStyle(SizeType.Percent, 60F));
+
+            // Configure labels
             titleLabel.Text = title;
-            titleLabel.ForeColor = cream;  // Changed to cream
-            titleLabel.Font = new Font("Segoe UI", 10, FontStyle.Regular);
-            titleLabel.Location = new Point(10, 10);
-            titleLabel.AutoSize = true;
+            titleLabel.ForeColor = cream;
+            titleLabel.Font = new Font("Segoe UI", 12, FontStyle.Regular);
+            titleLabel.TextAlign = ContentAlignment.MiddleCenter;
+            titleLabel.Dock = DockStyle.Fill;
+            titleLabel.AutoSize = false;
 
-            // Set up value label
             valueLabel.Text = "0";
-            valueLabel.ForeColor = cream;  // Changed to cream
-            valueLabel.Font = new Font("Segoe UI", 18, FontStyle.Bold);
-            valueLabel.Location = new Point(10, 35);
-            valueLabel.AutoSize = true;
+            valueLabel.ForeColor = cream;
+            valueLabel.Font = new Font("Segoe UI", 24, FontStyle.Bold);
+            valueLabel.TextAlign = ContentAlignment.MiddleCenter;
+            valueLabel.Dock = DockStyle.Fill;
+            valueLabel.AutoSize = false;
 
-            // Add labels to panel
-            panel.Controls.Add(titleLabel);
-            panel.Controls.Add(valueLabel);
+            content.Controls.Add(titleLabel, 0, 0);
+            content.Controls.Add(valueLabel, 0, 1);
+            panel.Controls.Add(content);
+
+            return panel;
+        }
+
+        private void InitializeLabels()
+        {
+            // Initialize all label controls
+            lblReceived = new Label();
+            lblReceivedTitle = new Label();
+
+            lblProcessing = new Label();
+            lblProcessingTitle = new Label();
+
+            lblPaid = new Label();
+            lblPaidTitle = new Label();
+
+            lblCancelled = new Label();
+            lblCancelledTitle = new Label();
         }
     }
 }

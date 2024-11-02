@@ -87,18 +87,36 @@ namespace InventoryOrderSystem.Forms
             _currentUser = user;
             _dbManager = new DatabaseManager();  // Make sure this line exists
             currentDate = DateTime.Today;
+            this.Resize += DashboardForm_Resize;  // Add this line
             ApplyStyles();
             SetupDashboard();
             CreateSettingsPanel();
             UpdateOrderStatistics();
         }
 
+        private void DashboardForm_Resize(object sender, EventArgs e)
+        {
+            if (pnlOrderStats != null)
+            {
+                // Update panel width while maintaining margins
+                pnlOrderStats.Width = pnlMain.Width - 40;
+                pnlOrderStats.Location = new Point(20, dgvTopProducts.Bottom + 20);
+
+                // Center the title
+                if (lblOrderStatsTitle != null)
+                {
+                    lblOrderStatsTitle.Location = new Point(
+                        (pnlOrderStats.Width - lblOrderStatsTitle.Width) / 2, 10);
+                }
+            }
+        }
+
         private void ApplyStyles()
         {
             // Form styles
             this.BackColor = cream;
-            this.FormBorderStyle = FormBorderStyle.FixedSingle;
-            this.MaximizeBox = false;
+            this.FormBorderStyle = FormBorderStyle.Sizable;
+            this.MaximizeBox = true;
 
             // Sidebar styles
             pnlSidebar.BackColor = darkBrown;
