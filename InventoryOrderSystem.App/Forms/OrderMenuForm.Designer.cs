@@ -27,6 +27,8 @@ namespace InventoryOrderingSystem
             this.labelTotal = new System.Windows.Forms.Label();
             this.buttonBackToDashboard = new System.Windows.Forms.Button();
             this.buttonProceedToPayment = new System.Windows.Forms.Button();
+            this.buttonAddToChecklist = new System.Windows.Forms.Button();
+            this.buttonRemoveFromChecklist = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.panelSidebar.SuspendLayout();
             this.panelProducts.SuspendLayout();
@@ -73,6 +75,8 @@ namespace InventoryOrderingSystem
             // panelOrderSummary
             // 
             this.panelOrderSummary.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(241)))), ((int)(((byte)(227)))), ((int)(((byte)(211)))));
+            this.panelOrderSummary.Controls.Add(this.buttonAddToChecklist);
+            this.panelOrderSummary.Controls.Add(this.buttonRemoveFromChecklist);
             this.panelOrderSummary.Controls.Add(this.label1);
             this.panelOrderSummary.Controls.Add(this.listBoxOrderSummary);
             this.panelOrderSummary.Controls.Add(this.labelTotal);
@@ -134,6 +138,34 @@ namespace InventoryOrderingSystem
             this.buttonProceedToPayment.TabIndex = 3;
             this.buttonProceedToPayment.Text = "Proceed to Payment";
             this.buttonProceedToPayment.UseVisualStyleBackColor = false;
+            //
+            // buttonAddToChecklist
+            //
+            this.buttonAddToChecklist.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(74)))), ((int)(((byte)(44)))), ((int)(((byte)(42)))));
+            this.buttonAddToChecklist.FlatAppearance.BorderSize = 0;
+            this.buttonAddToChecklist.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.buttonAddToChecklist.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold);
+            this.buttonAddToChecklist.ForeColor = System.Drawing.Color.White;
+            this.buttonAddToChecklist.Location = new System.Drawing.Point(362, 160);
+            this.buttonAddToChecklist.Name = "buttonAddToChecklist";
+            this.buttonAddToChecklist.Size = new System.Drawing.Size(150, 30);
+            this.buttonAddToChecklist.TabIndex = 4;
+            this.buttonAddToChecklist.Text = "Add to Checklist";
+            this.buttonAddToChecklist.UseVisualStyleBackColor = false;
+            //
+            // buttonRemoveFromChecklist
+            //
+            this.buttonRemoveFromChecklist.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(74)))), ((int)(((byte)(44)))), ((int)(((byte)(42)))));
+            this.buttonRemoveFromChecklist.FlatAppearance.BorderSize = 0;
+            this.buttonRemoveFromChecklist.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.buttonRemoveFromChecklist.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold);
+            this.buttonRemoveFromChecklist.ForeColor = System.Drawing.Color.White;
+            this.buttonRemoveFromChecklist.Location = new System.Drawing.Point(518, 160);
+            this.buttonRemoveFromChecklist.Name = "buttonRemoveFromChecklist";
+            this.buttonRemoveFromChecklist.Size = new System.Drawing.Size(150, 30);
+            this.buttonRemoveFromChecklist.TabIndex = 5;
+            this.buttonRemoveFromChecklist.Text = "Remove";
+            this.buttonRemoveFromChecklist.UseVisualStyleBackColor = false;
             // 
             // label1
             // 
@@ -158,15 +190,14 @@ namespace InventoryOrderingSystem
             this.MaximizeBox = true;
             this.MinimumSize = new Size(1000, 600);
             this.Name = "OrderMenuForm";
-            this.Resize += new EventHandler(OrderMenuForm_Resize);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Loreta\'s Café - Order Menu";
+            this.Resize += new EventHandler(OrderMenuForm_Resize);
             this.panelSidebar.ResumeLayout(false);
             this.panelProducts.ResumeLayout(false);
             this.panelOrderSummary.ResumeLayout(false);
             this.panelOrderSummary.PerformLayout();
             this.ResumeLayout(false);
-
         }
 
         private System.Windows.Forms.Panel panelSidebar;
@@ -178,6 +209,8 @@ namespace InventoryOrderingSystem
         private System.Windows.Forms.Label labelTotal;
         private System.Windows.Forms.Button buttonBackToDashboard;
         private System.Windows.Forms.Button buttonProceedToPayment;
+        private System.Windows.Forms.Button buttonAddToChecklist;
+        private System.Windows.Forms.Button buttonRemoveFromChecklist;
         private System.Windows.Forms.Label label1;
     }
 }

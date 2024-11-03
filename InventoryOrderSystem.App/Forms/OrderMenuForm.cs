@@ -113,6 +113,10 @@ namespace InventoryOrderingSystem
             buttonBackToDashboard.Click += BackButton_Click;
             buttonProceedToPayment.Click += ProceedToPaymentButton_Click;
 
+            // Add event handlers for the shared buttons
+            buttonAddToChecklist.Click += SharedAddToChecklist_Click;
+            buttonRemoveFromChecklist.Click += SharedRemoveFromChecklist_Click;
+
             Button editAddOnsButton = new Button
             {
                 Text = "Edit Add-ons",
@@ -471,15 +475,16 @@ namespace InventoryOrderingSystem
         private GroupBox CreateProductBox(Product product)
         {
             // Calculate box size based on container width
-            int boxWidth = (int)(flowLayoutPanelProducts.Width * 0.3); // 30% of container width
-            int boxHeight = 320; // Fixed height or calculate based on content
+            int boxWidth = (int)(flowLayoutPanelProducts.Width * 0.3);
+            int boxHeight = 320;
 
             GroupBox productBox = new GroupBox
             {
                 Text = product.Name,
                 Size = new Size(boxWidth, boxHeight),
                 Margin = new Padding(5),
-                Anchor = AnchorStyles.Left | AnchorStyles.Top
+                Anchor = AnchorStyles.Left | AnchorStyles.Top,
+                Tag = product  // Store the product in the Tag property
             };
 
             // Adjust control positions to be relative to box size
@@ -505,28 +510,8 @@ namespace InventoryOrderingSystem
                 Enabled = false
             };
 
-            Button addToChecklistButton = new Button
-            {
-                Text = "Add to Checklist",
-                Location = new Point(padding, boxHeight - 40),
-                Size = new Size((boxWidth - (padding * 3)) / 2, 30),
-                Enabled = true
-            };
-            addToChecklistButton.Click += (sender, e) => AddToChecklist_Click(sender, e, product);
-
-            Button removeFromChecklistButton = new Button
-            {
-                Text = "Remove",
-                Location = new Point(addToChecklistButton.Right + padding, boxHeight - 40),
-                Size = new Size((boxWidth - (padding * 3)) / 2, 30),
-                Enabled = true
-            };
-            removeFromChecklistButton.Click += (sender, e) => RemoveFromChecklist_Click(sender, e, product);
-
             productBox.Controls.Add(checkBox);
             productBox.Controls.Add(quantityUpDown);
-            productBox.Controls.Add(addToChecklistButton);
-            productBox.Controls.Add(removeFromChecklistButton);
 
             string[] categoriesWithOptions = new string[]
             {
@@ -592,6 +577,109 @@ namespace InventoryOrderingSystem
             }
 
             return productBox;
+        }
+
+        private void SharedAddToChecklist_Click(object sender, EventArgs e)
+        {
+            // Find selected product
+            var selectedProduct = GetSelectedProduct();
+            if (selectedProduct == null)
+            {
+                MessageBox.Show("Please select a product first.", "No Product Selected",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            GroupBox productBox = productBoxes[selectedProduct.Name];
+            NumericUpDown quantityUpDown = productBox.Controls.OfType<NumericUpDown>().First();
+
+            if (quantityUpDown.Value == 0)
+            {
+                MessageBox.Show("Please specify a quantity.", "Invalid Quantity",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Get all the necessary information from the product box
+            ComboBox sizeComboBox = productBox.Controls.OfType<ComboBox>().FirstOrDefault();
+            CheckBox extraShotCheckBox = productBox.Controls.OfType<CheckBox>().ElementAtOrDefault(1);
+            Panel addOnsPanel = productBox.Controls.OfType<Panel>().FirstOrDefault();
+
+            string size = sizeComboBox?.Text ?? "N/A";
+            bool extraShot = extraShotCheckBox?.Checked ?? false;
+            List<string> selectedAddOns = new List<string>();
+
+            if (addOnsPanel != null)
+            {
+                foreach (CheckBox addOnCheckBox in addOnsPanel.Controls.OfType<CheckBox>())
+                {
+                    if (addOnCheckBox.Checked)
+                    {
+                        selectedAddOns.Add(addOnCheckBox.Text);
+                    }
+                }
+            }
+
+            OrderItem newItem = new OrderItem(selectedProduct, size, extraShot,
+                (int)quantityUpDown.Value, selectedAddOns);
+            orderItems.Add(newItem);
+
+            string itemDescription = GetItemDescription(newItem);
+            listBoxOrderSummary.Items.Add(itemDescription);
+
+            // Update total
+            decimal itemTotal = newItem.CalculatePrice();
+            decimal currentTotal = decimal.Parse(labelTotal.Text.Replace("Total: ₱", ""));
+            decimal newTotal = currentTotal + itemTotal;
+            labelTotal.Text = $"Total: ₱{newTotal:F2}";
+
+            // Reset the quantity and checkbox
+            quantityUpDown.Value = 0;
+            productBox.Controls.OfType<CheckBox>().First().Checked = false;
+
+            MessageBox.Show("Item added to checklist successfully!", "Success",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void SharedRemoveFromChecklist_Click(object sender, EventArgs e)
+        {
+            if (listBoxOrderSummary.SelectedIndex == -1)
+            {
+                MessageBox.Show("Please select an item from the checklist to remove.",
+                    "No Item Selected", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string selectedItem = listBoxOrderSummary.SelectedItem.ToString();
+            OrderItem itemToRemove = orderItems.FirstOrDefault(item =>
+                GetItemDescription(item) == selectedItem);
+
+            if (itemToRemove != null)
+            {
+                orderItems.Remove(itemToRemove);
+                listBoxOrderSummary.Items.RemoveAt(listBoxOrderSummary.SelectedIndex);
+
+                decimal removedItemPrice = itemToRemove.CalculatePrice();
+                decimal currentTotal = decimal.Parse(labelTotal.Text.Replace("Total: ₱", ""));
+                decimal newTotal = currentTotal - removedItemPrice;
+                labelTotal.Text = $"Total: ₱{newTotal:F2}";
+
+                MessageBox.Show("Item removed from checklist successfully!", "Success",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private Product GetSelectedProduct()
+        {
+            foreach (GroupBox productBox in flowLayoutPanelProducts.Controls.OfType<GroupBox>())
+            {
+                CheckBox checkBox = productBox.Controls.OfType<CheckBox>().First();
+                if (checkBox.Checked)
+                {
+                    return (Product)checkBox.Tag;
+                }
+            }
+            return null;
         }
 
         private void AddToChecklist_Click(object sender, EventArgs e, Product product)
