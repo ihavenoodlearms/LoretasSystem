@@ -1,4 +1,7 @@
-﻿namespace InventoryOrderingSystem
+﻿using System;
+using System.Drawing;
+
+namespace InventoryOrderingSystem
 {
     partial class OrderMenuForm
     {
@@ -151,9 +154,11 @@
             this.Controls.Add(this.panelOrderSummary);
             this.Controls.Add(this.panelProducts);
             this.Controls.Add(this.panelSidebar);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.MaximizeBox = false;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;
+            this.MaximizeBox = true;
+            this.MinimumSize = new Size(1000, 600);
             this.Name = "OrderMenuForm";
+            this.Resize += new EventHandler(OrderMenuForm_Resize);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Loreta\'s Café - Order Menu";
             this.panelSidebar.ResumeLayout(false);

@@ -422,10 +422,8 @@ namespace InventoryOrderSystem.Forms
 
         private void btnReports_Click(object sender, EventArgs e)
         {
-            if (_currentUser.IsSuperAdmin)
-            {
-                MessageBox.Show("Reports functionality not implemented yet.");
-            }
+            this.Hide();
+            new SalesReportForm(_currentUser).Show();
         }
 
         private void btnToggleSidebar_Click(object sender, EventArgs e)

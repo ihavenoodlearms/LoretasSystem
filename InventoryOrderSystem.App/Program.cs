@@ -2,6 +2,7 @@
 using System.IO;
 using System.Windows.Forms;
 using InventoryOrderSystem.Services;
+using OfficeOpenXml;
 
 namespace InventoryOrderSystem
 {
@@ -21,6 +22,8 @@ namespace InventoryOrderSystem
 
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
+
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
                 // Set the data directory
                 string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;

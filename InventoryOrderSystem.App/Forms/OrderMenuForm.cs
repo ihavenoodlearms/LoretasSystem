@@ -385,40 +385,131 @@ namespace InventoryOrderingSystem
             }
         }
 
+        private void OrderMenuForm_Resize(object sender, EventArgs e)
+        {
+            // Recalculate panel sizes
+            panelSidebar.Width = (int)(this.ClientSize.Width * 0.17);
+
+            // Adjust products panel
+            panelProducts.Width = this.ClientSize.Width - panelSidebar.Width;
+            panelProducts.Height = (int)(this.ClientSize.Height * 0.75);
+            panelProducts.Location = new Point(panelSidebar.Width, 0);
+
+            // Adjust order summary panel
+            panelOrderSummary.Width = this.ClientSize.Width - panelSidebar.Width;
+            panelOrderSummary.Location = new Point(panelSidebar.Width, panelProducts.Height);
+
+            // Adjust button positions in order summary panel
+            int buttonMargin = 10;
+            buttonProceedToPayment.Location = new Point(
+                panelOrderSummary.Width - buttonProceedToPayment.Width - buttonMargin,
+                panelOrderSummary.Height - buttonProceedToPayment.Height - buttonMargin
+            );
+
+            buttonBackToDashboard.Location = new Point(
+                buttonProceedToPayment.Left - buttonBackToDashboard.Width - buttonMargin,
+                buttonProceedToPayment.Top
+            );
+
+            // Adjust list box size
+            listBoxOrderSummary.Width = panelOrderSummary.Width - (buttonMargin * 2);
+            listBoxOrderSummary.Height = panelOrderSummary.Height - labelTotal.Height - (buttonMargin * 4);
+
+            // Adjust total label position
+            labelTotal.Location = new Point(
+                buttonMargin,
+                listBoxOrderSummary.Bottom + buttonMargin
+            );
+
+            // Adjust product flow layout
+            flowLayoutPanelProducts.Width = panelProducts.Width;
+            flowLayoutPanelProducts.Height = panelProducts.Height;
+
+            // Adjust categories flow layout
+            flowLayoutPanelCategories.Width = panelSidebar.Width;
+            flowLayoutPanelCategories.Height = panelSidebar.Height;
+
+            // Resize product boxes
+            ResizeProductBoxes();
+
+            // Refresh the layout
+            this.PerformLayout();
+        }
+
+        private void ResizeProductBoxes()
+        {
+            foreach (GroupBox box in flowLayoutPanelProducts.Controls.OfType<GroupBox>())
+            {
+                int newWidth = (int)(flowLayoutPanelProducts.Width * 0.3);
+                box.Width = newWidth;
+
+                // Resize and reposition controls inside the box
+                foreach (Control control in box.Controls)
+                {
+                    if (control is Button btn)
+                    {
+                        if (btn.Text == "Add to Checklist")
+                        {
+                            btn.Width = (newWidth - 30) / 2;
+                            btn.Location = new Point(10, box.Height - 40);
+                        }
+                        else if (btn.Text == "Remove")
+                        {
+                            btn.Width = (newWidth - 30) / 2;
+                            btn.Location = new Point(btn.Width + 20, box.Height - 40);
+                        }
+                    }
+                    else if (control is Panel addOnsPanel)
+                    {
+                        addOnsPanel.Width = newWidth - 20;
+                    }
+                }
+            }
+        }
+
+
         private GroupBox CreateProductBox(Product product)
         {
+            // Calculate box size based on container width
+            int boxWidth = (int)(flowLayoutPanelProducts.Width * 0.3); // 30% of container width
+            int boxHeight = 320; // Fixed height or calculate based on content
+
             GroupBox productBox = new GroupBox
             {
                 Text = product.Name,
-                Size = new Size(250, 320),
-                Margin = new Padding(5)
+                Size = new Size(boxWidth, boxHeight),
+                Margin = new Padding(5),
+                Anchor = AnchorStyles.Left | AnchorStyles.Top
             };
+
+            // Adjust control positions to be relative to box size
+            int padding = 10;
+            int controlHeight = 25;
 
             CheckBox checkBox = new CheckBox
             {
                 Text = $"₱{product.Price:F2}",
                 Tag = product,
                 AutoSize = true,
-                Location = new Point(10, 20)
+                Location = new Point(padding, controlHeight)
             };
             checkBox.CheckedChanged += ProductCheckBox_CheckedChanged;
-            productBox.Controls.Add(checkBox);
 
             NumericUpDown quantityUpDown = new NumericUpDown
             {
                 Minimum = 0,
                 Maximum = 10,
                 Value = 0,
-                Location = new Point(180, 20),
-                Size = new Size(50, 25),
+                Location = new Point(boxWidth - 70 - padding, controlHeight),
+                Size = new Size(70, controlHeight),
                 Enabled = false
             };
 
             Button addToChecklistButton = new Button
             {
                 Text = "Add to Checklist",
-                Location = new Point(10, 280),
-                Size = new Size(110, 30),
+                Location = new Point(padding, boxHeight - 40),
+                Size = new Size((boxWidth - (padding * 3)) / 2, 30),
                 Enabled = true
             };
             addToChecklistButton.Click += (sender, e) => AddToChecklist_Click(sender, e, product);
@@ -426,8 +517,8 @@ namespace InventoryOrderingSystem
             Button removeFromChecklistButton = new Button
             {
                 Text = "Remove",
-                Location = new Point(130, 280),
-                Size = new Size(110, 30),
+                Location = new Point(addToChecklistButton.Right + padding, boxHeight - 40),
+                Size = new Size((boxWidth - (padding * 3)) / 2, 30),
                 Enabled = true
             };
             removeFromChecklistButton.Click += (sender, e) => RemoveFromChecklist_Click(sender, e, product);
