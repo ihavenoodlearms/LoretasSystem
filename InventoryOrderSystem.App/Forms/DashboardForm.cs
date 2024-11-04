@@ -347,50 +347,114 @@ namespace InventoryOrderSystem.Forms
 
         private void CreateSettingsPanel()
         {
+            // Create settings panel with relative size and anchoring
             pnlSettings = new Panel
             {
                 Visible = false,
                 BackColor = cream,
-                Size = new Size(300, 200),
-                Location = new Point((this.ClientSize.Width - 300) / 2, (this.ClientSize.Height - 200) / 2)
+                Size = new Size((int)(this.ClientSize.Width * 0.3), (int)(this.ClientSize.Height * 0.3)), // 30% of form size
+                MinimumSize = new Size(300, 200), // Minimum size to prevent too small panel
+                MaximumSize = new Size(500, 300), // Maximum size to prevent too large panel
+                Anchor = AnchorStyles.None // This will be centered manually
             };
 
+            // Center the panel
+            CenterSettingsPanel();
+
+            // Add resize handler to keep panel centered
+            this.Resize += (s, e) => CenterSettingsPanel();
+
+            // Create a TableLayoutPanel for responsive layout
+            TableLayoutPanel layoutPanel = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                RowCount = 4,
+                ColumnCount = 1,
+                Padding = new Padding(20),
+            };
+
+            // Set row styles for proper spacing
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 25F));  // Title
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 30F));  // Sign Out button
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 30F));  // Close button
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 15F));  // Bottom spacing
+
+            // Title
             Label lblSettings = new Label
             {
                 Text = "Settings",
                 Font = new Font("Segoe UI", 16, FontStyle.Bold),
                 ForeColor = darkBrown,
-                AutoSize = true,
-                Location = new Point(10, 10)
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleCenter
             };
 
+            // Sign Out button with responsive width
             Button btnSignOut = new Button
             {
                 Text = "Sign Out",
-                Size = new Size(200, 40),
-                Location = new Point(50, 60),
+                Dock = DockStyle.Fill,
+                Height = 40,
+                Margin = new Padding(40, 5, 40, 5),
                 BackColor = accentGreen,
                 ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9.75f, FontStyle.Regular)
             };
             btnSignOut.FlatAppearance.BorderSize = 0;
             btnSignOut.Click += BtnSignOut_Click;
 
+            // Close button with responsive width
             Button btnCloseSettings = new Button
             {
                 Text = "Close",
-                Size = new Size(200, 40),
-                Location = new Point(50, 110),
+                Dock = DockStyle.Fill,
+                Height = 40,
+                Margin = new Padding(40, 5, 40, 5),
                 BackColor = lightBrown,
                 ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9.75f, FontStyle.Regular)
             };
             btnCloseSettings.FlatAppearance.BorderSize = 0;
             btnCloseSettings.Click += (s, e) => pnlSettings.Visible = false;
 
-            pnlSettings.Controls.AddRange(new Control[] { lblSettings, btnSignOut, btnCloseSettings });
+            // Add controls to the layout panel
+            layoutPanel.Controls.Add(lblSettings, 0, 0);
+            layoutPanel.Controls.Add(btnSignOut, 0, 1);
+            layoutPanel.Controls.Add(btnCloseSettings, 0, 2);
+
+            // Add layout panel to settings panel
+            pnlSettings.Controls.Add(layoutPanel);
+
+            // Add panel to form
             this.Controls.Add(pnlSettings);
             pnlSettings.BringToFront();
+        }
+
+        private void CenterSettingsPanel()
+        {
+            if (pnlSettings != null)
+            {
+                // Adjust panel size based on form size
+                pnlSettings.Size = new Size(
+                    Math.Min(500, Math.Max(300, (int)(this.ClientSize.Width * 0.3))),
+                    Math.Min(300, Math.Max(200, (int)(this.ClientSize.Height * 0.3)))
+                );
+
+                // Center the panel
+                pnlSettings.Location = new Point(
+                    (this.ClientSize.Width - pnlSettings.Width) / 2,
+                    (this.ClientSize.Height - pnlSettings.Height) / 2
+                );
+            }
+        }
+
+        // Add this to your form's constructor or where you initialize the form
+        protected override void OnSizeChanged(EventArgs e)
+        {
+            base.OnSizeChanged(e);
+            CenterSettingsPanel();
         }
 
         private void BtnSignOut_Click(object sender, EventArgs e)
