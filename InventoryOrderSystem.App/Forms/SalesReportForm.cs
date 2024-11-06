@@ -414,9 +414,9 @@ namespace InventoryOrderSystem.Forms
             dgvSalesReport.Rows.Clear();
             foreach (var order in _orders)
             {
-                decimal amountPaid = order.AmountPaid ?? order.TotalAmount;
-                decimal changeAmount = order.Status == "Paid" ?
-                    (order.AmountPaid ?? order.TotalAmount) - order.TotalAmount : 0;
+                // Use the actual stored values from the database
+                var amountPaid = order.AmountPaid ?? 0;
+                var changeAmount = order.ChangeAmount ?? 0;
 
                 dgvSalesReport.Rows.Add(
                     order.OrderId,
@@ -424,8 +424,8 @@ namespace InventoryOrderSystem.Forms
                     order.PaymentMethod,
                     order.Status,
                     order.TotalAmount.ToString("C"),
-                    amountPaid.ToString("C"),
-                    changeAmount.ToString("C"),
+                    amountPaid > 0 ? amountPaid.ToString("C") : "-",  // Show dash if no amount paid
+                    changeAmount > 0 ? changeAmount.ToString("C") : "-",  // Show dash if no change
                     order.OrderItems.Count
                 );
             }

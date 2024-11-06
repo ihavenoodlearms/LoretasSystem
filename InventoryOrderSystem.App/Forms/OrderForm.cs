@@ -272,7 +272,7 @@ namespace InventoryOrderSystem.Forms
                     Text = "Confirm Payment",
                     Location = new Point(85, 120),
                     Size = new Size(120, 30),
-                    DialogResult = DialogResult.OK
+                    DialogResult = DialogResult.None  // Changed from OK to None
                 };
 
                 confirmButton.Click += (s, evt) =>
@@ -291,14 +291,16 @@ namespace InventoryOrderSystem.Forms
                         return;
                     }
 
+                    // Only set DialogResult to OK if payment amount is valid
+                    paymentForm.DialogResult = DialogResult.OK;
                     paymentForm.Close();
                 };
 
                 paymentForm.Controls.AddRange(new Control[] {
-                    totalLabel, amountPaidLabel, amountPaidBox, changeLabel, confirmButton
-                });
+            totalLabel, amountPaidLabel, amountPaidBox, changeLabel, confirmButton
+        });
 
-                if (paymentForm.ShowDialog() == DialogResult.OK)
+                if (paymentForm.ShowDialog() == DialogResult.OK)  // This will only be true if payment amount is valid
                 {
                     decimal amountPaid = decimal.Parse(amountPaidBox.Text);
                     decimal change = amountPaid - totalAmount;
@@ -307,9 +309,14 @@ namespace InventoryOrderSystem.Forms
                     {
                         _dbManager.MarkOrderAsPaid(orderId, amountPaid, change);
 
-                        // Update the DataGridView
-                        selectedRow.DefaultCellStyle.BackColor = Color.LightGreen;
+                        // Update DataGridView
                         selectedRow.Cells["Status"].Value = "Paid";
+                        selectedRow.Cells["AmountPaid"].Value = amountPaid;
+                        selectedRow.Cells["ChangeAmount"].Value = change;
+                        selectedRow.DefaultCellStyle.BackColor = Color.LightGreen;
+                        selectedRow.DefaultCellStyle.ForeColor = Color.DarkGreen;
+
+                        LoadOrders();  // Refresh the grid to ensure all data is updated correctly
 
                         MessageBox.Show($"Payment processed successfully!\nChange: ₱{change:F2}",
                             "Payment Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);

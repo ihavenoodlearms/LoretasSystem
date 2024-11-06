@@ -678,11 +678,13 @@ namespace InventoryOrderSystem.Services
             {
                 connection.Open();
                 string query = @"
-                    SELECT o.*, oi.OrderItemId, oi.ItemId, oi.Quantity, oi.Price 
-                    FROM Orders o
-                    LEFT JOIN OrderItems oi ON o.OrderId = oi.OrderId
-                    WHERE o.OrderDate BETWEEN @StartDate AND @EndDate
-                    ORDER BY o.OrderDate DESC";
+            SELECT o.OrderId, o.UserId, o.OrderDate, o.TotalAmount, o.PaymentMethod, o.Status, 
+                   o.AmountPaid, o.ChangeAmount,
+                   oi.OrderItemId, oi.ItemId, oi.ProductName, oi.Quantity, oi.Price 
+            FROM Orders o
+            LEFT JOIN OrderItems oi ON o.OrderId = oi.OrderId
+            WHERE o.OrderDate BETWEEN @StartDate AND @EndDate
+            ORDER BY o.OrderDate DESC";
 
                 using (var command = new SQLiteCommand(query, connection))
                 {
@@ -713,6 +715,10 @@ namespace InventoryOrderSystem.Services
                                     TotalAmount = reader.GetDecimal(reader.GetOrdinal("TotalAmount")),
                                     PaymentMethod = reader.GetString(reader.GetOrdinal("PaymentMethod")),
                                     Status = reader.GetString(reader.GetOrdinal("Status")),
+                                    AmountPaid = reader.IsDBNull(reader.GetOrdinal("AmountPaid")) ?
+                                        null : (decimal?)reader.GetDecimal(reader.GetOrdinal("AmountPaid")),
+                                    ChangeAmount = reader.IsDBNull(reader.GetOrdinal("ChangeAmount")) ?
+                                        null : (decimal?)reader.GetDecimal(reader.GetOrdinal("ChangeAmount")),
                                     OrderItems = new List<OrderItem>()
                                 };
 
@@ -726,6 +732,7 @@ namespace InventoryOrderSystem.Services
                                     OrderItemId = reader.GetInt32(reader.GetOrdinal("OrderItemId")),
                                     OrderId = orderId,
                                     ItemId = reader.GetInt32(reader.GetOrdinal("ItemId")),
+                                    ProductName = reader.GetString(reader.GetOrdinal("ProductName")),
                                     Quantity = reader.GetInt32(reader.GetOrdinal("Quantity")),
                                     Price = reader.GetDecimal(reader.GetOrdinal("Price"))
                                 });
