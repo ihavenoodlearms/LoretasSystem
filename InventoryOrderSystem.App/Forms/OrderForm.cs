@@ -522,6 +522,46 @@ namespace InventoryOrderSystem.Forms
             }
         }
 
+        private void OrderForm_Resize(object sender, EventArgs e)
+        {
+            try
+            {
+                // Correct way to auto-resize columns
+                foreach (DataGridViewColumn column in dgvOrders.Columns)
+                {
+                    column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                }
+
+                // Alternative approach
+                // dgvOrders.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+
+                // Ensure minimum button width
+                int minButtonWidth = 100;
+                foreach (Control control in buttonPanel.Controls)
+                {
+                    if (control is Button button)
+                    {
+                        button.MinimumSize = new Size(minButtonWidth, button.Height);
+                    }
+                }
+
+                // Update margins and spacing
+                if (mainContainer != null)
+                {
+                    mainContainer.Padding = new Padding(10);
+                }
+
+                // Force layout update
+                this.PerformLayout();
+                this.Refresh();
+            }
+            catch (Exception ex)
+            {
+                // Handle or log any errors
+                Console.WriteLine($"Error resizing form: {ex.Message}");
+            }
+        }
+
         private void btnBack_Click(object sender, EventArgs e)
         {
             this.Hide();
