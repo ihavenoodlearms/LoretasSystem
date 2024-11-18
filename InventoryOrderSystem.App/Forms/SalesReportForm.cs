@@ -7,6 +7,7 @@ using InventoryOrderSystem.Models;
 using InventoryOrderSystem.Services;
 using static Microsoft.IO.RecyclableMemoryStreamManager;
 using OfficeOpenXml;
+using InventoryOrderSystem.App.Forms;
 
 
 namespace InventoryOrderSystem.Forms
@@ -38,9 +39,9 @@ namespace InventoryOrderSystem.Forms
         private readonly int MinimumFormHeight = 600;
 
         // Color scheme
-        private readonly Color darkBrown = Color.FromArgb(74, 44, 42);
-        private readonly Color cream = Color.FromArgb(253, 245, 230);
-        private readonly Color lightBrown = Color.FromArgb(140, 105, 84);
+        private readonly Color darkBrown = Color.FromArgb(59, 48, 48);
+        private readonly Color cream = Color.FromArgb(255, 240, 209);
+        private readonly Color lightBrown = Color.FromArgb(102, 67, 67);
 
         public SalesReportForm(User user)
         {
@@ -57,7 +58,7 @@ namespace InventoryOrderSystem.Forms
             this.StartPosition = FormStartPosition.CenterScreen;
             this.Text = "Sales Report";
             this.BackColor = cream;
-
+            this.FormBorderStyle = FormBorderStyle.None;
             CreateControls();
             SetupLayout();
             SetupEventHandlers();
@@ -70,6 +71,7 @@ namespace InventoryOrderSystem.Forms
             {
                 Format = DateTimePickerFormat.Short,
                 Value = DateTime.Today.AddDays(-30),
+                Font = new Font(this.Font.FontFamily, 9, FontStyle.Bold),
                 Width = 120
             };
 
@@ -77,6 +79,7 @@ namespace InventoryOrderSystem.Forms
             {
                 Format = DateTimePickerFormat.Short,
                 Value = DateTime.Today,
+                Font = new Font(this.Font.FontFamily, 9, FontStyle.Bold),
                 Width = 120
             };
 
@@ -84,6 +87,7 @@ namespace InventoryOrderSystem.Forms
             cmbOrderStatus = new ComboBox
             {
                 Width = 120,
+                Font = new Font(this.Font.FontFamily, 9, FontStyle.Bold),
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
             cmbOrderStatus.Items.AddRange(new object[] { "All", "Paid", "Voided" });
@@ -92,6 +96,7 @@ namespace InventoryOrderSystem.Forms
             cmbPaymentMethod = new ComboBox
             {
                 Width = 120,
+                Font = new Font(this.Font.FontFamily, 9, FontStyle.Bold),
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
             cmbPaymentMethod.Items.AddRange(new object[] { "All", "Cash", "Card" });
@@ -104,6 +109,7 @@ namespace InventoryOrderSystem.Forms
                 Width = 120,
                 Height = 30,
                 BackColor = darkBrown,
+                Font = new Font(this.Font.FontFamily, 8, FontStyle.Bold),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
                 Margin = new Padding(5)
@@ -116,6 +122,7 @@ namespace InventoryOrderSystem.Forms
                 Width = 120,
                 Height = 30,
                 BackColor = darkBrown,
+                Font = new Font(this.Font.FontFamily, 9, FontStyle.Bold),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
                 Margin = new Padding(5)
@@ -129,6 +136,7 @@ namespace InventoryOrderSystem.Forms
                 Height = 30,
                 BackColor = darkBrown,
                 ForeColor = Color.White,
+                Font = new Font(this.Font.FontFamily, 9, FontStyle.Bold),
                 FlatStyle = FlatStyle.Flat,
                 Margin = new Padding(5)
             };
@@ -145,6 +153,7 @@ namespace InventoryOrderSystem.Forms
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 BackgroundColor = Color.White,
                 BorderStyle = BorderStyle.None,
+                Font = new Font(this.Font.FontFamily, 16, FontStyle.Bold),
                 RowHeadersVisible = false,
                 EnableHeadersVisualStyles = false,
                 ColumnHeadersHeight = 40
@@ -167,7 +176,7 @@ namespace InventoryOrderSystem.Forms
             {
                 AutoSize = true,
                 ForeColor = Color.White,
-                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                Font = new Font("Arial Rounded MT", 12, FontStyle.Bold),
                 Location = new Point(10, 20)
             };
 
@@ -175,7 +184,7 @@ namespace InventoryOrderSystem.Forms
             {
                 AutoSize = true,
                 ForeColor = Color.White,
-                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                Font = new Font("Arial Rounded MT", 12, FontStyle.Bold),
                 Location = new Point(10, 45)
             };
 
@@ -183,7 +192,7 @@ namespace InventoryOrderSystem.Forms
             {
                 AutoSize = true,
                 ForeColor = Color.White,
-                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                Font = new Font("Arial Rounded MT", 12, FontStyle.Bold),
                 Location = new Point(10, 70)
             };
 
@@ -363,9 +372,10 @@ namespace InventoryOrderSystem.Forms
             // Style the DataGridView
             dgvSalesReport.ColumnHeadersDefaultCellStyle.BackColor = darkBrown;
             dgvSalesReport.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
-            dgvSalesReport.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10, FontStyle.Bold);
-            dgvSalesReport.DefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Regular);
+            dgvSalesReport.ColumnHeadersDefaultCellStyle.Font = new Font("Arial Rounded MT", 9, FontStyle.Bold);
+            dgvSalesReport.DefaultCellStyle.Font = new Font("Arial Rounded MT", 7, FontStyle.Bold);
             dgvSalesReport.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(250, 250, 250);
+            dgvSalesReport.BackColor = Color.FromArgb(250, 250, 250);
         }
 
         private void SetupEventHandlers()
@@ -492,8 +502,24 @@ namespace InventoryOrderSystem.Forms
 
         private void BtnBack_Click(object sender, EventArgs e)
         {
-            this.Hide();
-            new DashboardForm(_currentUser).Show();
+            
+            if (_currentUser.Role == "Admin")
+            {
+                this.Hide();
+                DashboardForm adminDashboard = new DashboardForm(_currentUser); 
+                adminDashboard.Show();
+            }
+            else if (_currentUser.Role == "User")
+            {
+              
+                this.Hide();
+                UserForm userDashboard = new UserForm(_currentUser);  
+                userDashboard.Show();
+            }
+            else
+            {
+                MessageBox.Show("Unknown role. Please contact the administrator.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         // Optional: Add form closing event handler

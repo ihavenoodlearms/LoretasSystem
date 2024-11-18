@@ -185,7 +185,8 @@ namespace InventoryOrderSystem.Services
                             UserId INTEGER PRIMARY KEY AUTOINCREMENT,
                             Username TEXT NOT NULL UNIQUE,
                             PasswordHash TEXT NOT NULL,
-                            IsSuperAdmin INTEGER NOT NULL
+                            IsSuperAdmin INTEGER NOT NULL,
+                            Role TEXT NOT NULL 
                         )";
                     command.ExecuteNonQuery();
 
@@ -232,7 +233,7 @@ namespace InventoryOrderSystem.Services
             }
 
             // Create admin user
-            CreateAdminUser("admin", "password123");
+            CreateAdminUser("admin", "password123,","ADMIN");
         }
 
         public bool VerifyPassword(int userId, string password)
@@ -258,7 +259,7 @@ namespace InventoryOrderSystem.Services
             return false;
         }
 
-        public void CreateAdminUser(string username, string password)
+        public void CreateAdminUser(string username, string password, string role)
         {
             using (var connection = new SQLiteConnection(connectionString))
             {
@@ -274,13 +275,62 @@ namespace InventoryOrderSystem.Services
                     {
                         // Create admin user
                         command.CommandText = @"
-                            INSERT INTO Users (Username, PasswordHash, IsSuperAdmin) 
-                            VALUES (@Username, @PasswordHash, @IsSuperAdmin)";
+                INSERT INTO Users (Username, PasswordHash, IsSuperAdmin, Role) 
+                VALUES (@Username, @PasswordHash, @IsSuperAdmin, @Role)";
                         command.Parameters.AddWithValue("@Username", username);
                         command.Parameters.AddWithValue("@PasswordHash", PasswordHasher.HashPassword(password));
-                        command.Parameters.AddWithValue("@IsSuperAdmin", 1);
+                        command.Parameters.AddWithValue("@IsSuperAdmin", role == "Admin" ? 1 : 0);
+                        command.Parameters.AddWithValue("@Role", role);
                         command.ExecuteNonQuery();
                     }
+                }
+            }
+        }
+
+        public void CreateUser(string username, string password, string role)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(connection))
+                {
+                    // Check if user already exists
+                    command.CommandText = "SELECT COUNT(*) FROM Users WHERE Username = @Username";
+                    command.Parameters.AddWithValue("@Username", username);
+                    int userCount = Convert.ToInt32(command.ExecuteScalar());
+
+                    if (userCount > 0)
+                    {
+                        throw new Exception("Username already taken.");
+                    }
+
+                    // Insert new user with role
+                    command.CommandText = @"
+                INSERT INTO Users (Username, PasswordHash, IsSuperAdmin, Role) 
+                VALUES (@Username, @PasswordHash, @IsSuperAdmin, @Role)";
+                    command.Parameters.AddWithValue("@Username", username);
+                    command.Parameters.AddWithValue("@PasswordHash", PasswordHasher.HashPassword(password));
+                    command.Parameters.AddWithValue("@IsSuperAdmin", role == "Admin" ? 1 : 0); 
+                    command.Parameters.AddWithValue("@Role", role);  
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public bool UserExists(string username)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(connection))
+                {
+                    // SQL query to check if the username already exists
+                    command.CommandText = "SELECT COUNT(*) FROM Users WHERE Username = @Username";
+                    command.Parameters.AddWithValue("@Username", username);
+
+                    // Execute the query and get the count
+                    int userCount = Convert.ToInt32(command.ExecuteScalar());
+                    return userCount > 0; // Return true if the user exists, false otherwise
                 }
             }
         }
@@ -302,18 +352,22 @@ namespace InventoryOrderSystem.Services
                             string storedHash = reader["PasswordHash"].ToString();
                             if (PasswordHasher.VerifyPassword(password, storedHash))
                             {
+                                // Get user role from database
+                                string role = reader["Role"].ToString(); // Assuming 'Role' column exists in Users table
+
                                 return new User
                                 {
                                     UserId = Convert.ToInt32(reader["UserId"]),
                                     Username = reader["Username"].ToString(),
-                                    IsSuperAdmin = Convert.ToBoolean(reader["IsSuperAdmin"])
+                                    IsSuperAdmin = Convert.ToBoolean(reader["IsSuperAdmin"]),
+                                    Role = role  // Set role in the User object
                                 };
                             }
                         }
                     }
                 }
             }
-            return null;
+            return null; 
         }
 
         public List<InventoryItem> GetAllInventoryItems()

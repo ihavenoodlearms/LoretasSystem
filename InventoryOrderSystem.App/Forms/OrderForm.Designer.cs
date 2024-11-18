@@ -17,67 +17,75 @@
 
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.dgvOrders = new System.Windows.Forms.DataGridView();
-            this.buttonPanel = new System.Windows.Forms.TableLayoutPanel();
             this.btnNewOrder = new System.Windows.Forms.Button();
             this.btnViewOrder = new System.Windows.Forms.Button();
             this.btnPayOrder = new System.Windows.Forms.Button();
             this.btnVoidOrder = new System.Windows.Forms.Button();
             this.btnBack = new System.Windows.Forms.Button();
-            this.headerLabel = new System.Windows.Forms.Label();
-            this.mainContainer = new System.Windows.Forms.TableLayoutPanel();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.lblRestock = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dgvOrders)).BeginInit();
-            this.buttonPanel.SuspendLayout();
-            this.mainContainer.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // dgvOrders
             // 
             this.dgvOrders.AllowUserToAddRows = false;
-            this.dgvOrders.BackgroundColor = System.Drawing.SystemColors.Control;
-            this.dgvOrders.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.dgvOrders.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dgvOrders.Location = new System.Drawing.Point(12, 86);
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(240)))), ((int)(((byte)(209)))));
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(82)))), ((int)(((byte)(110)))), ((int)(((byte)(72)))));
+            this.dgvOrders.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
+            this.dgvOrders.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgvOrders.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(240)))), ((int)(((byte)(209)))));
+            this.dgvOrders.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Single;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(240)))), ((int)(((byte)(209)))));
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Arial Rounded MT Bold", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(82)))), ((int)(((byte)(110)))), ((int)(((byte)(72)))));
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvOrders.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            this.dgvOrders.ColumnHeadersHeight = 34;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(240)))), ((int)(((byte)(209)))));
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Arial Rounded MT Bold", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(82)))), ((int)(((byte)(110)))), ((int)(((byte)(72)))));
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.dgvOrders.DefaultCellStyle = dataGridViewCellStyle3;
+            this.dgvOrders.EnableHeadersVisualStyles = false;
+            this.dgvOrders.Location = new System.Drawing.Point(21, 84);
             this.dgvOrders.Margin = new System.Windows.Forms.Padding(12);
             this.dgvOrders.MultiSelect = false;
             this.dgvOrders.Name = "dgvOrders";
             this.dgvOrders.ReadOnly = true;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(240)))), ((int)(((byte)(209)))));
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Arial Rounded MT Bold", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(82)))), ((int)(((byte)(110)))), ((int)(((byte)(72)))));
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.dgvOrders.RowHeadersDefaultCellStyle = dataGridViewCellStyle4;
             this.dgvOrders.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvOrders.Size = new System.Drawing.Size(976, 412);
+            this.dgvOrders.Size = new System.Drawing.Size(1416, 467);
             this.dgvOrders.TabIndex = 1;
-            // 
-            // buttonPanel
-            // 
-            this.buttonPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(230)))), ((int)(((byte)(210)))), ((int)(((byte)(181)))));
-            this.buttonPanel.ColumnCount = 6;
-            this.buttonPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66F));
-            this.buttonPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66F));
-            this.buttonPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66F));
-            this.buttonPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66F));
-            this.buttonPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.66F));
-            this.buttonPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 16.7F));
-            this.buttonPanel.Controls.Add(this.btnNewOrder, 0, 0);
-            this.buttonPanel.Controls.Add(this.btnViewOrder, 1, 0);
-            this.buttonPanel.Controls.Add(this.btnPayOrder, 2, 0);
-            this.buttonPanel.Controls.Add(this.btnVoidOrder, 3, 0);
-            this.buttonPanel.Controls.Add(this.btnBack, 4, 0);
-            this.buttonPanel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.buttonPanel.Location = new System.Drawing.Point(3, 513);
-            this.buttonPanel.Name = "buttonPanel";
-            this.buttonPanel.Padding = new System.Windows.Forms.Padding(10);
-            this.buttonPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 64F));
-            this.buttonPanel.Size = new System.Drawing.Size(994, 84);
-            this.buttonPanel.TabIndex = 2;
             // 
             // btnNewOrder
             // 
-            this.btnNewOrder.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(91)))), ((int)(((byte)(123)))), ((int)(((byte)(122)))));
-            this.btnNewOrder.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.btnNewOrder.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(98)))), ((int)(((byte)(130)))), ((int)(((byte)(93)))));
             this.btnNewOrder.FlatAppearance.BorderSize = 0;
             this.btnNewOrder.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnNewOrder.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnNewOrder.Font = new System.Drawing.Font("Arial Rounded MT Bold", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnNewOrder.ForeColor = System.Drawing.Color.White;
-            this.btnNewOrder.Location = new System.Drawing.Point(15, 15);
+            this.btnNewOrder.Location = new System.Drawing.Point(21, 648);
             this.btnNewOrder.Margin = new System.Windows.Forms.Padding(5);
             this.btnNewOrder.MinimumSize = new System.Drawing.Size(100, 35);
             this.btnNewOrder.Name = "btnNewOrder";
@@ -88,13 +96,12 @@
             // 
             // btnViewOrder
             // 
-            this.btnViewOrder.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(139)))), ((int)(((byte)(68)))), ((int)(((byte)(19)))));
-            this.btnViewOrder.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.btnViewOrder.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(98)))), ((int)(((byte)(130)))), ((int)(((byte)(93)))));
             this.btnViewOrder.FlatAppearance.BorderSize = 0;
             this.btnViewOrder.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnViewOrder.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnViewOrder.Font = new System.Drawing.Font("Arial Rounded MT Bold", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnViewOrder.ForeColor = System.Drawing.Color.White;
-            this.btnViewOrder.Location = new System.Drawing.Point(177, 15);
+            this.btnViewOrder.Location = new System.Drawing.Point(183, 648);
             this.btnViewOrder.Margin = new System.Windows.Forms.Padding(5);
             this.btnViewOrder.MinimumSize = new System.Drawing.Size(100, 35);
             this.btnViewOrder.Name = "btnViewOrder";
@@ -105,13 +112,12 @@
             // 
             // btnPayOrder
             // 
-            this.btnPayOrder.BackColor = System.Drawing.Color.MediumSeaGreen;
-            this.btnPayOrder.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.btnPayOrder.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(98)))), ((int)(((byte)(130)))), ((int)(((byte)(93)))));
             this.btnPayOrder.FlatAppearance.BorderSize = 0;
             this.btnPayOrder.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnPayOrder.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnPayOrder.Font = new System.Drawing.Font("Arial Rounded MT Bold", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnPayOrder.ForeColor = System.Drawing.Color.White;
-            this.btnPayOrder.Location = new System.Drawing.Point(339, 15);
+            this.btnPayOrder.Location = new System.Drawing.Point(345, 648);
             this.btnPayOrder.Margin = new System.Windows.Forms.Padding(5);
             this.btnPayOrder.MinimumSize = new System.Drawing.Size(100, 35);
             this.btnPayOrder.Name = "btnPayOrder";
@@ -122,13 +128,12 @@
             // 
             // btnVoidOrder
             // 
-            this.btnVoidOrder.BackColor = System.Drawing.Color.Firebrick;
-            this.btnVoidOrder.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.btnVoidOrder.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(98)))), ((int)(((byte)(130)))), ((int)(((byte)(93)))));
             this.btnVoidOrder.FlatAppearance.BorderSize = 0;
             this.btnVoidOrder.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnVoidOrder.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnVoidOrder.Font = new System.Drawing.Font("Arial Rounded MT Bold", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnVoidOrder.ForeColor = System.Drawing.Color.White;
-            this.btnVoidOrder.Location = new System.Drawing.Point(501, 15);
+            this.btnVoidOrder.Location = new System.Drawing.Point(507, 648);
             this.btnVoidOrder.Margin = new System.Windows.Forms.Padding(5);
             this.btnVoidOrder.MinimumSize = new System.Drawing.Size(100, 35);
             this.btnVoidOrder.Name = "btnVoidOrder";
@@ -139,58 +144,56 @@
             // 
             // btnBack
             // 
-            this.btnBack.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(74)))), ((int)(((byte)(44)))), ((int)(((byte)(42)))));
-            this.btnBack.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.btnBack.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnBack.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(59)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
             this.btnBack.FlatAppearance.BorderSize = 0;
             this.btnBack.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnBack.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnBack.Font = new System.Drawing.Font("Arial Rounded MT Bold", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnBack.ForeColor = System.Drawing.Color.White;
-            this.btnBack.Location = new System.Drawing.Point(663, 15);
+            this.btnBack.Location = new System.Drawing.Point(1350, 1);
             this.btnBack.Margin = new System.Windows.Forms.Padding(5);
             this.btnBack.MinimumSize = new System.Drawing.Size(100, 35);
             this.btnBack.Name = "btnBack";
-            this.btnBack.Size = new System.Drawing.Size(152, 54);
+            this.btnBack.Size = new System.Drawing.Size(100, 47);
             this.btnBack.TabIndex = 4;
-            this.btnBack.Text = "Back to Dashboard";
+            this.btnBack.Text = "X";
             this.btnBack.UseVisualStyleBackColor = false;
             // 
-            // headerLabel
+            // panel1
             // 
-            this.headerLabel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(74)))), ((int)(((byte)(44)))), ((int)(((byte)(42)))));
-            this.headerLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.headerLabel.Font = new System.Drawing.Font("Segoe UI", 15.75F, System.Drawing.FontStyle.Bold);
-            this.headerLabel.ForeColor = System.Drawing.Color.White;
-            this.headerLabel.Location = new System.Drawing.Point(3, 0);
-            this.headerLabel.Name = "headerLabel";
-            this.headerLabel.Size = new System.Drawing.Size(994, 74);
-            this.headerLabel.TabIndex = 0;
-            this.headerLabel.Text = "Order Management";
-            this.headerLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(59)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
+            this.panel1.Controls.Add(this.lblRestock);
+            this.panel1.Controls.Add(this.btnBack);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panel1.Location = new System.Drawing.Point(0, 0);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(1451, 69);
+            this.panel1.TabIndex = 5;
             // 
-            // mainContainer
+            // lblRestock
             // 
-            this.mainContainer.ColumnCount = 1;
-            this.mainContainer.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.mainContainer.Controls.Add(this.headerLabel, 0, 0);
-            this.mainContainer.Controls.Add(this.dgvOrders, 0, 1);
-            this.mainContainer.Controls.Add(this.buttonPanel, 0, 2);
-            this.mainContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.mainContainer.Location = new System.Drawing.Point(0, 0);
-            this.mainContainer.Name = "mainContainer";
-            this.mainContainer.RowCount = 3;
-            this.mainContainer.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 74F));
-            this.mainContainer.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.mainContainer.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 90F));
-            this.mainContainer.Size = new System.Drawing.Size(1000, 600);
-            this.mainContainer.TabIndex = 0;
+            this.lblRestock.AutoSize = true;
+            this.lblRestock.Font = new System.Drawing.Font("Arial Rounded MT Bold", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblRestock.ForeColor = System.Drawing.Color.White;
+            this.lblRestock.Location = new System.Drawing.Point(22, 19);
+            this.lblRestock.Name = "lblRestock";
+            this.lblRestock.Size = new System.Drawing.Size(236, 28);
+            this.lblRestock.TabIndex = 10;
+            this.lblRestock.Text = "Order Management";
             // 
             // OrderForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(230)))), ((int)(((byte)(210)))), ((int)(((byte)(181)))));
-            this.ClientSize = new System.Drawing.Size(1000, 600);
-            this.Controls.Add(this.mainContainer);
+            this.ClientSize = new System.Drawing.Size(1451, 716);
+            this.Controls.Add(this.panel1);
+            this.Controls.Add(this.btnNewOrder);
+            this.Controls.Add(this.dgvOrders);
+            this.Controls.Add(this.btnViewOrder);
+            this.Controls.Add(this.btnPayOrder);
+            this.Controls.Add(this.btnVoidOrder);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.MinimumSize = new System.Drawing.Size(800, 500);
             this.Name = "OrderForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -198,8 +201,8 @@
             this.Load += new System.EventHandler(this.OrderForm_Load);
             this.Resize += new System.EventHandler(this.OrderForm_Resize);
             ((System.ComponentModel.ISupportInitialize)(this.dgvOrders)).EndInit();
-            this.buttonPanel.ResumeLayout(false);
-            this.mainContainer.ResumeLayout(false);
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -207,13 +210,12 @@
         #endregion
 
         private System.Windows.Forms.DataGridView dgvOrders;
-        private System.Windows.Forms.TableLayoutPanel buttonPanel;
         private System.Windows.Forms.Button btnNewOrder;
         private System.Windows.Forms.Button btnViewOrder;
         private System.Windows.Forms.Button btnVoidOrder;
         private System.Windows.Forms.Button btnPayOrder;
         private System.Windows.Forms.Button btnBack;
-        private System.Windows.Forms.Label headerLabel;
-        private System.Windows.Forms.TableLayoutPanel mainContainer;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Label lblRestock;
     }
 }

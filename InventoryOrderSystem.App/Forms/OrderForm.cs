@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using InventoryOrderingSystem;
+using InventoryOrderSystem.App.Forms;
 using InventoryOrderSystem.Models;
 using InventoryOrderSystem.Services;
 using InventoryOrderSystem.Utils;
@@ -531,48 +532,29 @@ namespace InventoryOrderSystem.Forms
 
         private void OrderForm_Resize(object sender, EventArgs e)
         {
-            try
-            {
-                // Correct way to auto-resize columns
-                foreach (DataGridViewColumn column in dgvOrders.Columns)
-                {
-                    column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-                }
-
-                // Alternative approach
-                // dgvOrders.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-
-                // Ensure minimum button width
-                int minButtonWidth = 100;
-                foreach (Control control in buttonPanel.Controls)
-                {
-                    if (control is Button button)
-                    {
-                        button.MinimumSize = new Size(minButtonWidth, button.Height);
-                    }
-                }
-
-                // Update margins and spacing
-                if (mainContainer != null)
-                {
-                    mainContainer.Padding = new Padding(10);
-                }
-
-                // Force layout update
-                this.PerformLayout();
-                this.Refresh();
-            }
-            catch (Exception ex)
-            {
-                // Handle or log any errors
-                Console.WriteLine($"Error resizing form: {ex.Message}");
-            }
+           
         }
 
         private void btnBack_Click(object sender, EventArgs e)
         {
-            this.Hide();
-            new DashboardForm(_currentUser).Show();
+            // Check the role of the current user
+            if (_currentUser.Role == "Admin")
+            {
+                this.Hide();
+                DashboardForm adminDashboard = new DashboardForm(_currentUser);  
+                adminDashboard.Show();
+            }
+            else if (_currentUser.Role == "User")
+            {
+                
+                this.Hide();
+                UserForm userDashboard = new UserForm(_currentUser); 
+                userDashboard.Show();
+            }
+            else
+            {
+                MessageBox.Show("Unknown role. Please contact the administrator.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)

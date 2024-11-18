@@ -17,6 +17,10 @@
 
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.inventoryGridView = new System.Windows.Forms.DataGridView();
             this.panelItemDetails = new System.Windows.Forms.Panel();
             this.lblItemDetails = new System.Windows.Forms.Label();
@@ -37,6 +41,7 @@
             this.txtRestockQuantity = new System.Windows.Forms.TextBox();
             this.lblRestockQuantity = new System.Windows.Forms.Label();
             this.btnBack = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.inventoryGridView)).BeginInit();
             this.panelItemDetails.SuspendLayout();
             this.panelRestock.SuspendLayout();
@@ -44,16 +49,46 @@
             // 
             // inventoryGridView
             // 
-            this.inventoryGridView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(240)))), ((int)(((byte)(209)))));
+            dataGridViewCellStyle1.Font = new System.Drawing.Font("Arial Rounded MT Bold", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle1.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(82)))), ((int)(((byte)(110)))), ((int)(((byte)(72)))));
+            this.inventoryGridView.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
             this.inventoryGridView.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            this.inventoryGridView.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(248)))), ((int)(((byte)(240)))));
-            this.inventoryGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.inventoryGridView.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(160)))), ((int)(((byte)(82)))), ((int)(((byte)(45)))));
-            this.inventoryGridView.Location = new System.Drawing.Point(12, 50);
+            this.inventoryGridView.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(240)))), ((int)(((byte)(209)))));
+            this.inventoryGridView.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.Single;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(240)))), ((int)(((byte)(209)))));
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Arial Rounded MT Bold", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.Color.Black;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.Color.ForestGreen;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.Color.White;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.inventoryGridView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
+            this.inventoryGridView.ColumnHeadersHeight = 35;
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(240)))), ((int)(((byte)(209)))));
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Arial Rounded MT Bold", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.Color.Green;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.inventoryGridView.DefaultCellStyle = dataGridViewCellStyle3;
+            this.inventoryGridView.EnableHeadersVisualStyles = false;
+            this.inventoryGridView.Location = new System.Drawing.Point(12, 90);
             this.inventoryGridView.Name = "inventoryGridView";
-            this.inventoryGridView.Size = new System.Drawing.Size(776, 300);
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle4.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(240)))), ((int)(((byte)(209)))));
+            dataGridViewCellStyle4.Font = new System.Drawing.Font("Arial Rounded MT Bold", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle4.SelectionBackColor = System.Drawing.Color.Green;
+            dataGridViewCellStyle4.SelectionForeColor = System.Drawing.Color.White;
+            dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.inventoryGridView.RowHeadersDefaultCellStyle = dataGridViewCellStyle4;
+            this.inventoryGridView.RowHeadersWidth = 34;
+            this.inventoryGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.inventoryGridView.Size = new System.Drawing.Size(1427, 376);
             this.inventoryGridView.TabIndex = 0;
             this.inventoryGridView.SelectionChanged += new System.EventHandler(this.inventoryGridView_SelectionChanged);
             // 
@@ -61,7 +96,7 @@
             // 
             this.panelItemDetails.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.panelItemDetails.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(243)))), ((int)(((byte)(230)))));
+            this.panelItemDetails.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(102)))), ((int)(((byte)(67)))), ((int)(((byte)(67)))));
             this.panelItemDetails.Controls.Add(this.lblItemDetails);
             this.panelItemDetails.Controls.Add(this.lblQuantity);
             this.panelItemDetails.Controls.Add(this.lblItemName);
@@ -74,56 +109,59 @@
             this.panelItemDetails.Controls.Add(this.btnDelete);
             this.panelItemDetails.Controls.Add(this.cboCategory);
             this.panelItemDetails.Controls.Add(this.lblCategory);
-            this.panelItemDetails.Location = new System.Drawing.Point(12, 360);
+            this.panelItemDetails.Location = new System.Drawing.Point(12, 476);
             this.panelItemDetails.Name = "panelItemDetails";
-            this.panelItemDetails.Size = new System.Drawing.Size(500, 230);
+            this.panelItemDetails.Size = new System.Drawing.Size(1151, 230);
             this.panelItemDetails.TabIndex = 1;
             // 
             // lblItemDetails
             // 
             this.lblItemDetails.AutoSize = true;
-            this.lblItemDetails.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblItemDetails.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(33)))));
-            this.lblItemDetails.Location = new System.Drawing.Point(8, 6);
+            this.lblItemDetails.Font = new System.Drawing.Font("Arial Rounded MT Bold", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblItemDetails.ForeColor = System.Drawing.Color.White;
+            this.lblItemDetails.Location = new System.Drawing.Point(7, 16);
             this.lblItemDetails.Name = "lblItemDetails";
-            this.lblItemDetails.Size = new System.Drawing.Size(102, 21);
+            this.lblItemDetails.Size = new System.Drawing.Size(130, 24);
             this.lblItemDetails.TabIndex = 8;
             this.lblItemDetails.Text = "Item Details";
             // 
             // lblQuantity
             // 
             this.lblQuantity.AutoSize = true;
-            this.lblQuantity.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(33)))));
-            this.lblQuantity.Location = new System.Drawing.Point(10, 99);
+            this.lblQuantity.Font = new System.Drawing.Font("Arial Rounded MT Bold", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblQuantity.ForeColor = System.Drawing.Color.White;
+            this.lblQuantity.Location = new System.Drawing.Point(46, 126);
             this.lblQuantity.Name = "lblQuantity";
-            this.lblQuantity.Size = new System.Drawing.Size(56, 15);
+            this.lblQuantity.Size = new System.Drawing.Size(74, 17);
             this.lblQuantity.TabIndex = 6;
             this.lblQuantity.Text = "Quantity:";
             // 
             // lblItemName
             // 
             this.lblItemName.AutoSize = true;
-            this.lblItemName.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(33)))));
-            this.lblItemName.Location = new System.Drawing.Point(10, 69);
+            this.lblItemName.Font = new System.Drawing.Font("Arial Rounded MT Bold", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblItemName.ForeColor = System.Drawing.Color.White;
+            this.lblItemName.Location = new System.Drawing.Point(46, 96);
             this.lblItemName.Name = "lblItemName";
-            this.lblItemName.Size = new System.Drawing.Size(69, 15);
+            this.lblItemName.Size = new System.Drawing.Size(91, 17);
             this.lblItemName.TabIndex = 5;
             this.lblItemName.Text = "Item Name:";
             // 
             // lblItemId
             // 
             this.lblItemId.AutoSize = true;
-            this.lblItemId.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(33)))));
-            this.lblItemId.Location = new System.Drawing.Point(10, 39);
+            this.lblItemId.Font = new System.Drawing.Font("Arial Rounded MT Bold", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblItemId.ForeColor = System.Drawing.Color.White;
+            this.lblItemId.Location = new System.Drawing.Point(46, 66);
             this.lblItemId.Name = "lblItemId";
-            this.lblItemId.Size = new System.Drawing.Size(48, 15);
+            this.lblItemId.Size = new System.Drawing.Size(65, 17);
             this.lblItemId.TabIndex = 4;
             this.lblItemId.Text = "Item ID:";
             // 
             // txtQuantity
             // 
             this.txtQuantity.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(248)))), ((int)(((byte)(240)))));
-            this.txtQuantity.Location = new System.Drawing.Point(120, 97);
+            this.txtQuantity.Location = new System.Drawing.Point(161, 126);
             this.txtQuantity.Name = "txtQuantity";
             this.txtQuantity.Size = new System.Drawing.Size(100, 23);
             this.txtQuantity.TabIndex = 2;
@@ -131,7 +169,7 @@
             // txtItemName
             // 
             this.txtItemName.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(248)))), ((int)(((byte)(240)))));
-            this.txtItemName.Location = new System.Drawing.Point(120, 67);
+            this.txtItemName.Location = new System.Drawing.Point(161, 94);
             this.txtItemName.Name = "txtItemName";
             this.txtItemName.Size = new System.Drawing.Size(200, 23);
             this.txtItemName.TabIndex = 1;
@@ -139,7 +177,7 @@
             // txtItemId
             // 
             this.txtItemId.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(248)))), ((int)(((byte)(240)))));
-            this.txtItemId.Location = new System.Drawing.Point(120, 37);
+            this.txtItemId.Location = new System.Drawing.Point(161, 65);
             this.txtItemId.Name = "txtItemId";
             this.txtItemId.ReadOnly = true;
             this.txtItemId.Size = new System.Drawing.Size(100, 23);
@@ -147,11 +185,12 @@
             // 
             // btnAdd
             // 
-            this.btnAdd.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(76)))), ((int)(((byte)(175)))), ((int)(((byte)(80)))));
+            this.btnAdd.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(82)))), ((int)(((byte)(110)))), ((int)(((byte)(72)))));
             this.btnAdd.FlatAppearance.BorderSize = 0;
             this.btnAdd.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnAdd.Font = new System.Drawing.Font("Arial Rounded MT Bold", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnAdd.ForeColor = System.Drawing.Color.White;
-            this.btnAdd.Location = new System.Drawing.Point(120, 170);
+            this.btnAdd.Location = new System.Drawing.Point(869, 187);
             this.btnAdd.Name = "btnAdd";
             this.btnAdd.Size = new System.Drawing.Size(75, 30);
             this.btnAdd.TabIndex = 3;
@@ -161,11 +200,12 @@
             // 
             // btnUpdate
             // 
-            this.btnUpdate.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(193)))), ((int)(((byte)(7)))));
+            this.btnUpdate.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(82)))), ((int)(((byte)(110)))), ((int)(((byte)(72)))));
             this.btnUpdate.FlatAppearance.BorderSize = 0;
             this.btnUpdate.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnUpdate.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(33)))));
-            this.btnUpdate.Location = new System.Drawing.Point(230, 170);
+            this.btnUpdate.Font = new System.Drawing.Font("Arial Rounded MT Bold", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnUpdate.ForeColor = System.Drawing.Color.White;
+            this.btnUpdate.Location = new System.Drawing.Point(966, 187);
             this.btnUpdate.Name = "btnUpdate";
             this.btnUpdate.Size = new System.Drawing.Size(75, 30);
             this.btnUpdate.TabIndex = 4;
@@ -175,11 +215,12 @@
             // 
             // btnDelete
             // 
-            this.btnDelete.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(244)))), ((int)(((byte)(67)))), ((int)(((byte)(54)))));
+            this.btnDelete.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(82)))), ((int)(((byte)(110)))), ((int)(((byte)(72)))));
             this.btnDelete.FlatAppearance.BorderSize = 0;
             this.btnDelete.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnDelete.Font = new System.Drawing.Font("Arial Rounded MT Bold", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnDelete.ForeColor = System.Drawing.Color.White;
-            this.btnDelete.Location = new System.Drawing.Point(340, 170);
+            this.btnDelete.Location = new System.Drawing.Point(1060, 187);
             this.btnDelete.Name = "btnDelete";
             this.btnDelete.Size = new System.Drawing.Size(75, 30);
             this.btnDelete.TabIndex = 5;
@@ -191,7 +232,7 @@
             // 
             this.cboCategory.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cboCategory.FormattingEnabled = true;
-            this.cboCategory.Location = new System.Drawing.Point(120, 127);
+            this.cboCategory.Location = new System.Drawing.Point(161, 156);
             this.cboCategory.Name = "cboCategory";
             this.cboCategory.Size = new System.Drawing.Size(200, 23);
             this.cboCategory.TabIndex = 3;
@@ -199,22 +240,23 @@
             // lblCategory
             // 
             this.lblCategory.AutoSize = true;
-            this.lblCategory.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(33)))));
-            this.lblCategory.Location = new System.Drawing.Point(10, 129);
+            this.lblCategory.Font = new System.Drawing.Font("Arial Rounded MT Bold", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblCategory.ForeColor = System.Drawing.Color.White;
+            this.lblCategory.Location = new System.Drawing.Point(46, 156);
             this.lblCategory.Name = "lblCategory";
-            this.lblCategory.Size = new System.Drawing.Size(58, 15);
+            this.lblCategory.Size = new System.Drawing.Size(80, 17);
             this.lblCategory.TabIndex = 9;
             this.lblCategory.Text = "Category:";
             // 
             // panelRestock
             // 
             this.panelRestock.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.panelRestock.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(243)))), ((int)(((byte)(230)))));
+            this.panelRestock.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(102)))), ((int)(((byte)(67)))), ((int)(((byte)(67)))));
             this.panelRestock.Controls.Add(this.lblRestock);
             this.panelRestock.Controls.Add(this.btnRestock);
             this.panelRestock.Controls.Add(this.txtRestockQuantity);
             this.panelRestock.Controls.Add(this.lblRestockQuantity);
-            this.panelRestock.Location = new System.Drawing.Point(518, 360);
+            this.panelRestock.Location = new System.Drawing.Point(1169, 476);
             this.panelRestock.Name = "panelRestock";
             this.panelRestock.Size = new System.Drawing.Size(270, 230);
             this.panelRestock.TabIndex = 2;
@@ -222,21 +264,22 @@
             // lblRestock
             // 
             this.lblRestock.AutoSize = true;
-            this.lblRestock.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblRestock.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(33)))));
-            this.lblRestock.Location = new System.Drawing.Point(17, 19);
+            this.lblRestock.Font = new System.Drawing.Font("Arial Rounded MT Bold", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblRestock.ForeColor = System.Drawing.Color.White;
+            this.lblRestock.Location = new System.Drawing.Point(11, 13);
             this.lblRestock.Name = "lblRestock";
-            this.lblRestock.Size = new System.Drawing.Size(69, 21);
+            this.lblRestock.Size = new System.Drawing.Size(106, 28);
             this.lblRestock.TabIndex = 9;
             this.lblRestock.Text = "Restock";
             // 
             // btnRestock
             // 
-            this.btnRestock.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(152)))), ((int)(((byte)(0)))));
+            this.btnRestock.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(82)))), ((int)(((byte)(110)))), ((int)(((byte)(72)))));
             this.btnRestock.FlatAppearance.BorderSize = 0;
             this.btnRestock.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnRestock.Font = new System.Drawing.Font("Arial Rounded MT Bold", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnRestock.ForeColor = System.Drawing.Color.White;
-            this.btnRestock.Location = new System.Drawing.Point(86, 90);
+            this.btnRestock.Location = new System.Drawing.Point(182, 187);
             this.btnRestock.Name = "btnRestock";
             this.btnRestock.Size = new System.Drawing.Size(75, 30);
             this.btnRestock.TabIndex = 7;
@@ -247,47 +290,61 @@
             // txtRestockQuantity
             // 
             this.txtRestockQuantity.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(248)))), ((int)(((byte)(240)))));
-            this.txtRestockQuantity.Location = new System.Drawing.Point(126, 47);
+            this.txtRestockQuantity.Location = new System.Drawing.Point(157, 65);
             this.txtRestockQuantity.Name = "txtRestockQuantity";
-            this.txtRestockQuantity.Size = new System.Drawing.Size(100, 23);
+            this.txtRestockQuantity.Size = new System.Drawing.Size(57, 23);
             this.txtRestockQuantity.TabIndex = 6;
             // 
             // lblRestockQuantity
             // 
             this.lblRestockQuantity.AutoSize = true;
-            this.lblRestockQuantity.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(33)))));
-            this.lblRestockQuantity.Location = new System.Drawing.Point(20, 50);
+            this.lblRestockQuantity.Font = new System.Drawing.Font("Arial Rounded MT Bold", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblRestockQuantity.ForeColor = System.Drawing.Color.White;
+            this.lblRestockQuantity.Location = new System.Drawing.Point(13, 66);
             this.lblRestockQuantity.Name = "lblRestockQuantity";
-            this.lblRestockQuantity.Size = new System.Drawing.Size(100, 15);
+            this.lblRestockQuantity.Size = new System.Drawing.Size(138, 17);
             this.lblRestockQuantity.TabIndex = 8;
             this.lblRestockQuantity.Text = "Restock Quantity:";
             // 
             // btnBack
             // 
-            this.btnBack.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(74)))), ((int)(((byte)(44)))), ((int)(((byte)(42)))));
+            this.btnBack.BackColor = System.Drawing.Color.Transparent;
             this.btnBack.FlatAppearance.BorderSize = 0;
             this.btnBack.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnBack.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnBack.ForeColor = System.Drawing.Color.White;
-            this.btnBack.Location = new System.Drawing.Point(12, 12);
+            this.btnBack.ForeColor = System.Drawing.Color.Black;
+            this.btnBack.Location = new System.Drawing.Point(1401, 0);
             this.btnBack.Name = "btnBack";
-            this.btnBack.Size = new System.Drawing.Size(125, 30);
+            this.btnBack.Size = new System.Drawing.Size(50, 38);
             this.btnBack.TabIndex = 10;
-            this.btnBack.Text = "Back to  Dashboard";
+            this.btnBack.Text = "X";
             this.btnBack.UseVisualStyleBackColor = false;
             this.btnBack.Click += new System.EventHandler(this.BackButton_Click);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Arial Rounded MT Bold", 21.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.ForeColor = System.Drawing.Color.Black;
+            this.label1.Location = new System.Drawing.Point(673, 9);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(150, 33);
+            this.label1.TabIndex = 10;
+            this.label1.Text = "Inventory";
             // 
             // InventoryForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(248)))), ((int)(((byte)(240)))));
-            this.ClientSize = new System.Drawing.Size(800, 600);
+            this.ClientSize = new System.Drawing.Size(1451, 716);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.btnBack);
             this.Controls.Add(this.panelRestock);
             this.Controls.Add(this.panelItemDetails);
             this.Controls.Add(this.inventoryGridView);
             this.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "InventoryForm";
             this.Text = "Inventory Management";
             this.Load += new System.EventHandler(this.InventoryForm_Load);
@@ -297,6 +354,7 @@
             this.panelRestock.ResumeLayout(false);
             this.panelRestock.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -322,5 +380,6 @@
         private System.Windows.Forms.Label lblRestock;
         private System.Windows.Forms.ComboBox cboCategory;
         private System.Windows.Forms.Label lblCategory;
+        private System.Windows.Forms.Label label1;
     }
 }

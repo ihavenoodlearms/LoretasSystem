@@ -9,6 +9,7 @@ using InventoryOrderSystem.Forms;
 using InventoryOrderSystem.Models;
 using InventoryOrderSystem.Services;
 using InventoryOrderSystem;
+using InventoryOrderSystem.App.Forms;
 
 namespace InventoryOrderingSystem
 {
@@ -110,7 +111,6 @@ namespace InventoryOrderingSystem
             orderItems = new List<OrderItem>();
             LoadAddOns();
             InitializeCategories();
-            buttonBackToDashboard.Click += BackButton_Click;
             buttonProceedToPayment.Click += ProceedToPaymentButton_Click;
 
             // Add event handlers for the shared buttons
@@ -285,14 +285,18 @@ namespace InventoryOrderingSystem
                         new Product("Sausage & Bacon (On-Stick)", 120.00m),
                     }
                 },
+
         };
+
+
 
             // Add "Drinks" label
             Label drinksLabel = new Label
             {
                 Text = "Drinks",
                 AutoSize = true,
-                Font = new Font(this.Font, FontStyle.Bold),
+                Font = new Font(this.Font.FontFamily, 16, FontStyle.Bold),
+                Margin = new Padding(10),
                 ForeColor = Color.White,
                 Location = new Point(10, 10)
             };
@@ -315,8 +319,9 @@ namespace InventoryOrderingSystem
             {
                 Text = "Snacks",
                 AutoSize = true,
-                Font = new Font(this.Font, FontStyle.Bold),
+                Font = new Font(this.Font.FontFamily, 16, FontStyle.Bold),
                 ForeColor = Color.White,
+                Margin = new Padding(10),
                 Location = new Point(10, flowLayoutPanelCategories.Controls[flowLayoutPanelCategories.Controls.Count - 1].Bottom + 20)
             };
             flowLayoutPanelCategories.Controls.Add(snacksLabel);
@@ -336,13 +341,15 @@ namespace InventoryOrderingSystem
             Button editAddOnsButton = new Button
             {
                 Text = "Edit Add-ons",
-                Size = new Size(180, 40),
+                Size = new Size(210, 40),
                 FlatStyle = FlatStyle.Flat,
                 BackColor = Color.FromArgb(74, 44, 42),
                 ForeColor = Color.White,
-                Margin = new Padding(0, 90, 0, 0) // Add some top margin to separate it from other buttons
+                Margin = new Padding(0, 40, 0, 0) 
             };
+            editAddOnsButton.FlatAppearance.BorderSize = 0;
             editAddOnsButton.Click += EditAddOns_Click;
+            editAddOnsButton.Font = new Font("Arial Rounded MT Bold", 9, FontStyle.Bold);
             flowLayoutPanelCategories.Controls.Add(editAddOnsButton);
 
             if (flowLayoutPanelCategories.Controls.Count > 0)
@@ -355,13 +362,17 @@ namespace InventoryOrderingSystem
         {
             Button categoryButton = new Button
             {
-                Text = category,
-                Size = new Size(180, 40),
-                FlatStyle = FlatStyle.Flat,
-                BackColor = Color.FromArgb(74, 44, 42),
+                Text = category,          
+                FlatStyle = FlatStyle.Flat,        
+                BackColor = Color.FromArgb(74, 44, 42), 
                 ForeColor = Color.White,
-                Tag = category
+                Size = new Size(205, 40),
+                Tag = category                   
             };
+
+           
+            categoryButton.FlatAppearance.BorderSize = 0;
+            categoryButton.Font = new Font("Arial Rounded MT Bold", 9, FontStyle.Bold);
             categoryButton.Click += CategoryButton_Click;
             flowLayoutPanelCategories.Controls.Add(categoryButton);
         }
@@ -391,53 +402,9 @@ namespace InventoryOrderingSystem
 
         private void OrderMenuForm_Resize(object sender, EventArgs e)
         {
-            // Recalculate panel sizes
-            panelSidebar.Width = (int)(this.ClientSize.Width * 0.17);
-
-            // Adjust products panel
-            panelProducts.Width = this.ClientSize.Width - panelSidebar.Width;
-            panelProducts.Height = (int)(this.ClientSize.Height * 0.75);
-            panelProducts.Location = new Point(panelSidebar.Width, 0);
-
-            // Adjust order summary panel
-            panelOrderSummary.Width = this.ClientSize.Width - panelSidebar.Width;
-            panelOrderSummary.Location = new Point(panelSidebar.Width, panelProducts.Height);
-
-            // Adjust button positions in order summary panel
-            int buttonMargin = 10;
-            buttonProceedToPayment.Location = new Point(
-                panelOrderSummary.Width - buttonProceedToPayment.Width - buttonMargin,
-                panelOrderSummary.Height - buttonProceedToPayment.Height - buttonMargin
-            );
-
-            buttonBackToDashboard.Location = new Point(
-                buttonProceedToPayment.Left - buttonBackToDashboard.Width - buttonMargin,
-                buttonProceedToPayment.Top
-            );
-
-            // Adjust list box size
-            listBoxOrderSummary.Width = panelOrderSummary.Width - (buttonMargin * 2);
-            listBoxOrderSummary.Height = panelOrderSummary.Height - labelTotal.Height - (buttonMargin * 4);
-
-            // Adjust total label position
-            labelTotal.Location = new Point(
-                buttonMargin,
-                listBoxOrderSummary.Bottom + buttonMargin
-            );
-
-            // Adjust product flow layout
-            flowLayoutPanelProducts.Width = panelProducts.Width;
-            flowLayoutPanelProducts.Height = panelProducts.Height;
-
-            // Adjust categories flow layout
-            flowLayoutPanelCategories.Width = panelSidebar.Width;
-            flowLayoutPanelCategories.Height = panelSidebar.Height;
-
-            // Resize product boxes
-            ResizeProductBoxes();
-
+           
             // Refresh the layout
-            this.PerformLayout();
+            
         }
 
         private void ResizeProductBoxes()
@@ -969,6 +936,28 @@ namespace InventoryOrderingSystem
             }
             summary.AppendLine($"\n{labelTotal.Text}");
             return summary.ToString();
+        }
+
+        private void buttonBackToDashboard_Click(object sender, EventArgs e)
+        {
+            // Check the role of the current user
+            if (_currentUser.Role == "Admin")
+            {
+                this.Hide();
+                DashboardForm adminDashboard = new DashboardForm(_currentUser);  
+                adminDashboard.Show();
+            }
+            else if (_currentUser.Role == "User")
+            {
+                
+                this.Hide();
+                UserForm userDashboard = new UserForm(_currentUser);  
+                userDashboard.Show();
+            }
+            else
+            {
+                MessageBox.Show("Unknown role. Please contact the administrator.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 

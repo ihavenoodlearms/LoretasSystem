@@ -1,17 +1,21 @@
-﻿using System;
-using System.Drawing;
-using System.Windows.Forms;
-using System.Linq;
-using System.Collections.Generic;
-using InventoryOrderingSystem;
-using InventoryOrderSystem.App.Forms;
+﻿using InventoryOrderingSystem;
+using InventoryOrderSystem.Forms;
 using InventoryOrderSystem.Models;
 using InventoryOrderSystem.Services;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
 using System.Data.SQLite;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
-namespace InventoryOrderSystem.Forms
+namespace InventoryOrderSystem.App.Forms
 {
-    public partial class DashboardForm : Form
+    public partial class UserForm : Form
     {
         private User _currentUser;
         private Panel pnlSettings;
@@ -79,40 +83,20 @@ namespace InventoryOrderSystem.Forms
             label9.Text = cancelledOrders.ToString();
         }
 
-        public DashboardForm(User user)
+        public UserForm(User user)
         {
             InitializeComponent();
-            
+
             _currentUser = user;
             _dbManager = new DatabaseManager();  // Make sure this line exists
             currentDate = DateTime.Today;
-            this.Resize += DashboardForm_Resize;  // Add this line
-            
             SetupDashboard();
             CreateSettingsPanel();
-            
+
         }
 
-    
 
-        private void DashboardForm_Resize(object sender, EventArgs e)
-        {
-            if (pnlOrderStats != null)
-            {
-                // Update panel width while maintaining margins
-                pnlOrderStats.Width = pnlMain.Width - 40;
-                pnlOrderStats.Location = new Point(20, dgvTopProducts.Bottom + 20);
 
-                // Center the title
-                if (lblOrderStatsTitle != null)
-                {
-                    lblOrderStatsTitle.Location = new Point(
-                        (pnlOrderStats.Width - lblOrderStatsTitle.Width) / 2, 10);
-                }
-            }
-        }
-
-     
 
         private void StyleButton(Button btn)
         {
@@ -133,7 +117,7 @@ namespace InventoryOrderSystem.Forms
 
         private void StyleDataGridView()
         {
-            
+
             dgvTopProducts.GridColor = lightBrown;
             dgvTopProducts.DefaultCellStyle.Font = new Font("Arial Rounded MT Bold", 11.25F, FontStyle.Regular);
             dgvTopProducts.ColumnHeadersDefaultCellStyle.Font = new Font("Arial Rounded MT Bold", 11.25F, FontStyle.Bold);
@@ -157,6 +141,16 @@ namespace InventoryOrderSystem.Forms
                 column.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             }
         }
+
+        private void StyleMenuButton()
+        {
+            btnNewOrder.BackColor = accentGreen;
+            btnNewOrder.ForeColor = Color.White;
+            btnNewOrder.Font = new Font("Arial Rounded MT Bold", 10F, FontStyle.Bold);
+            btnNewOrder.FlatStyle = FlatStyle.Flat;
+            btnNewOrder.FlatAppearance.BorderSize = 0;
+        }
+
 
 
         private void SetupDashboard()
@@ -193,11 +187,11 @@ namespace InventoryOrderSystem.Forms
                 Location = new Point(lblDate.Left - 50, lblDate.Top),
                 BackColor = Color.FromArgb(82, 110, 72),
                 ForeColor = Color.Black,
-                FlatStyle = FlatStyle.Flat,   
+                FlatStyle = FlatStyle.Flat,
                 FlatAppearance =
     {
-        BorderColor = Color.White, 
-        BorderSize = 2            
+        BorderColor = Color.White,
+        BorderSize = 2
     }
             };
             btnPreviousDay.Click += btnPreviousDay_Click;
@@ -210,11 +204,11 @@ namespace InventoryOrderSystem.Forms
                 Location = new Point(lblDate.Right + 10, lblDate.Top),
                 BackColor = Color.FromArgb(82, 110, 72),
                 ForeColor = Color.Black,
-                FlatStyle = FlatStyle.Flat,  
+                FlatStyle = FlatStyle.Flat,
                 FlatAppearance =
     {
-        BorderColor = Color.White,  
-        BorderSize = 2           
+        BorderColor = Color.White,
+        BorderSize = 2
     }
             };
             btnNextDay.Click += btnNextDay_Click;
@@ -262,9 +256,9 @@ namespace InventoryOrderSystem.Forms
 
             if (statistics != null)
             {
-                if (lblReceived != null)
+                if (label6 != null)
                 {
-                    lblReceived.Text = statistics.ReceivedCount.ToString();
+                    label6.Text = statistics.ReceivedCount.ToString();
                 }
                 else
                 {
@@ -444,25 +438,11 @@ namespace InventoryOrderSystem.Forms
             new OrderForm(_currentUser).Show();
         }
 
-        private void btnReports_Click(object sender, EventArgs e)
-        {
-            this.Hide();
-            new SalesReportForm(_currentUser).Show();
-        }
+  
 
-      
 
-        private void btnMenu_Click(object sender, EventArgs e)
-        {
-            if (_orderMenuForm == null || _orderMenuForm.IsDisposed)
-            {
-                _orderMenuForm = new OrderMenuForm(_currentUser);
-                _orderMenuForm.OrderPlaced += OrderMenuForm_OrderPlaced;
-                _orderMenuForm.FormClosed += (s, args) => this.Show();
-            }
-            _orderMenuForm.Show();
-            this.Hide();
-        }
+
+    
 
         private void OrderMenuForm_OrderPlaced(object sender, Order newOrder)
         {
@@ -483,6 +463,30 @@ namespace InventoryOrderSystem.Forms
             UpdateOrderStatistics();
         }
 
+        private void btnOrders_Click_1(object sender, EventArgs e)
+        {
 
+                this.Hide();
+                new OrderForm(_currentUser).Show();
+
+        }
+
+        private void btnReports_Click_1(object sender, EventArgs e)
+        {
+            this.Hide();
+            new SalesReportForm(_currentUser).Show();
+        }
+
+        private void btnMenu_Click_1(object sender, EventArgs e)
+        {
+            if (_orderMenuForm == null || _orderMenuForm.IsDisposed)
+            {
+                _orderMenuForm = new OrderMenuForm(_currentUser);
+                _orderMenuForm.OrderPlaced += OrderMenuForm_OrderPlaced;
+                _orderMenuForm.FormClosed += (s, args) => this.Show();
+            }
+            _orderMenuForm.Show();
+            this.Hide();
+        }
     }
 }

@@ -5,6 +5,7 @@ using InventoryOrderSystem.Models;
 using InventoryOrderSystem.Services;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using InventoryOrderSystem.App.Forms;
 
 namespace InventoryOrderSystem
 {
@@ -35,9 +36,24 @@ namespace InventoryOrderSystem
                 if (user != null)
                 {
                     MessageBox.Show("Login successful!");
+
                     this.Hide();
-                    Forms.DashboardForm dashboardForm = new Forms.DashboardForm(user);
-                    dashboardForm.Show();
+
+                    // Check the user's role and navigate accordingly
+                    if (user.Role == "Admin")  // Admin role
+                    {
+                        Forms.DashboardForm dashboardForm = new Forms.DashboardForm(user);
+                        dashboardForm.Show();
+                    }
+                    else if (user.Role == "User")  // Regular user role
+                    {
+                        UserForm userAccount = new UserForm(user);
+                        userAccount.Show();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Unknown role, please contact the administrator.", "Role Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
                 else
                 {
@@ -56,12 +72,14 @@ namespace InventoryOrderSystem
 
         private void btnLogin_Paint(object sender, PaintEventArgs e)
         {
-            GraphicsPath grPath = new GraphicsPath();
-            grPath.AddArc(0, 0, 20, 20, 180, 90);
-            grPath.AddArc(btnLogin.Width - 21, 0, 20, 20, 270, 90);
-            grPath.AddArc(btnLogin.Width - 21, btnLogin.Height - 21, 20, 20, 0, 90);
-            grPath.AddArc(0, btnLogin.Height - 21, 20, 20, 90, 90);
-            btnLogin.Region = new Region(grPath);
+            
+        }
+
+        private void btnRegister_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            RegisterForm registerForm = new RegisterForm();
+            registerForm.Show();
         }
     }
     public class RoundedPanel : Panel
