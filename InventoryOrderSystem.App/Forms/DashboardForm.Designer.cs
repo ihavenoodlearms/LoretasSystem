@@ -298,11 +298,7 @@ namespace InventoryOrderSystem.Forms
         private System.Windows.Forms.Label lblDate;
         private System.Windows.Forms.Label lblTotalSales;
         private System.Windows.Forms.Label lblTransactionCount;
-        private System.Windows.Forms.DataGridView dgvTopProducts;
         private System.Windows.Forms.Timer tmrUpdateDashboard;
-        private System.Windows.Forms.DataGridViewTextBoxColumn colProduct;
-        private System.Windows.Forms.DataGridViewTextBoxColumn colQuantity;
-        private System.Windows.Forms.DataGridViewTextBoxColumn colRevenue;
 
         private void InitializeOrderStatistics()
         {
@@ -327,7 +323,7 @@ namespace InventoryOrderSystem.Forms
             lblOrderStatsTitle = new Label();
             lblOrderStatsTitle.Text = "Order Statistics";
             lblOrderStatsTitle.ForeColor = darkBrown;
-            lblOrderStatsTitle.Font = new Font("Segoe UI", 12, FontStyle.Bold);
+            lblOrderStatsTitle.Font = new Font("Poppins", 12, FontStyle.Bold);
             lblOrderStatsTitle.AutoSize = true;
             lblOrderStatsTitle.Location = new Point(
                 (pnlOrderStats.Width - lblOrderStatsTitle.Width) / 2, 10);
