@@ -216,7 +216,6 @@ namespace InventoryOrderSystem.Services
                     command.ExecuteNonQuery();
 
                     // Create OrderItems table
-                    // Create OrderItems table
                     command.CommandText = @"
                         CREATE TABLE IF NOT EXISTS OrderItems (
                             OrderItemId INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -227,6 +226,21 @@ namespace InventoryOrderSystem.Services
                             Price REAL NOT NULL,
                             FOREIGN KEY(OrderId) REFERENCES Orders(OrderId),
                             FOREIGN KEY(ItemId) REFERENCES InventoryItems(ItemId)
+                        )";
+                    command.ExecuteNonQuery();
+
+                    // Create TransactionsData table
+                    command.CommandText = @"
+                         CREATE TABLE IF NOT EXISTS TransactionsData (
+                            transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            order_id INTEGER NOT NULL,
+                            PaymentMethod TEXT NOT NULL,
+                            AmountPaid REAL NOT NULL,
+                            OrderDate TEXT NOT NULL,
+                            FOREIGN KEY(order_id) REFERENCES Orders(OrderId),
+                            FOREIGN KEY(PaymentMethod) REFERENCES Orders(PaymentMethod),
+                            FOREIGN KEY(AmountPaid) REFERENCES Orders(AmountPaid),
+                            FOREIGN KEY(OrderDate) REFERENCES Orders(OrderDate)
                         )";
                     command.ExecuteNonQuery();
                 }
@@ -873,6 +887,44 @@ namespace InventoryOrderSystem.Services
             return topProducts;
         }
 
+        public void AddTransactionData(int orderId, string paymentMethod, decimal amountPaid, DateTime orderDate)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        // Generate the transaction ID
+                        string transactionId = GenerateTransactionId(orderDate);
+
+                        string insertTransactionQuery = @"
+                    INSERT INTO TransactionsData (transaction_id, order_id, PaymentMethod, AmountPaid, OrderDate)
+                    VALUES (@TransactionId, @OrderId, @PaymentMethod, @AmountPaid, @OrderDate)";
+
+                        using (var command = new SQLiteCommand(insertTransactionQuery, connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@TransactionId", transactionId);
+                            command.Parameters.AddWithValue("@OrderId", orderId);
+                            command.Parameters.AddWithValue("@PaymentMethod", paymentMethod);
+                            command.Parameters.AddWithValue("@AmountPaid", amountPaid);
+                            command.Parameters.AddWithValue("@OrderDate", orderDate.ToString("yyyy-MM-dd HH:mm:ss"));
+                            command.ExecuteNonQuery();
+                        }
+
+                        transaction.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        throw new Exception($"Error adding transaction data: {ex.Message}", ex);
+                    }
+                }
+            }
+        }
+
+        // Update the MarkOrderAsPaid method
         public void MarkOrderAsPaid(int orderId, decimal amountPaid, decimal change)
         {
             using (var connection = new SQLiteConnection(connectionString))
@@ -883,11 +935,11 @@ namespace InventoryOrderSystem.Services
                     try
                     {
                         string updateOrderQuery = @"
-                        UPDATE Orders 
-                        SET Status = 'Paid', 
-                            AmountPaid = @AmountPaid,
-                            ChangeAmount = @Change
-                        WHERE OrderId = @OrderId";
+                    UPDATE Orders 
+                    SET Status = 'Paid', 
+                        AmountPaid = @AmountPaid,
+                        ChangeAmount = @Change
+                    WHERE OrderId = @OrderId";
 
                         using (var command = new SQLiteCommand(updateOrderQuery, connection, transaction))
                         {
@@ -900,6 +952,46 @@ namespace InventoryOrderSystem.Services
                             {
                                 throw new Exception("No order was updated. The order might not exist.");
                             }
+
+                            // Get order details for the transaction record
+                            string getOrderDetailsQuery = @"
+                        SELECT PaymentMethod, OrderDate 
+                        FROM Orders 
+                        WHERE OrderId = @OrderId";
+
+                            string paymentMethod = "";
+                            DateTime orderDate = DateTime.Now;
+
+                            using (var detailsCommand = new SQLiteCommand(getOrderDetailsQuery, connection, transaction))
+                            {
+                                detailsCommand.Parameters.AddWithValue("@OrderId", orderId);
+                                using (var reader = detailsCommand.ExecuteReader())
+                                {
+                                    if (reader.Read())
+                                    {
+                                        paymentMethod = reader.GetString(0);
+                                        orderDate = DateTime.Parse(reader.GetString(1));
+                                    }
+                                }
+                            }
+
+                            // Generate the transaction ID
+                            string transactionId = GenerateTransactionId(orderDate);
+
+                            // Add transaction record with the generated ID
+                            string insertTransactionQuery = @"
+                        INSERT INTO TransactionsData (transaction_id, order_id, PaymentMethod, AmountPaid, OrderDate)
+                        VALUES (@TransactionId, @OrderId, @PaymentMethod, @AmountPaid, @OrderDate)";
+
+                            using (var transCommand = new SQLiteCommand(insertTransactionQuery, connection, transaction))
+                            {
+                                transCommand.Parameters.AddWithValue("@TransactionId", transactionId);
+                                transCommand.Parameters.AddWithValue("@OrderId", orderId);
+                                transCommand.Parameters.AddWithValue("@PaymentMethod", paymentMethod);
+                                transCommand.Parameters.AddWithValue("@AmountPaid", amountPaid);
+                                transCommand.Parameters.AddWithValue("@OrderDate", orderDate.ToString("yyyy-MM-dd HH:mm:ss"));
+                                transCommand.ExecuteNonQuery();
+                            }
                         }
 
                         transaction.Commit();
@@ -909,6 +1001,61 @@ namespace InventoryOrderSystem.Services
                         transaction.Rollback();
                         throw new Exception($"Error marking order as paid: {ex.Message}", ex);
                     }
+                }
+            }
+        }
+
+        public string GetTransactionId(int orderId)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT transaction_id FROM TransactionsData WHERE order_id = @OrderId";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@OrderId", orderId);
+                    var result = command.ExecuteScalar();
+                    return result?.ToString();
+                }
+            }
+        }
+
+        public int GetOrderIdFromTransactionId(string transactionId)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT order_id FROM TransactionsData WHERE transaction_id = @TransactionId";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@TransactionId", transactionId);
+                    var result = command.ExecuteScalar();
+                    return result != null ? Convert.ToInt32(result) : -1;
+                }
+            }
+        }
+
+        private string GenerateTransactionId(DateTime orderDate)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                // Get the count of transactions for the current date to generate sequence
+                string countQuery = @"
+            SELECT COUNT(*) 
+            FROM TransactionsData 
+            WHERE date(OrderDate) = date(@OrderDate)";
+
+                using (var command = new SQLiteCommand(countQuery, connection))
+                {
+                    command.Parameters.AddWithValue("@OrderDate", orderDate.ToString("yyyy-MM-dd"));
+                    int transactionCount = Convert.ToInt32(command.ExecuteScalar()) + 1;
+
+                    // Format: YYYYMMDDXXXX where XXXX is the sequential number
+                    string dateComponent = orderDate.ToString("yyyyMMdd");
+                    string sequenceComponent = transactionCount.ToString("D4"); // Pad with zeros to 4 digits
+
+                    return $"{dateComponent}{sequenceComponent}";
                 }
             }
         }

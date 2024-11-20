@@ -150,6 +150,42 @@ namespace InventoryOrderSystem
             }
             return -1;
         }
+
+        public static void AddProduct(Product product)
+        {
+            if (!Products.ContainsKey(product.Name))
+            {
+                Products.Add(product.Name, product);
+            }
+            else
+            {
+                throw new Exception("Product already exists.");
+            }
+        }
+
+        public static void UpdateProduct(Product product)
+        {
+            if (Products.ContainsKey(product.Name))
+            {
+                Products[product.Name] = product;
+            }
+            else
+            {
+                throw new Exception("Product not found.");
+            }
+        }
+
+        public static void DeleteProduct(string productName)
+        {
+            if (Products.ContainsKey(productName))
+            {
+                Products.Remove(productName);
+            }
+            else
+            {
+                throw new Exception("Product not found.");
+            }
+        }
     }
 
     public class Product

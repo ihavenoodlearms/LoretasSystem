@@ -19,6 +19,9 @@ namespace InventoryOrderSystem.Forms
         private DateTime currentDate;
         private OrderMenuForm _orderMenuForm;
 
+        private bool isDragging = false;
+        private Point dragOffset;
+
         // Sample data - replace with actual data from your database
         private decimal totalSales = 0;
         private int transactionCount = 0;
@@ -82,18 +85,32 @@ namespace InventoryOrderSystem.Forms
         public DashboardForm(User user)
         {
             InitializeComponent();
-            
+
             _currentUser = user;
             _dbManager = new DatabaseManager();  // Make sure this line exists
             currentDate = DateTime.Today;
             this.Resize += DashboardForm_Resize;  // Add this line
-            
+
+            // Add these new lines
+            this.MouseDown += Form_MouseDown;
+            this.MouseMove += Form_MouseMove;
+            this.MouseUp += Form_MouseUp;
+
+            pnlHeader.MouseDown += Form_MouseDown;
+            pnlHeader.MouseMove += Form_MouseMove;
+            pnlHeader.MouseUp += Form_MouseUp;
+
+            this.ResizeEnd += Form_ResizeEnd;
+            this.Resize += Form_Resize;
+
+            this.MinimumSize = new Size(1200, 700);
+
             SetupDashboard();
             CreateSettingsPanel();
-            
+
         }
 
-    
+
 
         private void DashboardForm_Resize(object sender, EventArgs e)
         {
@@ -112,7 +129,7 @@ namespace InventoryOrderSystem.Forms
             }
         }
 
-     
+
 
         private void StyleButton(Button btn)
         {
@@ -133,7 +150,7 @@ namespace InventoryOrderSystem.Forms
 
         private void StyleDataGridView()
         {
-            
+
             dgvTopProducts.GridColor = lightBrown;
             dgvTopProducts.DefaultCellStyle.Font = new Font("Arial Rounded MT Bold", 11.25F, FontStyle.Regular);
             dgvTopProducts.ColumnHeadersDefaultCellStyle.Font = new Font("Arial Rounded MT Bold", 11.25F, FontStyle.Bold);
@@ -189,15 +206,15 @@ namespace InventoryOrderSystem.Forms
             {
                 Text = "<",
                 Size = new Size(40, 30),
-                Font = new Font("Arial Rounded MT Bold", 12, FontStyle.Bold | FontStyle.Bold),
-                Location = new Point(lblDate.Left - 50, lblDate.Top),
+                Font = new Font("Arial Rounded MT Bold", 12, FontStyle.Bold),
+                Location = new Point(lblDate.Left - 60, lblDate.Top), // Moved further left
                 BackColor = Color.FromArgb(82, 110, 72),
                 ForeColor = Color.Black,
-                FlatStyle = FlatStyle.Flat,   
+                FlatStyle = FlatStyle.Flat,
                 FlatAppearance =
     {
-        BorderColor = Color.White, 
-        BorderSize = 2            
+        BorderColor = Color.White,
+        BorderSize = 2
     }
             };
             btnPreviousDay.Click += btnPreviousDay_Click;
@@ -206,15 +223,15 @@ namespace InventoryOrderSystem.Forms
             {
                 Text = ">",
                 Size = new Size(40, 30),
-                Font = new Font("Arial Rounded MT Bold", 12, FontStyle.Bold | FontStyle.Bold),
-                Location = new Point(lblDate.Right + 10, lblDate.Top),
+                Font = new Font("Arial Rounded MT Bold", 12, FontStyle.Bold),
+                Location = new Point(lblDate.Right + 20, lblDate.Top), // Moved further right
                 BackColor = Color.FromArgb(82, 110, 72),
                 ForeColor = Color.Black,
-                FlatStyle = FlatStyle.Flat,  
+                FlatStyle = FlatStyle.Flat,
                 FlatAppearance =
     {
-        BorderColor = Color.White,  
-        BorderSize = 2           
+        BorderColor = Color.White,
+        BorderSize = 2
     }
             };
             btnNextDay.Click += btnNextDay_Click;
@@ -450,7 +467,7 @@ namespace InventoryOrderSystem.Forms
             new SalesReportForm(_currentUser).Show();
         }
 
-      
+
 
         private void btnMenu_Click(object sender, EventArgs e)
         {
@@ -471,10 +488,11 @@ namespace InventoryOrderSystem.Forms
             UpdateDashboard();
         }
 
+        
         private void AdjustMainPanelLayout()
         {
             pnlMain.Location = new Point(pnlSidebar.Width, pnlHeader.Height);
-            pnlMain.Size = new Size(this.ClientSize.Width - pnlSidebar.Width, this.ClientSize.Height - pnlHeader.Height);
+            UpdateLayout();
         }
 
         private void tmrUpdateDashboard_Tick(object sender, EventArgs e)
@@ -483,6 +501,78 @@ namespace InventoryOrderSystem.Forms
             UpdateOrderStatistics();
         }
 
+        private void Form_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                isDragging = true;
+                dragOffset = new Point(e.X, e.Y);
+            }
+        }
+
+        private void Form_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isDragging)
+            {
+                Point currentScreenPos = PointToScreen(e.Location);
+                Location = new Point(currentScreenPos.X - dragOffset.X,
+                                   currentScreenPos.Y - dragOffset.Y);
+            }
+        }
+
+        private void Form_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                isDragging = false;
+            }
+        }
+
+        private void Form_ResizeEnd(object sender, EventArgs e)
+        {
+            UpdateLayout();
+        }
+
+        private void Form_Resize(object sender, EventArgs e)
+        {
+            UpdateLayout();
+        }
+
+        private void UpdateLayout()
+        {
+            pnlMain.Width = this.ClientSize.Width - pnlSidebar.Width;
+            pnlMain.Height = this.ClientSize.Height - pnlHeader.Height;
+
+            pnlHeader.Width = this.ClientSize.Width - pnlSidebar.Width;
+
+            int availableWidth = pnlMain.Width - 40;
+            int panelWidth = (availableWidth - 60) / 4;
+            int startX = 20;
+
+            panel1.Width = panelWidth;
+            panel2.Width = panelWidth;
+            panel3.Width = panelWidth;
+            panel4.Width = panelWidth;
+
+            panel1.Location = new Point(startX, panel1.Location.Y);
+            panel2.Location = new Point(startX + panelWidth + 20, panel2.Location.Y);
+            panel3.Location = new Point(startX + (panelWidth + 20) * 2, panel3.Location.Y);
+            panel4.Location = new Point(startX + (panelWidth + 20) * 3, panel4.Location.Y);
+
+            lblDate.Location = new Point(pnlMain.Width - lblDate.Width - 80, lblDate.Location.Y); // Moved label left to make room for buttons
+
+
+            dgvTopProducts.Width = pnlMain.Width - 40;
+            dgvTopProducts.Height = pnlMain.Height - dgvTopProducts.Top - 20;
+
+            if (dgvTopProducts.Columns.Count > 0)
+            {
+                foreach (DataGridViewColumn col in dgvTopProducts.Columns)
+                {
+                    col.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                }
+            }
+        }
 
     }
 }

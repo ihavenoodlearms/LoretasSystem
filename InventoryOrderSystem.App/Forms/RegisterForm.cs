@@ -22,9 +22,9 @@ namespace InventoryOrderSystem.App.Forms
             _dbManager = new DatabaseManager(); // Your existing DatabaseManager class
 
             // Initialize ComboBox with roles
-            cmbRole.Items.Add("Admin");
+            
             cmbRole.Items.Add("User");
-            cmbRole.SelectedIndex = 1;  // Default role is User
+            cmbRole.SelectedIndex = 0;  // Default role is User
         }
 
         private void btnRegister_Click_1(object sender, EventArgs e)

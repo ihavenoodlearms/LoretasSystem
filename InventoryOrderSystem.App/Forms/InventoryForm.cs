@@ -14,10 +14,18 @@ namespace InventoryOrderSystem.App.Forms
         private readonly DatabaseManager dbManager;
         private readonly User _currentUser;
         private readonly string[] categories = { "Powder", "Syrup", "Fruit Tea Syrup", "Misc." };
+        private bool mouseDown;
+        private Point lastLocation;
 
         public InventoryForm(User user)
         {
             InitializeComponent();
+
+            // Add this to enable form dragging
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.DoubleBuffered = true;
+
+            // Your existing constructor code
             dbManager = new DatabaseManager();
             _currentUser = user;
 
@@ -28,6 +36,58 @@ namespace InventoryOrderSystem.App.Forms
             // Enable sorting for the DataGridView
             inventoryGridView.AllowUserToOrderColumns = true;
             inventoryGridView.AllowUserToResizeColumns = true;
+
+            InitializeTitleBar();
+        }
+
+        private void InitializeTitleBar()
+        {
+            Panel titleBar = new Panel
+            {
+                BackColor = Color.FromArgb(74, 44, 42),
+                Dock = DockStyle.Top,
+                Height = 30
+            };
+
+            titleBar.MouseDown += (s, e) => {
+                mouseDown = true;
+                lastLocation = e.Location;
+            };
+
+            titleBar.MouseMove += (s, e) => {
+                if (mouseDown)
+                {
+                    this.Location = new Point(
+                        (this.Location.X - lastLocation.X) + e.X,
+                        (this.Location.Y - lastLocation.Y) + e.Y);
+                    this.Update();
+                }
+            };
+
+            titleBar.MouseUp += (s, e) => {
+                mouseDown = false;
+            };
+
+            Label titleLabel = new Label
+            {
+                Text = "Inventory Management",
+                ForeColor = Color.White,
+                Font = new Font("Arial Rounded MT Bold", 12, FontStyle.Regular),
+                AutoSize = true,
+                Location = new Point(10, 5)
+            };
+
+            titleBar.Controls.Add(titleLabel);
+            this.Controls.Add(titleBar);
+
+            // Adjust other controls to appear below title bar
+            foreach (Control control in this.Controls)
+            {
+                if (control != titleBar)
+                {
+                    control.Top += titleBar.Height;
+                }
+            }
         }
 
         private void BackButton_Click(object sender, EventArgs e)
@@ -45,11 +105,7 @@ namespace InventoryOrderSystem.App.Forms
         private void LoadInventory()
         {
             var items = dbManager.GetAllInventoryItems();
-
-            // Convert the list to a SortableBindingList
             var sortableList = new SortableBindingList<InventoryItem>(items);
-
-            // Set the DataGridView's DataSource to the SortableBindingList
             inventoryGridView.DataSource = sortableList;
 
             // Configure DataGridView properties
@@ -58,7 +114,7 @@ namespace InventoryOrderSystem.App.Forms
             inventoryGridView.AllowUserToDeleteRows = false;
             inventoryGridView.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
 
-            // Ensure all columns are visible and properly named
+            // Configure columns
             inventoryGridView.Columns["ItemId"].HeaderText = "Item ID";
             inventoryGridView.Columns["Name"].HeaderText = "Item Name";
             inventoryGridView.Columns["Quantity"].HeaderText = "Quantity";
@@ -70,12 +126,12 @@ namespace InventoryOrderSystem.App.Forms
             inventoryGridView.Columns["Quantity"].ReadOnly = true;
             inventoryGridView.Columns["Category"].ReadOnly = true;
 
-            // Apply the initial sort here, after the data has been loaded
+            // Apply initial sort
             inventoryGridView.Sort(inventoryGridView.Columns["ItemId"], ListSortDirection.Ascending);
 
-            // Attach the ColumnHeader_Click method to the ColumnHeaderMouseClick event
-            inventoryGridView.ColumnHeaderMouseClick -= ColumnHeader_Click; // Remove any existing handler
-            inventoryGridView.ColumnHeaderMouseClick += ColumnHeader_Click; // Add the new handler
+            // Setup column click handler
+            inventoryGridView.ColumnHeaderMouseClick -= ColumnHeader_Click;
+            inventoryGridView.ColumnHeaderMouseClick += ColumnHeader_Click;
 
             inventoryGridView.Refresh();
         }
@@ -86,18 +142,14 @@ namespace InventoryOrderSystem.App.Forms
             DataGridViewColumn oldColumn = inventoryGridView.SortedColumn;
             ListSortDirection direction;
 
-            // If oldColumn is null, then the DataGridView is not currently sorted.
             if (oldColumn != null)
             {
-                // Sort the same column again, reversing the SortOrder.
-                if (oldColumn == newColumn &&
-                    inventoryGridView.SortOrder == SortOrder.Ascending)
+                if (oldColumn == newColumn && inventoryGridView.SortOrder == SortOrder.Ascending)
                 {
                     direction = ListSortDirection.Descending;
                 }
                 else
                 {
-                    // Sort a new column and remove the old SortGlyph.
                     direction = ListSortDirection.Ascending;
                     oldColumn.HeaderCell.SortGlyphDirection = SortOrder.None;
                 }
@@ -107,7 +159,6 @@ namespace InventoryOrderSystem.App.Forms
                 direction = ListSortDirection.Ascending;
             }
 
-            // Sort the selected column.
             inventoryGridView.Sort(newColumn, direction);
             newColumn.HeaderCell.SortGlyphDirection =
                 direction == ListSortDirection.Ascending ?
@@ -195,11 +246,11 @@ namespace InventoryOrderSystem.App.Forms
             try
             {
                 int itemId = int.Parse(txtItemId.Text);
-                DialogResult result = MessageBox.Show("Are you sure you want to delete this item?", "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                DialogResult result = MessageBox.Show("Are you sure you want to delete this item?", "Confirm Delete",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                 if (result == DialogResult.Yes)
                 {
-                    // Create and show password input dialog
                     using (var passwordForm = new Form())
                     {
                         passwordForm.Text = "Enter Password";
@@ -209,45 +260,67 @@ namespace InventoryOrderSystem.App.Forms
                         passwordForm.MaximizeBox = false;
                         passwordForm.MinimizeBox = false;
 
-                        Label passwordLabel = new Label() { Left = 20, Top = 20, Text = "Enter your password:", AutoSize = true };
-                        TextBox passwordBox = new TextBox() { Left = 20, Top = 50, Width = 240, PasswordChar = '*'};
-                        Button confirmButton = new Button() { Text = "Confirm", Left = 100, Top = 80, DialogResult = DialogResult.OK };
+                        Label passwordLabel = new Label()
+                        {
+                            Left = 20,
+                            Top = 20,
+                            Text = "Enter your password:",
+                            AutoSize = true
+                        };
+
+                        TextBox passwordBox = new TextBox()
+                        {
+                            Left = 20,
+                            Top = 50,
+                            Width = 240,
+                            PasswordChar = '*'
+                        };
+
+                        Button confirmButton = new Button()
+                        {
+                            Text = "Confirm",
+                            Left = 100,
+                            Top = 80,
+                            DialogResult = DialogResult.OK
+                        };
 
                         confirmButton.Click += (s, evt) => { passwordForm.Close(); };
 
                         passwordForm.Controls.Add(passwordLabel);
                         passwordForm.Controls.Add(passwordBox);
                         passwordForm.Controls.Add(confirmButton);
-
                         passwordForm.AcceptButton = confirmButton;
 
                         if (passwordForm.ShowDialog(this) == DialogResult.OK)
                         {
                             string enteredPassword = passwordBox.Text;
 
-                            // Verify the password
                             if (dbManager.VerifyPassword(_currentUser.UserId, enteredPassword))
                             {
                                 dbManager.DeleteInventoryItem(itemId);
-                                MessageBox.Show("Item deleted successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                MessageBox.Show("Item deleted successfully!", "Success",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Information);
                                 LoadInventory();
                                 ClearInputFields();
                             }
                             else
                             {
-                                MessageBox.Show("Incorrect password. Item deletion canceled.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                MessageBox.Show("Incorrect password. Item deletion canceled.", "Error",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
                         }
                         else
                         {
-                            MessageBox.Show("Item deletion canceled.", "Canceled", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            MessageBox.Show("Item deletion canceled.", "Canceled",
+                                MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error deleting item: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error deleting item: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -255,7 +328,8 @@ namespace InventoryOrderSystem.App.Forms
         {
             if (string.IsNullOrEmpty(txtItemId.Text) || string.IsNullOrEmpty(txtRestockQuantity.Text))
             {
-                MessageBox.Show("Please select an item and enter a restock quantity.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Please select an item and enter a restock quantity.", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -265,13 +339,15 @@ namespace InventoryOrderSystem.App.Forms
                 int restockQuantity = int.Parse(txtRestockQuantity.Text);
 
                 dbManager.RestockInventoryItem(itemId, restockQuantity);
-                MessageBox.Show("Item restocked successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Item restocked successfully!", "Success",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
                 LoadInventory();
                 txtRestockQuantity.Clear();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error restocking item: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error restocking item: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -282,6 +358,15 @@ namespace InventoryOrderSystem.App.Forms
             txtQuantity.Clear();
             cboCategory.SelectedIndex = 0;
             txtRestockQuantity.Clear();
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            base.OnFormClosing(e);
+            if (e.CloseReason == CloseReason.UserClosing)
+            {
+                Application.Exit();
+            }
         }
     }
 }

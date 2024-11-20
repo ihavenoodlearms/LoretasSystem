@@ -15,7 +15,7 @@ namespace InventoryOrderingSystem
 {
     public partial class OrderMenuForm : Form
     {
-        private Dictionary<string, List<Product>> categoryProducts;
+        private Dictionary<string, List<InventoryOrderSystem.Product>> categoryProducts;
         private List<OrderItem> orderItems;
         private User _currentUser;
         private Dictionary<string, GroupBox> productBoxes;
@@ -128,163 +128,207 @@ namespace InventoryOrderingSystem
             };
             editAddOnsButton.Click += EditAddOns_Click;
             this.Controls.Add(editAddOnsButton);
+
+            // Add to your OrderMenuForm constructor after initializing other components
+            if (_currentUser.IsSuperAdmin)
+            {
+                MessageBox.Show("Adding admin button"); // Debug message
+                Button btnManageProducts = new Button
+                {
+                    Text = "Manage Products",
+                    Size = new Size(210, 40),
+                    FlatStyle = FlatStyle.Flat,
+                    BackColor = Color.FromArgb(74, 44, 42),
+                    ForeColor = Color.White,
+                    Margin = new Padding(0, 10, 0, 0)
+                };
+                btnManageProducts.FlatAppearance.BorderSize = 0;
+                btnManageProducts.Font = new Font("Arial Rounded MT Bold", 9, FontStyle.Bold);
+                btnManageProducts.Click += (s, e) =>
+                {
+                    using (var productManagement = new ProductManagementForm(_currentUser, categoryProducts))
+                    {
+                        if (productManagement.ShowDialog() == DialogResult.OK)
+                        {
+                            InitializeCategories();
+                            if (flowLayoutPanelCategories.Controls.Count > 0)
+                            {
+                                var firstCategoryButton = flowLayoutPanelCategories.Controls
+                                    .OfType<Button>()
+                                    .FirstOrDefault(b => b.Tag != null);
+
+                                if (firstCategoryButton != null)
+                                {
+                                    CategoryButton_Click(firstCategoryButton, EventArgs.Empty);
+                                }
+                            }
+                        }
+                    }
+                };
+
+                // Add at a specific position
+                int insertIndex = flowLayoutPanelCategories.Controls.Count - 1; // Before Edit Add-ons button
+                flowLayoutPanelCategories.Controls.Add(btnManageProducts);
+            }
+
+            Console.WriteLine($"User is admin: {_currentUser.IsSuperAdmin}");
         }
 
 
         private void InitializeCategories()
         {
-            categoryProducts = new Dictionary<string, List<Product>>
-            {
-                {"Cheesecake Series", new List<Product>
+            categoryProducts = new Dictionary<string, List<InventoryOrderSystem.Product>>
+{
+                {"Cheesecake Series", new List<InventoryOrderSystem.Product>
                     {
-                        new Product("Matcha Cheesecake", 118.00m),
-                        new Product("Oreo Cheesecake", 118.00m),
-                        new Product("Red Velvet Cheesecake", 118.00m),
-                        new Product("Strawberry Cheesecake", 118.00m),
-                        new Product("Ube Cheesecake", 118.00m),
-                        new Product("Wintermelon Cheesecake", 118.00m),
+                        new InventoryOrderSystem.Product("Matcha Cheesecake", 118.00m, 1),
+                        new InventoryOrderSystem.Product("Oreo Cheesecake", 118.00m, 2),
+                        new InventoryOrderSystem.Product("Red Velvet Cheesecake", 118.00m, 3),
+                        new InventoryOrderSystem.Product("Strawberry Cheesecake", 118.00m, 4),
+                        new InventoryOrderSystem.Product("Ube Cheesecake", 118.00m, 5),
+                        new InventoryOrderSystem.Product("Wintermelon Cheesecake", 118.00m, 6),
                     }
                 },
-                {"Fruit Tea & Lemonade", new List<Product>
+                {"Fruit Tea & Lemonade", new List<InventoryOrderSystem.Product>
                     {
-                        new Product("Berry Blossom", 68.00m),
-                        new Product("Blue Lemonade", 68.00m),
-                        new Product("Green Apple Lemonade", 68.00m),
-                        new Product("Lychee", 68.00m),
-                        new Product("Paradise", 68.00m),
-                        new Product("Strawberry Lemonade", 68.00m),
-                        new Product("Sunrise", 68.00m),
+                        new InventoryOrderSystem.Product("Berry Blossom", 68.00m, 7),
+                        new InventoryOrderSystem.Product("Blue Lemonade", 68.00m, 8),
+                        new InventoryOrderSystem.Product("Green Apple Lemonade", 68.00m, 9),
+                        new InventoryOrderSystem.Product("Lychee", 68.00m, 10),
+                        new InventoryOrderSystem.Product("Paradise", 68.00m, 11),
+                        new InventoryOrderSystem.Product("Strawberry Lemonade", 68.00m, 12),
+                        new InventoryOrderSystem.Product("Sunrise", 68.00m, 13),
                     }
                 },
-                {"Milk Tea Classic", new List<Product>
+                {"Milk Tea Classic", new List<InventoryOrderSystem.Product>
                     {
-                        new Product("Chocolate (Milk Tea)", 78.00m),
-                        new Product("Cookies and Cream (Milk Tea)", 78.00m),
-                        new Product("Dark Chocolate (Milk Tea)", 78.00m),
-                        new Product("Hazelnut (Milk Tea)", 78.00m),
-                        new Product("Matcha (Milk Tea)", 78.00m),
-                        new Product("Mocha (Milk Tea)", 78.00m),
-                        new Product("Okinawa (Milk Tea)", 78.00m),
-                        new Product("Taro (Milk Tea)", 78.00m),
-                        new Product("Ube (Milk Tea)", 78.00m),
-                        new Product("Wintermelon (Milk Tea)", 78.00m),
+                        new InventoryOrderSystem.Product("Chocolate (Milk Tea)", 78.00m, 14),
+                        new InventoryOrderSystem.Product("Cookies and Cream (Milk Tea)", 78.00m, 15),
+                        new InventoryOrderSystem.Product("Dark Chocolate (Milk Tea)", 78.00m, 16),
+                        new InventoryOrderSystem.Product("Hazelnut (Milk Tea)", 78.00m, 17),
+                        new InventoryOrderSystem.Product("Matcha (Milk Tea)", 78.00m, 18),
+                        new InventoryOrderSystem.Product("Mocha (Milk Tea)", 78.00m, 19),
+                        new InventoryOrderSystem.Product("Okinawa (Milk Tea)", 78.00m, 20),
+                        new InventoryOrderSystem.Product("Taro (Milk Tea)", 78.00m, 21),
+                        new InventoryOrderSystem.Product("Ube (Milk Tea)", 78.00m, 22),
+                        new InventoryOrderSystem.Product("Wintermelon (Milk Tea)", 78.00m, 23),
                     }
                 },
-                {"Fruit Milk", new List<Product>
+                {"Fruit Milk", new List<InventoryOrderSystem.Product>
                     {
-                        new Product("Blueberry Milk", 98.00m),
-                        new Product("Mango Milk", 98.00m),
-                        new Product("Strawberry Milk", 98.00m),
+                        new InventoryOrderSystem.Product("Blueberry Milk", 98.00m, 24),
+                        new InventoryOrderSystem.Product("Mango Milk", 98.00m, 25),
+                        new InventoryOrderSystem.Product("Strawberry Milk", 98.00m, 26),
                     }
                 },
-                {"Loreta's Specials", new List<Product>
+                {"Loreta's Specials", new List<InventoryOrderSystem.Product>
                     {
-                        new Product("Nutellatte", 118.00m),
-                        new Product("Tiger Boba Milk", 108.00m),
-                        new Product("Tiger Boba Milktea", 138.00m),
-                        new Product("Tiger Oreo Cheesecake", 128.00m),
+                        new InventoryOrderSystem.Product("Nutellatte", 118.00m, 27),
+                        new InventoryOrderSystem.Product("Tiger Boba Milk", 108.00m, 28),
+                        new InventoryOrderSystem.Product("Tiger Boba Milktea", 138.00m, 29),
+                        new InventoryOrderSystem.Product("Tiger Oreo Cheesecake", 128.00m, 30),
                     }
                 },
-                {"Iced Coffee", new List<Product>
+                {"Iced Coffee", new List<InventoryOrderSystem.Product>
                     {
-                        new Product("Americano", 68.00m),
-                        new Product("Cafe Latte (Iced Coffee)", 78.00m),
-                        new Product("Cafe Mocha", 78.00m),
-                        new Product("Caramel Macchiato", 78.00m),
-                        new Product("Cappuccino (Iced Coffee)", 78.00m),
-                        new Product("Dirty Matcha", 138.00m),
-                        new Product("French Vanilla", 78.00m),
-                        new Product("Matcha Latte", 98.00m),
-                        new Product("Spanish Latte", 78.00m),
-                        new Product("Triple Chocolate Mocha", 78.00m),
+                        new InventoryOrderSystem.Product("Americano", 68.00m, 31),
+                        new InventoryOrderSystem.Product("Cafe Latte (Iced Coffee)", 78.00m, 32),
+                        new InventoryOrderSystem.Product("Cafe Mocha", 78.00m, 33),
+                        new InventoryOrderSystem.Product("Caramel Macchiato", 78.00m, 34),
+                        new InventoryOrderSystem.Product("Cappuccino (Iced Coffee)", 78.00m, 35),
+                        new InventoryOrderSystem.Product("Dirty Matcha", 138.00m, 36),
+                        new InventoryOrderSystem.Product("French Vanilla", 78.00m, 37),
+                        new InventoryOrderSystem.Product("Matcha Latte", 98.00m, 38),
+                        new InventoryOrderSystem.Product("Spanish Latte", 78.00m, 39),
+                        new InventoryOrderSystem.Product("Triple Chocolate Mocha", 78.00m, 40),
                     }
                 },
-                {"Frappe/Coffee", new List<Product>
+                {"Frappe/Coffee", new List<InventoryOrderSystem.Product>
                     {
-                        new Product("Black Forest (Coffee Frappe)", 98.00m),
-                        new Product("Cafe Latte (Coffee Frappe)", 98.00m),
-                        new Product("Cappuccino (Coffee Frappe)", 98.00m),
-                        new Product("Caramel (Coffee Frappe)", 98.00m),
-                        new Product("Choc Chip (Coffee Frappe)", 98.00m),
-                        new Product("Cookies and Cream (Coffee Frappe)", 98.00m),
-                        new Product("Dark Chocolate (Coffee Frappe)", 98.00m),
-                        new Product("Double Dutch (Coffee Frappe)", 98.00m),
-                        new Product("Mango Graham (Coffee Frappe)", 98.00m),
-                        new Product("Matcha (Coffee Frappe)", 98.00m),
-                        new Product("Mocha (Coffee Frappe)", 98.00m),
-                        new Product("Strawberry (Coffee Frappe)", 98.00m),
-                        new Product("Vanilla (Coffee Frappe)", 98.00m),
+                        new InventoryOrderSystem.Product("Black Forest (Coffee Frappe)", 98.00m, 41),
+                        new InventoryOrderSystem.Product("Cafe Latte (Coffee Frappe)", 98.00m, 42),
+                        new InventoryOrderSystem.Product("Cappuccino (Coffee Frappe)", 98.00m, 43),
+                        new InventoryOrderSystem.Product("Caramel (Coffee Frappe)", 98.00m, 44),
+                        new InventoryOrderSystem.Product("Choc Chip (Coffee Frappe)", 98.00m, 45),
+                        new InventoryOrderSystem.Product("Cookies and Cream (Coffee Frappe)", 98.00m, 46),
+                        new InventoryOrderSystem.Product("Dark Chocolate (Coffee Frappe)", 98.00m, 47),
+                        new InventoryOrderSystem.Product("Double Dutch (Coffee Frappe)", 98.00m, 48),
+                        new InventoryOrderSystem.Product("Mango Graham (Coffee Frappe)", 98.00m, 49),
+                        new InventoryOrderSystem.Product("Matcha (Coffee Frappe)", 98.00m, 50),
+                        new InventoryOrderSystem.Product("Mocha (Coffee Frappe)", 98.00m, 51),
+                        new InventoryOrderSystem.Product("Strawberry (Coffee Frappe)", 98.00m, 52),
+                        new InventoryOrderSystem.Product("Vanilla (Coffee Frappe)", 98.00m, 53),
                     }
                 },
-                {"Garlic Parmesan & Buffalo Wings", new List<Product>
+                {"Garlic Parmesan & Buffalo Wings", new List<InventoryOrderSystem.Product>
                     {
-                        new Product("Garlic Parmesan 3 pcs", 109.00m),
-                        new Product("Buffalo Wings 3 pcs", 109.00m),
-                        new Product("Garlic Parmesan 4 pcs", 139.00m),
-                        new Product("Buffalo Wings 4 pcs", 139.00m),
-                        new Product("Garlic Parmesan 3 pcs • rice", 139.00m),
-                        new Product("Buffalo Wings 3 pcs • rice", 139.00m),
-                        new Product("Garlic Parmesan 4 pcs • rice", 169.00m),
-                        new Product("Buffalo Wings 4 pcs • rice", 169.00m),
+                        new InventoryOrderSystem.Product("Garlic Parmesan 3 pcs", 109.00m, 54),
+                        new InventoryOrderSystem.Product("Buffalo Wings 3 pcs", 109.00m, 55),
+                        new InventoryOrderSystem.Product("Garlic Parmesan 4 pcs", 139.00m, 56),
+                        new InventoryOrderSystem.Product("Buffalo Wings 4 pcs", 139.00m, 57),
+                        new InventoryOrderSystem.Product("Garlic Parmesan 3 pcs • rice", 139.00m, 58),
+                        new InventoryOrderSystem.Product("Buffalo Wings 3 pcs • rice", 139.00m, 59),
+                        new InventoryOrderSystem.Product("Garlic Parmesan 4 pcs • rice", 169.00m, 60),
+                        new InventoryOrderSystem.Product("Buffalo Wings 4 pcs • rice", 169.00m, 61),
                     }
                 },
-                {"Chicken Burger", new List<Product>
+                {"Chicken Burger", new List<InventoryOrderSystem.Product>
                     {
-                        new Product("Chicken Burger", 169.00m),
-                        new Product("Black Mamba", 209.00m),
+                        new InventoryOrderSystem.Product("Chicken Burger", 169.00m, 62),
+                        new InventoryOrderSystem.Product("Black Mamba", 209.00m, 63),
                     }
                 },
-                {"Churros, Mojos, Corndogs", new List<Product>
+                {"Churros, Mojos, Corndogs", new List<InventoryOrderSystem.Product>
                     {
-                        new Product("Churros Classic", 80.00m),
-                        new Product("Churros Overload", 120.00m),
-                        new Product("Mojos (Solo)", 80.00m),
-                        new Product("Mojos (Barkada)", 140.00m),
-                        new Product("Classic Bites", 75.00m),
-                        new Product("Regular Classic", 90.00m),
-                        new Product("Full Mozza", 90.00m),
-                        new Product("Frenchie", 90.00m),
-                        new Product("Mozzadog", 90.00m),
+                        new InventoryOrderSystem.Product("Churros Classic", 80.00m, 64),
+                        new InventoryOrderSystem.Product("Churros Overload", 120.00m, 65),
+                        new InventoryOrderSystem.Product("Mojos (Solo)", 80.00m, 66),
+                        new InventoryOrderSystem.Product("Mojos (Barkada)", 140.00m, 67),
+                        new InventoryOrderSystem.Product("Classic Bites", 75.00m, 68),
+                        new InventoryOrderSystem.Product("Regular Classic", 90.00m, 69),
+                        new InventoryOrderSystem.Product("Full Mozza", 90.00m, 70),
+                        new InventoryOrderSystem.Product("Frenchie", 90.00m, 71),
+                        new InventoryOrderSystem.Product("Mozzadog", 90.00m, 72),
                     }
                 },
-                {"Loreta's Snacks", new List<Product>
+                {"Loreta's Snacks", new List<InventoryOrderSystem.Product>
                     {
-                        new Product("Cheesy Fries", 50.00m),
-                        new Product("Cheesy Nachos", 70.00m),
-                        new Product("Cheddar Sticks", 70.00m),
-                        new Product("Waffles", 50.00m),
-                        new Product("Nutella Waffles", 60.00m),
-                        new Product("Brownies", 50.00m),
-                        new Product("Cookies", 50.00m),
+                        new InventoryOrderSystem.Product("Cheesy Fries", 50.00m, 73),
+                        new InventoryOrderSystem.Product("Cheesy Nachos", 70.00m, 74),
+                        new InventoryOrderSystem.Product("Cheddar Sticks", 70.00m, 75),
+                        new InventoryOrderSystem.Product("Waffles", 50.00m, 76),
+                        new InventoryOrderSystem.Product("Nutella Waffles", 60.00m, 77),
+                        new InventoryOrderSystem.Product("Brownies", 50.00m, 78),
+                        new InventoryOrderSystem.Product("Cookies", 50.00m, 79),
                     }
                 },
-                {"Croffle", new List<Product>
+                {"Croffle", new List<InventoryOrderSystem.Product>
                     {
-                        new Product("Chocolate (Classic)", 80.00m),
-                        new Product("Maple w/ Butter(Classic)", 80.00m),
-                        new Product("Nutella (Classic)", 90.00m),
-                        new Product("Matcha (Classic)", 90.00m),
-                        new Product("Peanut Butter (Classic)", 90.00m),
-                        new Product("Biscoff Spread (Classic)", 90.00m),
-                        new Product("Nutella Alcapone (Premium)", 110.00m),
-                        new Product("Cookies & Cream (Premium)", 120.00m),
-                        new Product("Matcha Alcapone (Premium)", 110.00m),
-                        new Product("Strawberry Cream (Premium)", 120.00m),
-                        new Product("Biscoff Overload (Premium)", 130.00m),
-                        new Product("Classic (IN A BOX)", 360.00m),
-                        new Product("Premium (IN A BOX)", 480.00m),
-                        new Product("Classic-Premium (IN A BOX)", 430.00m),
+                        new InventoryOrderSystem.Product("Chocolate (Classic)", 80.00m, 80),
+                        new InventoryOrderSystem.Product("Maple w/ Butter(Classic)", 80.00m, 81),
+                        new InventoryOrderSystem.Product("Nutella (Classic)", 90.00m, 82),
+                        new InventoryOrderSystem.Product("Matcha (Classic)", 90.00m, 83),
+                        new InventoryOrderSystem.Product("Peanut Butter (Classic)", 90.00m, 84),
+                        new InventoryOrderSystem.Product("Biscoff Spread (Classic)", 90.00m, 85),
+                        new InventoryOrderSystem.Product("Nutella Alcapone (Premium)", 110.00m, 86),
+                        new InventoryOrderSystem.Product("Cookies & Cream (Premium)", 120.00m, 87),
+                        new InventoryOrderSystem.Product("Matcha Alcapone (Premium)", 110.00m, 88),
+                        new InventoryOrderSystem.Product("Strawberry Cream (Premium)", 120.00m, 89),
+                        new InventoryOrderSystem.Product("Biscoff Overload (Premium)", 130.00m, 90),
+                        new InventoryOrderSystem.Product("Classic (IN A BOX)", 360.00m, 91),
+                        new InventoryOrderSystem.Product("Premium (IN A BOX)", 480.00m, 92),
+                        new InventoryOrderSystem.Product("Classic-Premium (IN A BOX)", 430.00m, 93),
                     }
                 },
-                {"Hungarian Sausage", new List<Product>
+                {"Hungarian Sausage", new List<InventoryOrderSystem.Product>
                     {
-                        new Product("Hungarian Classic (Sandwich)", 130.00m),
-                        new Product("Bacon & Cheese (Sandwich)", 150.00m),
-                        new Product("Spicy Beef (Sandwich)", 160.00m),
-                        new Product("Classic (On-Stick)", 100.00m),
-                        new Product("Sausage & Bacon (On-Stick)", 120.00m),
+                        new InventoryOrderSystem.Product("Hungarian Classic (Sandwich)", 130.00m, 94),
+                        new InventoryOrderSystem.Product("Bacon & Cheese (Sandwich)", 150.00m, 95),
+                        new InventoryOrderSystem.Product("Spicy Beef (Sandwich)", 160.00m, 96),
+                        new InventoryOrderSystem.Product("Classic (On-Stick)", 100.00m, 97),
+                        new InventoryOrderSystem.Product("Sausage & Bacon (On-Stick)", 120.00m, 98),
                     }
-                },
+                }
 
         };
 
@@ -439,7 +483,7 @@ namespace InventoryOrderingSystem
         }
 
 
-        private GroupBox CreateProductBox(Product product)
+        private GroupBox CreateProductBox(InventoryOrderSystem.Product product)
         {
             // Calculate box size based on container width
             int boxWidth = (int)(flowLayoutPanelProducts.Width * 0.3);
@@ -636,20 +680,20 @@ namespace InventoryOrderingSystem
             }
         }
 
-        private Product GetSelectedProduct()
+        private InventoryOrderSystem.Product GetSelectedProduct()
         {
             foreach (GroupBox productBox in flowLayoutPanelProducts.Controls.OfType<GroupBox>())
             {
                 CheckBox checkBox = productBox.Controls.OfType<CheckBox>().First();
                 if (checkBox.Checked)
                 {
-                    return (Product)checkBox.Tag;
+                    return (InventoryOrderSystem.Product)checkBox.Tag;
                 }
             }
             return null;
         }
 
-        private void AddToChecklist_Click(object sender, EventArgs e, Product product)
+        private void AddToChecklist_Click(object sender, EventArgs e, InventoryOrderSystem.Product product)
         {
             Button button = (Button)sender;
             GroupBox productBox = (GroupBox)button.Parent;
@@ -705,7 +749,7 @@ namespace InventoryOrderingSystem
             mainCheckBox.Checked = false;
         }
 
-        private void RemoveFromChecklist_Click(object sender, EventArgs e, Product product)
+        private void RemoveFromChecklist_Click(object sender, EventArgs e, InventoryOrderSystem.Product product)
         {
             if (listBoxOrderSummary.SelectedIndex == -1)
             {
@@ -754,7 +798,7 @@ namespace InventoryOrderingSystem
                 sizeComboBox.Enabled = checkBox.Checked;
             }
 
-            Product product = (Product)checkBox.Tag;
+            InventoryOrderSystem.Product product = (InventoryOrderSystem.Product)checkBox.Tag;
             if (categoryProducts["Frappe/Coffee"].Contains(product))
             {
                 CheckBox extraShotCheckBox = productBox.Controls.OfType<CheckBox>().ElementAtOrDefault(1);
@@ -961,26 +1005,13 @@ namespace InventoryOrderingSystem
         }
     }
 
-
-    public class Product
-    {
-        public string Name { get; set; }
-        public decimal Price { get; set; }
-
-        public Product(string name, decimal price)
-        {
-            Name = name;
-            Price = price;
-        }
-    }
-
     public class OrderItem
     {
         public int OrderItemId { get; set; }
         public int OrderId { get; set; }
         public int ItemId { get; set; }
         public string ProductName { get; set; }
-        public Product Product { get; set; }
+        public InventoryOrderSystem.Product Product { get; set; }
         public string Size { get; set; }
         public bool ExtraShot { get; set; }
         public int Quantity { get; set; }
@@ -989,7 +1020,7 @@ namespace InventoryOrderingSystem
 
         public OrderItem() { }
 
-        public OrderItem(Product product, string size, bool extraShot, int quantity, List<string> addOns)
+        public OrderItem(InventoryOrderSystem.Product product, string size, bool extraShot, int quantity, List<string> addOns)
         {
             Product = product;
             ProductName = product.Name;

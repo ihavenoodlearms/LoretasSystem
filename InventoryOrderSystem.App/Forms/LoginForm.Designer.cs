@@ -35,7 +35,6 @@ namespace InventoryOrderSystem
             this.guna2Panel2 = new Guna.UI2.WinForms.Guna2Panel();
             this.txtUsername = new Guna.UI2.WinForms.Guna2TextBox();
             this.btnLogin = new System.Windows.Forms.Button();
-            this.lnkForgotPassword = new System.Windows.Forms.LinkLabel();
             this.guna2Panel5 = new Guna.UI2.WinForms.Guna2Panel();
             this.guna2PictureBox1 = new Guna.UI2.WinForms.Guna2PictureBox();
             this.pnlLogin.SuspendLayout();
@@ -56,7 +55,6 @@ namespace InventoryOrderSystem
             this.pnlLogin.Controls.Add(this.guna2Panel2);
             this.pnlLogin.Controls.Add(this.txtUsername);
             this.pnlLogin.Controls.Add(this.btnLogin);
-            this.pnlLogin.Controls.Add(this.lnkForgotPassword);
             this.pnlLogin.Dock = System.Windows.Forms.DockStyle.Right;
             this.pnlLogin.Location = new System.Drawing.Point(437, 0);
             this.pnlLogin.Name = "pnlLogin";
@@ -209,18 +207,6 @@ namespace InventoryOrderSystem
             this.btnLogin.Click += new System.EventHandler(this.btnLogin_Click);
             this.btnLogin.Paint += new System.Windows.Forms.PaintEventHandler(this.btnLogin_Paint);
             // 
-            // lnkForgotPassword
-            // 
-            this.lnkForgotPassword.AutoSize = true;
-            this.lnkForgotPassword.Font = new System.Drawing.Font("Arial Rounded MT Bold", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lnkForgotPassword.LinkColor = System.Drawing.Color.FromArgb(((int)(((byte)(101)))), ((int)(((byte)(67)))), ((int)(((byte)(53)))));
-            this.lnkForgotPassword.Location = new System.Drawing.Point(68, 346);
-            this.lnkForgotPassword.Name = "lnkForgotPassword";
-            this.lnkForgotPassword.Size = new System.Drawing.Size(105, 12);
-            this.lnkForgotPassword.TabIndex = 5;
-            this.lnkForgotPassword.TabStop = true;
-            this.lnkForgotPassword.Text = "Forgot Password?";
-            // 
             // guna2Panel5
             // 
             this.guna2Panel5.Controls.Add(this.guna2PictureBox1);
@@ -268,7 +254,6 @@ namespace InventoryOrderSystem
 
         private System.Windows.Forms.Panel pnlLogin;
         private System.Windows.Forms.Button btnLogin;
-        private System.Windows.Forms.LinkLabel lnkForgotPassword;
         private Guna.UI2.WinForms.Guna2Panel guna2Panel4;
         private Guna.UI2.WinForms.Guna2CheckBox chkPassword;
         private Guna.UI2.WinForms.Guna2Panel guna2Panel3;

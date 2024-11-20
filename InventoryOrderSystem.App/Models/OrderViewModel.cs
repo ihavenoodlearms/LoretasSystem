@@ -5,6 +5,7 @@ namespace InventoryOrderSystem.Models
     public class OrderViewModel
     {
         public int OrderId { get; set; }
+        public string transaction_id { get; set; }
         public int UserId { get; set; }
         public DateTime OrderDate { get; set; }
         public decimal TotalAmount { get; set; }

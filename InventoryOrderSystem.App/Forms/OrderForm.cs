@@ -49,15 +49,16 @@ namespace InventoryOrderSystem.Forms
             _orders = _dbManager.GetAllOrders();
             var orderViewModels = _orders.Select(o => new OrderViewModel
             {
-                OrderId = o.OrderId,
+                OrderId = o.OrderId,  // Add this line
+                transaction_id = _dbManager.GetTransactionId(o.OrderId),
                 UserId = o.UserId,
                 OrderDate = o.OrderDate,
                 TotalAmount = o.TotalAmount,
                 PaymentMethod = o.PaymentMethod,
                 OrderItemsCount = o.OrderItems.Count,
                 Status = o.Status,
-                AmountPaid = o.AmountPaid,      // Add this
-                ChangeAmount = o.ChangeAmount    // Add this
+                AmountPaid = o.AmountPaid,
+                ChangeAmount = o.ChangeAmount
             }).ToList();
 
             _bindingOrders = new SortableBindingList<OrderViewModel>(orderViewModels);
@@ -65,9 +66,11 @@ namespace InventoryOrderSystem.Forms
             FormatDataGridView();
         }
 
+
         private void FormatDataGridView()
         {
-            dgvOrders.Columns["OrderId"].HeaderText = "Order ID";
+            dgvOrders.Columns["OrderId"].Visible = false;
+            dgvOrders.Columns["transaction_id"].HeaderText = "Transaction ID";
             dgvOrders.Columns["UserId"].HeaderText = "User ID";
             dgvOrders.Columns["OrderDate"].HeaderText = "Order Date";
             dgvOrders.Columns["TotalAmount"].HeaderText = "Total Amount";
@@ -86,8 +89,8 @@ namespace InventoryOrderSystem.Forms
             dgvOrders.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
             dgvOrders.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
 
-            // Set preferred column widths (adjust percentages as needed)
-            dgvOrders.Columns["OrderId"].FillWeight = 8;
+            // Set preferred column widths (adjusted for transaction_id)
+            dgvOrders.Columns["transaction_id"].FillWeight = 15;
             dgvOrders.Columns["UserId"].FillWeight = 8;
             dgvOrders.Columns["OrderDate"].FillWeight = 15;
             dgvOrders.Columns["TotalAmount"].FillWeight = 12;
@@ -98,9 +101,8 @@ namespace InventoryOrderSystem.Forms
             dgvOrders.Columns["ChangeAmount"].FillWeight = 13;
 
             // Enable sorting
-            dgvOrders.Sort(dgvOrders.Columns["OrderId"], ListSortDirection.Descending);
+            dgvOrders.Sort(dgvOrders.Columns["OrderDate"], ListSortDirection.Descending);
 
-            // Add the CellFormatting event handler
             dgvOrders.CellFormatting += DgvOrders_CellFormatting;
         }
 
@@ -200,7 +202,10 @@ namespace InventoryOrderSystem.Forms
             }
 
             var selectedRow = dgvOrders.SelectedRows[0];
-            string currentStatus = selectedRow.Cells["Status"].Value.ToString();
+            string currentStatus = selectedRow.Cells["Status"].Value?.ToString();
+
+            // Instead of getting transaction_id (which won't exist yet), get OrderId directly
+            int orderId = Convert.ToInt32(selectedRow.Cells["OrderId"].Value);
 
             if (currentStatus == "Paid")
             {
@@ -216,7 +221,6 @@ namespace InventoryOrderSystem.Forms
                 return;
             }
 
-            int orderId = Convert.ToInt32(selectedRow.Cells["OrderId"].Value);
             decimal totalAmount = Convert.ToDecimal(selectedRow.Cells["TotalAmount"].Value);
 
             using (var paymentForm = new Form())
@@ -401,11 +405,12 @@ namespace InventoryOrderSystem.Forms
         {
             if (dgvOrders.SelectedRows.Count > 0)
             {
-                int orderId = Convert.ToInt32(dgvOrders.SelectedRows[0].Cells["OrderId"].Value);
+                string transactionId = dgvOrders.SelectedRows[0].Cells["transaction_id"].Value.ToString();
+                int orderId = _dbManager.GetOrderIdFromTransactionId(transactionId);
                 Order selectedOrder = _orders.FirstOrDefault(o => o.OrderId == orderId);
                 if (selectedOrder != null)
                 {
-                    MessageBox.Show(GetOrderDetails(selectedOrder), "Order Details",
+                    MessageBox.Show(GetOrderDetails(selectedOrder, transactionId), "Order Details",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
@@ -416,9 +421,9 @@ namespace InventoryOrderSystem.Forms
             }
         }
 
-        private string GetOrderDetails(Order order)
+        private string GetOrderDetails(Order order, string transactionId)
         {
-            string details = $"Order ID: {order.OrderId}\n" +
+            string details = $"Transaction ID: {transactionId}\n" +
                            $"User ID: {order.UserId}\n" +
                            $"Order Date: {order.OrderDate}\n" +
                            $"Total Amount: {order.TotalAmount:C}\n" +
@@ -438,7 +443,8 @@ namespace InventoryOrderSystem.Forms
         {
             if (dgvOrders.SelectedRows.Count > 0)
             {
-                int orderId = Convert.ToInt32(dgvOrders.SelectedRows[0].Cells["OrderId"].Value);
+                string transactionId = dgvOrders.SelectedRows[0].Cells["transaction_id"].Value.ToString();
+                int orderId = _dbManager.GetOrderIdFromTransactionId(transactionId);
                 VoidOrderWithConfirmation(orderId);
             }
             else

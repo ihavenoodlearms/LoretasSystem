@@ -22,6 +22,8 @@ namespace InventoryOrderSystem.App.Forms
         private DatabaseManager _dbManager;
         private DateTime currentDate;
         private OrderMenuForm _orderMenuForm;
+        private bool mouseDown;
+        private Point lastLocation;
 
         // Sample data - replace with actual data from your database
         private decimal totalSales = 0;
@@ -40,7 +42,49 @@ namespace InventoryOrderSystem.App.Forms
         private int paidOrders = 0;
         private int cancelledOrders = 0;
 
-        // Add this method to update order statistics
+        public UserForm(User user)
+        {
+            InitializeComponent();
+
+            // Enable form movement
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.DoubleBuffered = true;
+
+            // Enable form movement by grabbing the header panel
+            pnlHeader.MouseDown += (s, e) => {
+                mouseDown = true;
+                lastLocation = e.Location;
+            };
+
+            pnlHeader.MouseMove += (s, e) => {
+                if (mouseDown)
+                {
+                    this.Location = new Point(
+                        (this.Location.X - lastLocation.X) + e.X,
+                        (this.Location.Y - lastLocation.Y) + e.Y);
+                    this.Update();
+                }
+            };
+
+            pnlHeader.MouseUp += (s, e) => mouseDown = false;
+
+            // Make form responsive
+            this.MinimumSize = new Size(1366, 768);
+            this.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+
+            _currentUser = user;
+            _dbManager = new DatabaseManager();
+            currentDate = DateTime.Today;
+            SetupDashboard();
+            CreateSettingsPanel();
+
+            // Start the dashboard update timer
+            Timer updateTimer = new Timer();
+            updateTimer.Interval = 5000; // Update every 5 seconds
+            updateTimer.Tick += tmrUpdateDashboard_Tick;
+            updateTimer.Start();
+        }
+
         private void UpdateOrderStatistics()
         {
             using (var connection = new SQLiteConnection(_dbManager.GetConnectionString()))
@@ -77,26 +121,11 @@ namespace InventoryOrderSystem.App.Forms
             }
 
             // Update the labels
-            label6.Text = receivedOrders.ToString();
-            label7.Text = processingOrders.ToString();
-            label8.Text = paidOrders.ToString();
-            label9.Text = cancelledOrders.ToString();
+            if (label6 != null) label6.Text = receivedOrders.ToString();
+            if (label7 != null) label7.Text = processingOrders.ToString();
+            if (label8 != null) label8.Text = paidOrders.ToString();
+            if (label9 != null) label9.Text = cancelledOrders.ToString();
         }
-
-        public UserForm(User user)
-        {
-            InitializeComponent();
-
-            _currentUser = user;
-            _dbManager = new DatabaseManager();  // Make sure this line exists
-            currentDate = DateTime.Today;
-            SetupDashboard();
-            CreateSettingsPanel();
-
-        }
-
-
-
 
         private void StyleButton(Button btn)
         {
@@ -117,29 +146,43 @@ namespace InventoryOrderSystem.App.Forms
 
         private void StyleDataGridView()
         {
-
+            // Basic styling
             dgvTopProducts.GridColor = lightBrown;
             dgvTopProducts.DefaultCellStyle.Font = new Font("Arial Rounded MT Bold", 11.25F, FontStyle.Regular);
             dgvTopProducts.ColumnHeadersDefaultCellStyle.Font = new Font("Arial Rounded MT Bold", 11.25F, FontStyle.Bold);
             dgvTopProducts.ColumnHeadersDefaultCellStyle.BackColor = darkBrown;
             dgvTopProducts.ColumnHeadersDefaultCellStyle.ForeColor = cream;
+            dgvTopProducts.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvTopProducts.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom;
 
-            // Set column headers
-            dgvTopProducts.Columns.Clear();
-            dgvTopProducts.Columns.Add("Product", "Product");
-            dgvTopProducts.Columns.Add("Quantity", "Quantity");
-            dgvTopProducts.Columns.Add("Revenue", "Revenue");
-
-            // Adjust column widths
-            dgvTopProducts.Columns["Product"].Width = 200;
-            dgvTopProducts.Columns["Quantity"].Width = 100;
-            dgvTopProducts.Columns["Revenue"].Width = 120;
-
-            // Align column headers
-            foreach (DataGridViewColumn column in dgvTopProducts.Columns)
+            // Ensure columns exist
+            if (dgvTopProducts.Columns.Count == 0)
             {
-                column.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                // Set column headers
+                dgvTopProducts.Columns.Clear();
+                dgvTopProducts.Columns.Add("Product", "Product");
+                dgvTopProducts.Columns.Add("Quantity", "Quantity");
+                dgvTopProducts.Columns.Add("Revenue", "Revenue");
+
+                // Set column proportions
+                dgvTopProducts.Columns["Product"].FillWeight = 50;
+                dgvTopProducts.Columns["Quantity"].FillWeight = 25;
+                dgvTopProducts.Columns["Revenue"].FillWeight = 25;
+
+                // Align column headers
+                foreach (DataGridViewColumn column in dgvTopProducts.Columns)
+                {
+                    column.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                }
             }
+
+            // Additional styling
+            dgvTopProducts.EnableHeadersVisualStyles = false;
+            dgvTopProducts.RowHeadersVisible = false;
+            dgvTopProducts.AllowUserToAddRows = false;
+            dgvTopProducts.AllowUserToDeleteRows = false;
+            dgvTopProducts.ReadOnly = true;
+            dgvTopProducts.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
         }
 
         private void StyleMenuButton()
@@ -151,13 +194,12 @@ namespace InventoryOrderSystem.App.Forms
             btnNewOrder.FlatAppearance.BorderSize = 0;
         }
 
-
-
         private void SetupDashboard()
         {
             SetFormSize();
             InitializeDashboardData();
             UpdateDashboard();
+            StyleDataGridView();
 
             var topProducts = _dbManager.GetTopProductsForDate(currentDate);
             if (topProducts.Count > 0)
@@ -167,7 +209,6 @@ namespace InventoryOrderSystem.App.Forms
                 {
                     dgvTopProducts.Rows.Add(product.Product, product.Quantity, product.Revenue.ToString("C"));
                 }
-                RefreshDataGridView();
             }
 
             AdjustMainPanelLayout();
@@ -175,65 +216,73 @@ namespace InventoryOrderSystem.App.Forms
             lblWelcome.Text = _currentUser != null ? $"Welcome, {_currentUser.Username}!" : "Welcome!";
             btnReports.Visible = _currentUser?.IsSuperAdmin ?? false;
 
+            // Create and style navigation buttons
+            CreateDateNavigationButtons();
+        }
 
-
-            btnSettings.Click += btnSettings_Click;
-
+        private void CreateDateNavigationButtons()
+        {
             Button btnPreviousDay = new Button
             {
                 Text = "<",
                 Size = new Size(40, 30),
-                Font = new Font("Arial Rounded MT Bold", 12, FontStyle.Bold | FontStyle.Bold),
-                Location = new Point(lblDate.Left - 50, lblDate.Top),
-                BackColor = Color.FromArgb(82, 110, 72),
-                ForeColor = Color.Black,
+                Font = new Font("Arial Rounded MT Bold", 12, FontStyle.Bold),
+                BackColor = accentGreen,
+                ForeColor = cream,
                 FlatStyle = FlatStyle.Flat,
-                FlatAppearance =
-    {
-        BorderColor = Color.White,
-        BorderSize = 2
-    }
+                Margin = new Padding(5),
+                Cursor = Cursors.Hand
             };
+            btnPreviousDay.FlatAppearance.BorderSize = 0;
             btnPreviousDay.Click += btnPreviousDay_Click;
 
             Button btnNextDay = new Button
             {
                 Text = ">",
                 Size = new Size(40, 30),
-                Font = new Font("Arial Rounded MT Bold", 12, FontStyle.Bold | FontStyle.Bold),
-                Location = new Point(lblDate.Right + 10, lblDate.Top),
-                BackColor = Color.FromArgb(82, 110, 72),
-                ForeColor = Color.Black,
+                Font = new Font("Arial Rounded MT Bold", 12, FontStyle.Bold),
+                BackColor = accentGreen,
+                ForeColor = cream,
                 FlatStyle = FlatStyle.Flat,
-                FlatAppearance =
-    {
-        BorderColor = Color.White,
-        BorderSize = 2
-    }
+                Margin = new Padding(5),
+                Cursor = Cursors.Hand
             };
+            btnNextDay.FlatAppearance.BorderSize = 0;
             btnNextDay.Click += btnNextDay_Click;
 
-            pnlMain.Controls.Add(btnPreviousDay);
-            pnlMain.Controls.Add(btnNextDay);
-        }
+            // Create container panel for date navigation
+            Panel dateNavPanel = new Panel
+            {
+                Height = 40,
+                Dock = DockStyle.Top,
+                Padding = new Padding(10)
+            };
 
-        private void RefreshDataGridView()
-        {
-            dgvTopProducts.Refresh();
+            // Add controls to date navigation panel
+            FlowLayoutPanel dateControls = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                AutoSize = true
+            };
+
+            dateControls.Controls.AddRange(new Control[] { btnPreviousDay, lblDate, btnNextDay });
+            dateNavPanel.Controls.Add(dateControls);
+            pnlMain.Controls.Add(dateNavPanel);
         }
 
         private void SetFormSize()
         {
             Rectangle screenRect = Screen.PrimaryScreen.WorkingArea;
-            int formWidth = (int)(screenRect.Width * 0.8);
-            int formHeight = (int)(screenRect.Height * 0.8);
+            int formWidth = (int)(screenRect.Width * 0.95); // Increased from 0.8 to 0.95
+            int formHeight = (int)(screenRect.Height * 0.9); // Increased from 0.8 to 0.9
             this.Size = new Size(formWidth, formHeight);
             this.StartPosition = FormStartPosition.CenterScreen;
         }
 
         private void InitializeDashboardData()
         {
-            // Fetch real-time data from the database
             totalSales = _dbManager.GetTotalSalesForDate(currentDate);
             transactionCount = _dbManager.GetTransactionCountForDate(currentDate);
             topProducts = _dbManager.GetTopProductsForDate(currentDate);
@@ -245,216 +294,156 @@ namespace InventoryOrderSystem.App.Forms
             lblTotalSales.Text = $"Total Sales: {totalSales:C}";
             lblTransactionCount.Text = $"Transactions: {transactionCount}";
 
+            // Check if columns exist, if not create them
+            if (dgvTopProducts.Columns.Count == 0)
+            {
+                dgvTopProducts.Columns.Clear();
+                dgvTopProducts.Columns.Add("Product", "Product");
+                dgvTopProducts.Columns.Add("Quantity", "Quantity");
+                dgvTopProducts.Columns.Add("Revenue", "Revenue");
+
+                // Set column proportions
+                dgvTopProducts.Columns["Product"].FillWeight = 50;
+                dgvTopProducts.Columns["Quantity"].FillWeight = 25;
+                dgvTopProducts.Columns["Revenue"].FillWeight = 25;
+
+                // Align column headers
+                foreach (DataGridViewColumn column in dgvTopProducts.Columns)
+                {
+                    column.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                }
+            }
+
+            // Clear existing rows and add new data
             dgvTopProducts.Rows.Clear();
-            foreach (var product in topProducts)
+            if (topProducts != null)
             {
-                dgvTopProducts.Rows.Add(product.Product, product.Quantity, product.Revenue.ToString("C"));
-            }
-
-            var statistics = _dbManager.GetOrderStatisticsForDate(currentDate);
-            Console.WriteLine($"Statistics object is null: {statistics == null}");
-
-            if (statistics != null)
-            {
-                if (label6 != null)
+                foreach (var product in topProducts)
                 {
-                    label6.Text = statistics.ReceivedCount.ToString();
+                    dgvTopProducts.Rows.Add(product.Product, product.Quantity, product.Revenue.ToString("C"));
                 }
-                else
-                {
-                    Console.WriteLine("lblReceived is null");
-                }
-                // Similar checks for other labels...
-            }
-            else
-            {
-                Console.WriteLine("Statistics object is null");
             }
 
-
-            // Update the statistic labels
-            label6.Text = statistics.ReceivedCount.ToString();
-            label7.Text = statistics.ProcessingCount.ToString();
-            label8.Text = statistics.PaidCount.ToString();
-            label9.Text = statistics.CancelledCount.ToString();
+            UpdateOrderStatistics();
         }
 
-        // Add a method to change the current date
-        private void ChangeDate(DateTime newDate)
+        protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            currentDate = newDate;
-            InitializeDashboardData();
-            UpdateDashboard();
-        }
-
-        private void btnPreviousDay_Click(object sender, EventArgs e)
-        {
-            ChangeDate(currentDate.AddDays(-1));
-            UpdateDashboard(); // This will now update both regular dashboard and statistics
-        }
-
-        private void btnNextDay_Click(object sender, EventArgs e)
-        {
-            ChangeDate(currentDate.AddDays(1));
-            UpdateDashboard(); // This will now update both regular dashboard and statistics
-        }
-
-        private void CreateSettingsPanel()
-        {
-            // Create settings panel with relative size and anchoring
-            pnlSettings = new Panel
+            base.OnFormClosing(e);
+            if (e.CloseReason == CloseReason.UserClosing)
             {
-                Visible = false,
-                BackColor = cream,
-                Size = new Size((int)(this.ClientSize.Width * 0.3), (int)(this.ClientSize.Height * 0.3)), // 30% of form size
-                MinimumSize = new Size(300, 200), // Minimum size to prevent too small panel
-                MaximumSize = new Size(500, 300), // Maximum size to prevent too large panel
-                Anchor = AnchorStyles.None // This will be centered manually
-            };
-
-            // Center the panel
-            CenterSettingsPanel();
-
-            // Add resize handler to keep panel centered
-            this.Resize += (s, e) => CenterSettingsPanel();
-
-            // Create a TableLayoutPanel for responsive layout
-            TableLayoutPanel layoutPanel = new TableLayoutPanel
-            {
-                Dock = DockStyle.Fill,
-                RowCount = 4,
-                ColumnCount = 1,
-                Padding = new Padding(20),
-            };
-
-            // Set row styles for proper spacing
-            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 25F));  // Title
-            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 30F));  // Sign Out button
-            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 30F));  // Close button
-            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 15F));  // Bottom spacing
-
-            // Title
-            Label lblSettings = new Label
-            {
-                Text = "Settings",
-                Font = new Font("Arial Rounded MT Bold", 16, FontStyle.Bold),
-                ForeColor = darkBrown,
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleCenter
-            };
-
-            // Sign Out button with responsive width
-            Button btnSignOut = new Button
-            {
-                Text = "Sign Out",
-                Dock = DockStyle.Fill,
-                Height = 40,
-                Margin = new Padding(40, 5, 40, 5),
-                BackColor = accentGreen,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Arial Rounded MT Bold", 9.75f, FontStyle.Regular)
-            };
-            btnSignOut.FlatAppearance.BorderSize = 0;
-            btnSignOut.Click += BtnSignOut_Click;
-
-            // Close button with responsive width
-            Button btnCloseSettings = new Button
-            {
-                Text = "Close",
-                Dock = DockStyle.Fill,
-                Height = 40,
-                Margin = new Padding(40, 5, 40, 5),
-                BackColor = lightBrown,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Arial Rounded MT Bold", 9.75f, FontStyle.Regular)
-            };
-            btnCloseSettings.FlatAppearance.BorderSize = 0;
-            btnCloseSettings.Click += (s, e) => pnlSettings.Visible = false;
-
-            // Add controls to the layout panel
-            layoutPanel.Controls.Add(lblSettings, 0, 0);
-            layoutPanel.Controls.Add(btnSignOut, 0, 1);
-            layoutPanel.Controls.Add(btnCloseSettings, 0, 2);
-
-            // Add layout panel to settings panel
-            pnlSettings.Controls.Add(layoutPanel);
-
-            // Add panel to form
-            this.Controls.Add(pnlSettings);
-            pnlSettings.BringToFront();
-        }
-
-        private void CenterSettingsPanel()
-        {
-            if (pnlSettings != null)
-            {
-                // Adjust panel size based on form size
-                pnlSettings.Size = new Size(
-                    Math.Min(500, Math.Max(300, (int)(this.ClientSize.Width * 0.3))),
-                    Math.Min(300, Math.Max(200, (int)(this.ClientSize.Height * 0.3)))
-                );
-
-                // Center the panel
-                pnlSettings.Location = new Point(
-                    (this.ClientSize.Width - pnlSettings.Width) / 2,
-                    (this.ClientSize.Height - pnlSettings.Height) / 2
-                );
+                Application.Exit();
             }
-        }
-
-        // Add this to your form's constructor or where you initialize the form
-        protected override void OnSizeChanged(EventArgs e)
-        {
-            base.OnSizeChanged(e);
-            CenterSettingsPanel();
-        }
-
-        private void BtnSignOut_Click(object sender, EventArgs e)
-        {
-            DialogResult result = MessageBox.Show("Are you sure you want to sign out?", "Confirm Sign Out", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (result == DialogResult.Yes)
-            {
-                this.Close();
-                new LoginForm().Show();
-            }
-        }
-
-        private void btnSettings_Click(object sender, EventArgs e)
-        {
-            pnlSettings.Visible = true;
-        }
-
-        private void btnInventory_Click(object sender, EventArgs e)
-        {
-            this.Hide();
-            new InventoryForm(_currentUser).Show();
-        }
-
-        private void btnOrders_Click(object sender, EventArgs e)
-        {
-            this.Hide();
-            new OrderForm(_currentUser).Show();
-        }
-
-  
-
-
-
-    
-
-        private void OrderMenuForm_OrderPlaced(object sender, Order newOrder)
-        {
-            // Refresh the dashboard data
-            InitializeDashboardData();
-            UpdateDashboard();
         }
 
         private void AdjustMainPanelLayout()
         {
+            // Calculate available space
+            int availableWidth = this.ClientSize.Width - pnlSidebar.Width;
+            int availableHeight = this.ClientSize.Height - pnlHeader.Height;
+
+            // Adjust main panel
             pnlMain.Location = new Point(pnlSidebar.Width, pnlHeader.Height);
-            pnlMain.Size = new Size(this.ClientSize.Width - pnlSidebar.Width, this.ClientSize.Height - pnlHeader.Height);
+            pnlMain.Size = new Size(availableWidth, availableHeight);
+
+            // Create a FlowLayoutPanel for statistics boxes
+            FlowLayoutPanel statsPanel = new FlowLayoutPanel
+            {
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false, // Changed to false to prevent wrapping
+                AutoSize = true,
+                Dock = DockStyle.Top,
+                Padding = new Padding(20), // Increased padding
+                Height = 150
+            };
+
+            // Style and add statistics boxes
+            var statBoxes = new[] {
+                (Label: label6, Title: "Received Orders"),
+                (Label: label7, Title: "Processing Orders"),
+                (Label: label8, Title: "Paid Orders"),
+                (Label: label9, Title: "Cancelled Orders")
+            };
+
+            int boxWidth = (availableWidth - statsPanel.Padding.Horizontal - (statBoxes.Length + 1) * 20) / statBoxes.Length;
+
+            foreach (var stat in statBoxes)
+            {
+                Panel statBox = new Panel
+                {
+                    BackColor = lightBrown,
+                    Size = new Size(boxWidth, 120),
+                    Margin = new Padding(10), // Reduced margin to fit all boxes
+                    Padding = new Padding(10)
+                };
+
+                Label titleLabel = new Label
+                {
+                    Text = stat.Title,
+                    Font = new Font("Arial Rounded MT Bold", 12),
+                    ForeColor = cream,
+                    Dock = DockStyle.Top,
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    Height = 30
+                };
+
+                stat.Label.Font = new Font("Arial Rounded MT Bold", 24, FontStyle.Bold);
+                stat.Label.ForeColor = cream;
+                stat.Label.Dock = DockStyle.Fill;
+                stat.Label.TextAlign = ContentAlignment.MiddleCenter;
+
+                statBox.Controls.Add(stat.Label);
+                statBox.Controls.Add(titleLabel);
+                statsPanel.Controls.Add(statBox);
+            }
+
+            // Clear and rebuild main panel
+            pnlMain.Controls.Clear();
+            pnlMain.Controls.Add(statsPanel);
+
+            // Add sales summary panel
+            Panel salesPanel = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 80,
+                Padding = new Padding(20, 10, 20, 10) // Increased horizontal padding
+            };
+
+
+            lblTotalSales.Font = new Font("Arial Rounded MT Bold", 14);
+            lblTransactionCount.Font = new Font("Arial Rounded MT Bold", 14);
+            lblTotalSales.Location = new Point(20, 10);
+            lblTransactionCount.Location = new Point(20, 40);
+
+            salesPanel.Controls.AddRange(new Control[] { lblTotalSales, lblTransactionCount });
+            pnlMain.Controls.Add(salesPanel);
+
+            // Position dgvTopProducts below stats
+            int topProductsTop = statsPanel.Bottom + salesPanel.Height + 10;
+            dgvTopProducts.Location = new Point(10, topProductsTop);
+            dgvTopProducts.Size = new Size(availableWidth - 20, availableHeight - topProductsTop - 20);
+            pnlMain.Controls.Add(dgvTopProducts);
+        }
+
+        // Event handlers
+        private void btnPreviousDay_Click(object sender, EventArgs e)
+        {
+            currentDate = currentDate.AddDays(-1);
+            InitializeDashboardData();
+            UpdateDashboard();
+        }
+
+        private void btnNextDay_Click(object sender, EventArgs e)
+        {
+            currentDate = currentDate.AddDays(1);
+            InitializeDashboardData();
+            UpdateDashboard();
+        }
+
+        private void OrderMenuForm_OrderPlaced(object sender, Order newOrder)
+        {
+            InitializeDashboardData();
+            UpdateDashboard();
         }
 
         private void tmrUpdateDashboard_Tick(object sender, EventArgs e)
@@ -465,10 +454,8 @@ namespace InventoryOrderSystem.App.Forms
 
         private void btnOrders_Click_1(object sender, EventArgs e)
         {
-
-                this.Hide();
-                new OrderForm(_currentUser).Show();
-
+            this.Hide();
+            new OrderForm(_currentUser).Show();
         }
 
         private void btnReports_Click_1(object sender, EventArgs e)
@@ -487,6 +474,132 @@ namespace InventoryOrderSystem.App.Forms
             }
             _orderMenuForm.Show();
             this.Hide();
+        }
+
+        private void btnSettings_Click(object sender, EventArgs e)
+        {
+            pnlSettings.Visible = true;
+        }
+
+        private void btnInventory_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            new InventoryForm(_currentUser).Show();
+        }
+
+        private void CreateSettingsPanel()
+        {
+            pnlSettings = new Panel
+            {
+                Visible = false,
+                BackColor = cream,
+                Size = new Size((int)(this.ClientSize.Width * 0.3), (int)(this.ClientSize.Height * 0.3)),
+                MinimumSize = new Size(300, 200),
+                MaximumSize = new Size(500, 300),
+                Anchor = AnchorStyles.None
+            };
+
+            CenterSettingsPanel();
+            this.Resize += (s, e) => CenterSettingsPanel();
+
+            TableLayoutPanel layoutPanel = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                RowCount = 4,
+                ColumnCount = 1,
+                Padding = new Padding(20),
+            };
+
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 25F));
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 30F));
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 30F));
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 15F));
+
+            Label lblSettings = new Label
+            {
+                Text = "Settings",
+                Font = new Font("Arial Rounded MT Bold", 16, FontStyle.Bold),
+                ForeColor = darkBrown,
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleCenter
+            };
+
+            Button btnSignOut = new Button
+            {
+                Text = "Sign Out",
+                Dock = DockStyle.Fill,
+                Height = 40,
+                Margin = new Padding(40, 5, 40, 5),
+                BackColor = accentGreen,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Arial Rounded MT Bold", 9.75f, FontStyle.Regular),
+                Cursor = Cursors.Hand
+            };
+            btnSignOut.FlatAppearance.BorderSize = 0;
+            btnSignOut.Click += BtnSignOut_Click;
+
+            Button btnCloseSettings = new Button
+            {
+                Text = "Close",
+                Dock = DockStyle.Fill,
+                Height = 40,
+                Margin = new Padding(40, 5, 40, 5),
+                BackColor = lightBrown,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Arial Rounded MT Bold", 9.75f, FontStyle.Regular),
+                Cursor = Cursors.Hand
+            };
+            btnCloseSettings.FlatAppearance.BorderSize = 0;
+            btnCloseSettings.Click += (s, e) => pnlSettings.Visible = false;
+
+            layoutPanel.Controls.Add(lblSettings, 0, 0);
+            layoutPanel.Controls.Add(btnSignOut, 0, 1);
+            layoutPanel.Controls.Add(btnCloseSettings, 0, 2);
+
+            pnlSettings.Controls.Add(layoutPanel);
+            this.Controls.Add(pnlSettings);
+            pnlSettings.BringToFront();
+        }
+
+        private void CenterSettingsPanel()
+        {
+            if (pnlSettings != null)
+            {
+                pnlSettings.Size = new Size(
+                    Math.Min(500, Math.Max(300, (int)(this.ClientSize.Width * 0.3))),
+                    Math.Min(300, Math.Max(200, (int)(this.ClientSize.Height * 0.3)))
+                );
+
+                pnlSettings.Location = new Point(
+                    (this.ClientSize.Width - pnlSettings.Width) / 2,
+                    (this.ClientSize.Height - pnlSettings.Height) / 2
+                );
+            }
+        }
+
+        private void BtnSignOut_Click(object sender, EventArgs e)
+        {
+            DialogResult result = MessageBox.Show(
+                "Are you sure you want to sign out?",
+                "Confirm Sign Out",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
+
+            if (result == DialogResult.Yes)
+            {
+                this.Hide();
+                new LoginForm().Show();
+            }
+        }
+
+        protected override void OnSizeChanged(EventArgs e)
+        {
+            base.OnSizeChanged(e);
+            CenterSettingsPanel();
+            AdjustMainPanelLayout();
         }
     }
 }
