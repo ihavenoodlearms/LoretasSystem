@@ -469,8 +469,26 @@ namespace InventoryOrderSystem.App.Forms
             if (_orderMenuForm == null || _orderMenuForm.IsDisposed)
             {
                 _orderMenuForm = new OrderMenuForm(_currentUser);
-                _orderMenuForm.OrderPlaced += OrderMenuForm_OrderPlaced;
-                _orderMenuForm.FormClosed += (s, args) => this.Show();
+                _orderMenuForm.OrderPlaced += (s, order) =>
+                {
+                    // When an order is placed, update the dashboard data
+                    InitializeDashboardData();
+                    UpdateDashboard();
+
+                    // Store the order in the database
+                    _dbManager.AddOrder(order);
+
+                    // Show confirmation
+                    MessageBox.Show("Order placed successfully!", "Success",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                };
+                _orderMenuForm.FormClosed += (s, args) =>
+                {
+                    this.Show();
+                    // Refresh dashboard data when returning
+                    InitializeDashboardData();
+                    UpdateDashboard();
+                };
             }
             _orderMenuForm.Show();
             this.Hide();

@@ -179,6 +179,7 @@ namespace InventoryOrderingSystem
             this.buttonProceedToPayment.TabIndex = 3;
             this.buttonProceedToPayment.Text = "Proceed to Payment";
             this.buttonProceedToPayment.UseVisualStyleBackColor = false;
+            
             // 
             // OrderMenuForm
             // 
@@ -200,6 +201,11 @@ namespace InventoryOrderingSystem
             this.panelOrderSummary.PerformLayout();
             this.ResumeLayout(false);
 
+        }
+
+        private void ButtonProceedToPayment_Click(object sender, EventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         private System.Windows.Forms.Panel panelSidebar;

@@ -7,7 +7,9 @@ using InventoryOrderSystem.Models;
 using InventoryOrderSystem.Services;
 using static Microsoft.IO.RecyclableMemoryStreamManager;
 using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using InventoryOrderSystem.App.Forms;
+using System.IO;
 
 
 namespace InventoryOrderSystem.Forms
@@ -93,13 +95,15 @@ namespace InventoryOrderSystem.Forms
             cmbOrderStatus.Items.AddRange(new object[] { "All", "Paid", "Voided" });
             cmbOrderStatus.SelectedIndex = 0;
 
+            // Update this in CreateControls() method where you initialize cmbPaymentMethod
             cmbPaymentMethod = new ComboBox
             {
                 Width = 120,
                 Font = new Font(this.Font.FontFamily, 9, FontStyle.Bold),
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
-            cmbPaymentMethod.Items.AddRange(new object[] { "All", "Cash", "Card" });
+            // Update the items to match exactly how they're stored in the database
+            cmbPaymentMethod.Items.AddRange(new object[] { "All", "Cash", "GCash" });
             cmbPaymentMethod.SelectedIndex = 0;
 
             // Buttons
@@ -408,23 +412,25 @@ namespace InventoryOrderSystem.Forms
             string statusFilter = cmbOrderStatus.SelectedItem.ToString();
             string paymentFilter = cmbPaymentMethod.SelectedItem.ToString();
 
+            // Get all orders within the date range
             _orders = _dbManager.GetOrdersByDateRange(startDate, endDate);
 
+            // Apply status filter
             if (statusFilter != "All")
             {
                 _orders = _orders.Where(o => o.Status == statusFilter).ToList();
             }
 
+            // Apply payment method filter
             if (paymentFilter != "All")
             {
-                _orders = _orders.Where(o => o.PaymentMethod == paymentFilter).ToList();
+                _orders = _orders.Where(o => o.PaymentMethod.Equals(paymentFilter, StringComparison.OrdinalIgnoreCase)).ToList();
             }
 
             // Update DataGridView
             dgvSalesReport.Rows.Clear();
             foreach (var order in _orders)
             {
-                // Use the actual stored values from the database
                 var amountPaid = order.AmountPaid ?? 0;
                 var changeAmount = order.ChangeAmount ?? 0;
 
@@ -434,13 +440,13 @@ namespace InventoryOrderSystem.Forms
                     order.PaymentMethod,
                     order.Status,
                     order.TotalAmount.ToString("C"),
-                    amountPaid > 0 ? amountPaid.ToString("C") : "-",  // Show dash if no amount paid
-                    changeAmount > 0 ? changeAmount.ToString("C") : "-",  // Show dash if no change
+                    amountPaid > 0 ? amountPaid.ToString("C") : "-",
+                    changeAmount > 0 ? changeAmount.ToString("C") : "-",
                     order.OrderItems.Count
                 );
             }
 
-            // Update summary
+            // Update summary with filtered results only
             decimal totalSales = _orders.Where(o => o.Status == "Paid").Sum(o => o.TotalAmount);
             int totalTransactions = _orders.Count;
             decimal averageTransaction = totalTransactions > 0 ? totalSales / totalTransactions : 0;
@@ -448,6 +454,28 @@ namespace InventoryOrderSystem.Forms
             lblTotalSales.Text = $"Total Sales: {totalSales:C}";
             lblTotalTransactions.Text = $"Total Transactions: {totalTransactions}";
             lblAverageTransaction.Text = $"Average Transaction: {averageTransaction:C}";
+
+            // Style rows based on payment method
+            foreach (DataGridViewRow row in dgvSalesReport.Rows)
+            {
+                var paymentMethod = row.Cells["PaymentMethod"].Value?.ToString();
+                var status = row.Cells["Status"].Value?.ToString();
+
+                if (paymentMethod == "GCash")
+                {
+                    row.DefaultCellStyle.BackColor = Color.LightBlue;
+                }
+                else if (status == "Voided")
+                {
+                    row.DefaultCellStyle.BackColor = Color.MistyRose;
+                    row.DefaultCellStyle.ForeColor = Color.DarkRed;
+                }
+                else if (status == "Paid")
+                {
+                    row.DefaultCellStyle.BackColor = Color.Honeydew;
+                    row.DefaultCellStyle.ForeColor = Color.DarkGreen;
+                }
+            }
         }
 
         private void DgvSalesReport_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
@@ -456,8 +484,17 @@ namespace InventoryOrderSystem.Forms
             {
                 DataGridViewRow row = dgvSalesReport.Rows[e.RowIndex];
                 string status = row.Cells["Status"].Value?.ToString();
+                string paymentMethod = row.Cells["PaymentMethod"].Value?.ToString();
 
-                if (status == "Voided")
+                if (paymentMethod == "GCash")
+                {
+                    row.DefaultCellStyle.BackColor = Color.LightBlue;
+                    if (status != "Voided")
+                    {
+                        row.DefaultCellStyle.ForeColor = Color.DarkBlue;
+                    }
+                }
+                else if (status == "Voided")
                 {
                     row.DefaultCellStyle.BackColor = Color.MistyRose;
                     row.DefaultCellStyle.ForeColor = Color.DarkRed;
@@ -486,10 +523,98 @@ namespace InventoryOrderSystem.Forms
                 {
                     try
                     {
-                        // You can implement Excel export here using a library like EPPlus or Microsoft.Office.Interop.Excel
-                        // For now, we'll just show a success message
+                        // Set EPPlus license context
+                        ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                        using (var package = new ExcelPackage())
+                        {
+                            var worksheet = package.Workbook.Worksheets.Add("Sales Report");
+
+                            // Add headers
+                            string[] headers = new string[] {
+                        "Order ID", "Date", "Payment Method", "Status",
+                        "Amount", "Paid", "Change", "Items"
+                    };
+
+                            for (int i = 0; i < headers.Length; i++)
+                            {
+                                worksheet.Cells[1, i + 1].Value = headers[i];
+                                worksheet.Cells[1, i + 1].Style.Font.Bold = true;
+                                worksheet.Cells[1, i + 1].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                                worksheet.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(59, 48, 48));
+                                worksheet.Cells[1, i + 1].Style.Font.Color.SetColor(Color.White);
+                            }
+
+                            // Add data
+                            int row = 2;
+                            foreach (var order in _orders)
+                            {
+                                worksheet.Cells[row, 1].Value = order.OrderId;
+                                worksheet.Cells[row, 2].Value = order.OrderDate.ToString("MM/dd/yyyy HH:mm");
+                                worksheet.Cells[row, 3].Value = order.PaymentMethod;
+                                worksheet.Cells[row, 4].Value = order.Status;
+                                worksheet.Cells[row, 5].Value = order.TotalAmount;
+                                worksheet.Cells[row, 6].Value = order.AmountPaid ?? 0;
+                                worksheet.Cells[row, 7].Value = order.ChangeAmount ?? 0;
+                                worksheet.Cells[row, 8].Value = order.OrderItems.Count;
+
+                                // Format currency cells
+                                worksheet.Cells[row, 5].Style.Numberformat.Format = "₱#,##0.00";
+                                worksheet.Cells[row, 6].Style.Numberformat.Format = "₱#,##0.00";
+                                worksheet.Cells[row, 7].Style.Numberformat.Format = "₱#,##0.00";
+
+                                // Add conditional formatting for Status
+                                if (order.Status == "Voided")
+                                {
+                                    var range = worksheet.Cells[row, 1, row, 8];
+                                    range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                                    range.Style.Fill.BackgroundColor.SetColor(Color.MistyRose);
+                                    range.Style.Font.Color.SetColor(Color.DarkRed);
+                                }
+                                else if (order.Status == "Paid")
+                                {
+                                    var range = worksheet.Cells[row, 1, row, 8];
+                                    range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                                    range.Style.Fill.BackgroundColor.SetColor(Color.Honeydew);
+                                    range.Style.Font.Color.SetColor(Color.DarkGreen);
+                                }
+
+                                row++;
+                            }
+
+                            // Add summary section
+                            row += 2; // Add some space
+                            worksheet.Cells[row, 1].Value = "Summary";
+                            worksheet.Cells[row, 1].Style.Font.Bold = true;
+
+                            worksheet.Cells[row + 1, 1].Value = "Total Sales:";
+                            worksheet.Cells[row + 1, 2].Value = _orders.Where(o => o.Status == "Paid").Sum(o => o.TotalAmount);
+                            worksheet.Cells[row + 1, 2].Style.Numberformat.Format = "₱#,##0.00";
+
+                            worksheet.Cells[row + 2, 1].Value = "Total Transactions:";
+                            worksheet.Cells[row + 2, 2].Value = _orders.Count;
+
+                            worksheet.Cells[row + 3, 1].Value = "Average Transaction:";
+                            worksheet.Cells[row + 3, 2].Value = _orders.Count > 0 ?
+                                _orders.Where(o => o.Status == "Paid").Sum(o => o.TotalAmount) / _orders.Count : 0;
+                            worksheet.Cells[row + 3, 2].Style.Numberformat.Format = "₱#,##0.00";
+
+                            // Auto-fit columns
+                            worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+                            // Save the file
+                            package.SaveAs(new FileInfo(sfd.FileName));
+                        }
+
                         MessageBox.Show("Report exported successfully!", "Export Complete",
                             MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                        // Optionally open the file
+                        if (MessageBox.Show("Would you like to open the exported file?", "Open File",
+                            MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                        {
+                            System.Diagnostics.Process.Start(sfd.FileName);
+                        }
                     }
                     catch (Exception ex)
                     {

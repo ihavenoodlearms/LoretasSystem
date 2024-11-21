@@ -837,47 +837,62 @@ namespace InventoryOrderingSystem
         {
             if (orderItems.Count == 0)
             {
-                MessageBox.Show("Please add items to your order before proceeding to payment.", "Empty Order", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Please add items to your order before proceeding to payment.",
+                    "Empty Order", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            string orderSummary = GetOrderSummary();
-            DialogResult result = MessageBox.Show(
-                $"Please confirm your order:\n\n{orderSummary}\n\nProceed to payment?",
-                "Confirm Order",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question
-            );
-
-            if (result == DialogResult.Yes)
+            // Show payment method selection form
+            using (var paymentMethodForm = new PaymentMethodForm())
             {
-                if (_currentUser == null)
+                if (paymentMethodForm.ShowDialog() == DialogResult.OK)
                 {
-                    MessageBox.Show("Error: No user is currently logged in.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
+                    string selectedPaymentMethod = paymentMethodForm.SelectedPaymentMethod;
+                    string orderSummary = GetOrderSummary();
+
+                    // Add payment method to order summary
+                    orderSummary += $"\nPayment Method: {selectedPaymentMethod}";
+
+                    DialogResult result = MessageBox.Show(
+                        $"Please confirm your order:\n\n{orderSummary}\n\nProceed to payment?",
+                        "Confirm Order",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question
+                    );
+
+                    if (result == DialogResult.Yes)
+                    {
+                        try
+                        {
+                            decimal totalAmount = decimal.Parse(labelTotal.Text.Replace("Total: ₱", ""));
+                            List<InventoryOrderSystem.Models.OrderItem> convertedItems = ConvertToOrderItems(orderItems);
+
+                            Order newOrder = new Order
+                            {
+                                UserId = _currentUser.UserId,
+                                OrderDate = DateTime.Now,
+                                TotalAmount = totalAmount,
+                                PaymentMethod = selectedPaymentMethod,
+                                OrderItems = convertedItems,
+                                Status = "Active"
+                            };
+
+                            // Raise the OrderPlaced event
+                            OrderPlaced?.Invoke(this, newOrder);
+
+                            // Clear the order form
+                            ResetOrderForm();
+
+                            // Close OrderMenuForm and return to previous form
+                            this.Close();
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Error processing order: {ex.Message}",
+                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
                 }
-
-                decimal totalAmount = decimal.Parse(labelTotal.Text.Replace("Total: ₱", ""));
-                List<InventoryOrderSystem.Models.OrderItem> convertedItems = ConvertToOrderItems(orderItems);
-
-                if (convertedItems.Count == 0)
-                {
-                    MessageBox.Show("Error: Unable to process order items.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                Order newOrder = new Order
-                {
-                    UserId = _currentUser.UserId,
-                    OrderDate = DateTime.Now,
-                    TotalAmount = totalAmount,
-                    PaymentMethod = "Cash", // You can add a payment method selection if needed
-                    OrderItems = convertedItems,
-                    Status = "Active"
-                };
-
-                OrderPlaced?.Invoke(this, newOrder);
-                ResetOrderForm();
             }
         }
 

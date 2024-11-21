@@ -17,6 +17,33 @@ namespace InventoryOrderSystem
         {
             InitializeComponent();
             dbManager = new DatabaseManager();
+            chkPassword.CheckedChanged += chkPassword_CheckedChanged;
+            txtUsername.KeyDown += TextBox_KeyDown;
+            txtPassword.KeyDown += TextBox_KeyDown;
+            this.AcceptButton = btnLogin;
+
+        }
+
+        private void TextBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true; // Prevent the ding sound
+                if (sender == txtUsername)
+                {
+                    txtPassword.Focus(); // Move focus to password field if username is active
+                }
+                else if (sender == txtPassword)
+                {
+                    btnLogin_Click(sender, e); // Trigger login if password field is active
+                }
+            }
+        }
+
+        private void chkPassword_CheckedChanged(object sender, EventArgs e)
+        {
+            txtPassword.PasswordChar = chkPassword.Checked ? '\0' : '*';
+            txtPassword.UseSystemPasswordChar = !chkPassword.Checked;
         }
 
         private void btnLogin_Click(object sender, EventArgs e)
@@ -26,47 +53,70 @@ namespace InventoryOrderSystem
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
-                MessageBox.Show("Please enter both username and password.", "Input Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Please enter both username and password.", "Input Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             try
             {
+                // First check if username exists
+                bool userExists = dbManager.CheckUserExists(username);
+
+                if (!userExists)
+                {
+                    MessageBox.Show("Wrong username. Please input a valid username.",
+                        "Login Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    txtUsername.Clear();
+                    txtPassword.Clear();
+                    txtUsername.Focus();
+                    return;
+                }
+
+                // If username exists, try to authenticate
                 User user = dbManager.AuthenticateUser(username, password);
+
                 if (user != null)
                 {
-                    MessageBox.Show("Login successful!");
-
+                    MessageBox.Show("Login successful!", "Success",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
                     this.Hide();
 
                     // Check the user's role and navigate accordingly
-                    if (user.Role == "Admin")  // Admin role
+                    if (user.Role == "Admin")
                     {
                         Forms.DashboardForm dashboardForm = new Forms.DashboardForm(user);
                         dashboardForm.Show();
                     }
-                    else if (user.Role == "User")  // Regular user role
+                    else if (user.Role == "User")
                     {
                         UserForm userAccount = new UserForm(user);
                         userAccount.Show();
                     }
                     else
                     {
-                        MessageBox.Show("Unknown role, please contact the administrator.", "Role Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Unknown role, please contact the administrator.",
+                            "Role Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
                 else
                 {
-                    MessageBox.Show("Invalid username or password. Please try again.", "Login Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    // If username exists but authentication failed, it means password is wrong
+                    MessageBox.Show("Wrong password. Please input a valid password.",
+                        "Login Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    txtPassword.Clear();
+                    txtPassword.Focus();
                 }
             }
             catch (SQLiteException sqlEx)
             {
-                MessageBox.Show($"Database error: {sqlEx.Message}\nPlease contact your system administrator.", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Database error: {sqlEx.Message}\nPlease contact your system administrator.",
+                    "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An unexpected error occurred: {ex.Message}\nPlease try again or contact support.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"An unexpected error occurred: {ex.Message}\nPlease try again or contact support.",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

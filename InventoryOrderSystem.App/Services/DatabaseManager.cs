@@ -349,6 +349,20 @@ namespace InventoryOrderSystem.Services
             }
         }
 
+        public bool CheckUserExists(string username)
+        {
+            using (var connection = new SQLiteConnection(GetConnectionString()))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand("SELECT COUNT(*) FROM Users WHERE Username = @Username", connection))
+                {
+                    command.Parameters.AddWithValue("@Username", username);
+                    int count = Convert.ToInt32(command.ExecuteScalar());
+                    return count > 0;
+                }
+            }
+        }
+
         public User AuthenticateUser(string username, string password)
         {
             using (var connection = new SQLiteConnection(connectionString))
