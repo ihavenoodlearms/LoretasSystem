@@ -196,6 +196,12 @@
     <Compile Include="Forms\AddOnEditForm.Designer.cs">
       <DependentUpon>AddOnEditForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\AddProductForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\AddProductForm.Designer.cs">
+      <DependentUpon>AddProductForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\DashboardForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -239,6 +245,12 @@
     </Compile>
     <Compile Include="Forms\PaymentMethodForm.Designer.cs">
       <DependentUpon>PaymentMethodForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\ProductEditForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\ProductEditForm.Designer.cs">
+      <DependentUpon>ProductEditForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\ProductManagementForm.cs">
       <SubType>Form</SubType>

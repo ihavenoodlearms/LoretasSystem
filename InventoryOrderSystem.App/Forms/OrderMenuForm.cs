@@ -117,22 +117,10 @@ namespace InventoryOrderingSystem
             buttonAddToChecklist.Click += SharedAddToChecklist_Click;
             buttonRemoveFromChecklist.Click += SharedRemoveFromChecklist_Click;
 
-            Button editAddOnsButton = new Button
-            {
-                Text = "Edit Add-ons",
-                Location = new Point(10, flowLayoutPanelCategories.Bottom + 10),
-                Size = new Size(100, 30),
-                BackColor = Color.FromArgb(74, 44, 42),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-            editAddOnsButton.Click += EditAddOns_Click;
-            this.Controls.Add(editAddOnsButton);
-
-            // Add to your OrderMenuForm constructor after initializing other components
+            // Move the admin button creation before the Edit Add-ons button
             if (_currentUser.IsSuperAdmin)
             {
-                MessageBox.Show("Adding admin button"); // Debug message
+                Console.WriteLine("Debug: User is SuperAdmin"); // Debug line
                 Button btnManageProducts = new Button
                 {
                     Text = "Manage Products",
@@ -166,17 +154,76 @@ namespace InventoryOrderingSystem
                     }
                 };
 
-                // Add at a specific position
-                int insertIndex = flowLayoutPanelCategories.Controls.Count - 1; // Before Edit Add-ons button
+                // Add the button directly to flowLayoutPanelCategories
                 flowLayoutPanelCategories.Controls.Add(btnManageProducts);
+                Console.WriteLine($"Debug: Added Manage Products button to panel"); // Debug line
+            }
+            else
+            {
+                Console.WriteLine("Debug: User is not SuperAdmin"); // Debug line
             }
 
-            Console.WriteLine($"User is admin: {_currentUser.IsSuperAdmin}");
+            
+
+            Console.WriteLine($"Debug: User IsSuperAdmin = {_currentUser.IsSuperAdmin}"); // Debug line
         }
 
+        // In your OrderMenuForm.cs, modify the button click handler:
+        private void btnManageProducts_Click(object sender, EventArgs e)
+        {
+            using (var productManagement = new ProductManagementForm(_currentUser, categoryProducts))
+            {
+                if (productManagement.ShowDialog() == DialogResult.OK)
+                {
+                    // Update the category products with the changes
+                    categoryProducts = productManagement.UpdatedCategoryProducts;
+
+                    // Reinitialize the products display
+                    InitializeCategories();
+
+                    // Clear the product boxes cache to force recreation
+                    productBoxes.Clear();
+
+                    // Refresh the current category display
+                    if (flowLayoutPanelCategories.Controls.Count > 0)
+                    {
+                        var firstCategoryButton = flowLayoutPanelCategories.Controls
+                            .OfType<Button>()
+                            .FirstOrDefault(b => b.Tag != null);
+
+                        if (firstCategoryButton != null)
+                        {
+                            CategoryButton_Click(firstCategoryButton, EventArgs.Empty);
+                        }
+                    }
+
+                    // Force a refresh of the UI
+                    this.Refresh();
+                }
+            }
+        }
+
+        // Add this method to help debug the sync
+        private void VerifyProductSync()
+        {
+            foreach (var category in categoryProducts.Keys)
+            {
+                foreach (var product in categoryProducts[category])
+                {
+                    var catalogProduct = ProductCatalog.GetProduct(product.Name);
+                    if (catalogProduct == null || catalogProduct.Price != product.Price)
+                    {
+                        Console.WriteLine($"Sync issue detected for {product.Name}:");
+                        Console.WriteLine($"Category price: {product.Price}");
+                        Console.WriteLine($"Catalog price: {catalogProduct?.Price}");
+                    }
+                }
+            }
+        }
 
         private void InitializeCategories()
         {
+            flowLayoutPanelCategories.Controls.Clear();
             categoryProducts = new Dictionary<string, List<InventoryOrderSystem.Product>>
 {
                 {"Cheesecake Series", new List<InventoryOrderSystem.Product>
@@ -349,8 +396,8 @@ namespace InventoryOrderingSystem
             // Add drink categories
             string[] drinkCategories = new string[]
             {
-                "Cheesecake Series", "Fruit Tea & Lemonade", "Milk Tea Classic",
-                "Fruit Milk", "Loreta's Specials", "Iced Coffee", "Frappe/Coffee"
+        "Cheesecake Series", "Fruit Tea & Lemonade", "Milk Tea Classic",
+        "Fruit Milk", "Loreta's Specials", "Iced Coffee", "Frappe/Coffee"
             };
 
             foreach (var category in drinkCategories)
@@ -373,8 +420,8 @@ namespace InventoryOrderingSystem
             // Add snack categories
             string[] snackCategories = new string[]
             {
-                "Garlic Parmesan & Buffalo Wings", "Chicken Burger", "Churros, Mojos, Corndogs",
-                "Loreta's Snacks", "Croffle", "Hungarian Sausage"
+        "Garlic Parmesan & Buffalo Wings", "Chicken Burger", "Churros, Mojos, Corndogs",
+        "Loreta's Snacks", "Croffle", "Hungarian Sausage"
             };
 
             foreach (var category in snackCategories)
@@ -382,6 +429,47 @@ namespace InventoryOrderingSystem
                 AddCategoryButton(category);
             }
 
+            // Add Manage Products button if user is admin (add this before Edit Add-ons)
+            if (_currentUser.IsSuperAdmin)
+            {
+                Console.WriteLine("Debug: Adding Manage Products button for admin"); // Debug line
+                Button btnManageProducts = new Button
+                {
+                    Text = "Manage Products",
+                    Size = new Size(210, 40),
+                    FlatStyle = FlatStyle.Flat,
+                    BackColor = Color.FromArgb(74, 44, 42),
+                    ForeColor = Color.White,
+                    Margin = new Padding(0, 20, 0, 10)
+                };
+                btnManageProducts.FlatAppearance.BorderSize = 0;
+                btnManageProducts.Font = new Font("Arial Rounded MT Bold", 9, FontStyle.Bold);
+                btnManageProducts.Click += (s, e) =>
+                {
+                    using (var productManagement = new ProductManagementForm(_currentUser, categoryProducts))
+                    {
+                        if (productManagement.ShowDialog() == DialogResult.OK)
+                        {
+                            InitializeCategories();
+                            if (flowLayoutPanelCategories.Controls.Count > 0)
+                            {
+                                var firstCategoryButton = flowLayoutPanelCategories.Controls
+                                    .OfType<Button>()
+                                    .FirstOrDefault(b => b.Tag != null);
+
+                                if (firstCategoryButton != null)
+                                {
+                                    CategoryButton_Click(firstCategoryButton, EventArgs.Empty);
+                                }
+                            }
+                        }
+                    }
+                };
+                flowLayoutPanelCategories.Controls.Add(btnManageProducts);
+                Console.WriteLine("Debug: Manage Products button added"); // Debug line
+            }
+
+            // Add Edit Add-ons button
             Button editAddOnsButton = new Button
             {
                 Text = "Edit Add-ons",
@@ -389,16 +477,22 @@ namespace InventoryOrderingSystem
                 FlatStyle = FlatStyle.Flat,
                 BackColor = Color.FromArgb(74, 44, 42),
                 ForeColor = Color.White,
-                Margin = new Padding(0, 40, 0, 0) 
+                Margin = new Padding(0, 10, 0, 0)
             };
             editAddOnsButton.FlatAppearance.BorderSize = 0;
-            editAddOnsButton.Click += EditAddOns_Click;
             editAddOnsButton.Font = new Font("Arial Rounded MT Bold", 9, FontStyle.Bold);
+            editAddOnsButton.Click += EditAddOns_Click;
             flowLayoutPanelCategories.Controls.Add(editAddOnsButton);
 
+            // Select first category
             if (flowLayoutPanelCategories.Controls.Count > 0)
             {
-                CategoryButton_Click(flowLayoutPanelCategories.Controls.OfType<Button>().First(), EventArgs.Empty);
+                var firstCategoryButton = flowLayoutPanelCategories.Controls.OfType<Button>()
+                    .FirstOrDefault(b => b.Tag != null);
+                if (firstCategoryButton != null)
+                {
+                    CategoryButton_Click(firstCategoryButton, EventArgs.Empty);
+                }
             }
         }
 
@@ -406,15 +500,15 @@ namespace InventoryOrderingSystem
         {
             Button categoryButton = new Button
             {
-                Text = category,          
-                FlatStyle = FlatStyle.Flat,        
-                BackColor = Color.FromArgb(74, 44, 42), 
+                Text = category,
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Color.FromArgb(74, 44, 42),
                 ForeColor = Color.White,
                 Size = new Size(205, 40),
-                Tag = category                   
+                Tag = category
             };
 
-           
+
             categoryButton.FlatAppearance.BorderSize = 0;
             categoryButton.Font = new Font("Arial Rounded MT Bold", 9, FontStyle.Bold);
             categoryButton.Click += CategoryButton_Click;
@@ -432,23 +526,25 @@ namespace InventoryOrderingSystem
         {
             flowLayoutPanelProducts.Controls.Clear();
 
-            foreach (var product in categoryProducts[category])
+            if (categoryProducts.ContainsKey(category))
             {
-                GroupBox productBox;
-                if (!productBoxes.TryGetValue(product.Name, out productBox))
+                foreach (var product in categoryProducts[category])
                 {
-                    productBox = CreateProductBox(product);
+                    // Always create a new product box to ensure latest data
+                    var productBox = CreateProductBox(product);
                     productBoxes[product.Name] = productBox;
+                    flowLayoutPanelProducts.Controls.Add(productBox);
                 }
-                flowLayoutPanelProducts.Controls.Add(productBox);
             }
+
+            flowLayoutPanelProducts.Refresh();
         }
 
         private void OrderMenuForm_Resize(object sender, EventArgs e)
         {
-           
+
             // Refresh the layout
-            
+
         }
 
         private void ResizeProductBoxes()
@@ -1003,14 +1099,14 @@ namespace InventoryOrderingSystem
             if (_currentUser.Role == "Admin")
             {
                 this.Hide();
-                DashboardForm adminDashboard = new DashboardForm(_currentUser);  
+                DashboardForm adminDashboard = new DashboardForm(_currentUser);
                 adminDashboard.Show();
             }
             else if (_currentUser.Role == "User")
             {
-                
+
                 this.Hide();
-                UserForm userDashboard = new UserForm(_currentUser);  
+                UserForm userDashboard = new UserForm(_currentUser);
                 userDashboard.Show();
             }
             else
@@ -1018,6 +1114,8 @@ namespace InventoryOrderingSystem
                 MessageBox.Show("Unknown role. Please contact the administrator.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        
     }
 
     public class OrderItem

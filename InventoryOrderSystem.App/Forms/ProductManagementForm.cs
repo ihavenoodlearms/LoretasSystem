@@ -3,302 +3,257 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Collections.Generic;
 using System.Linq;
-using InventoryOrderSystem.Models;
 using InventoryOrderSystem;
+using InventoryOrderSystem.Models;
 
-namespace InventoryOrderingSystem
+namespace InventoryOrderSystem.App.Forms
 {
     public partial class ProductManagementForm : Form
     {
         private User _currentUser;
-        private DataGridView dgvProducts;
-        private Button btnAdd, btnEdit, btnDelete, btnSave;
-        private ComboBox cmbCategories;
         private Dictionary<string, List<Product>> _categoryProducts;
-        private int _nextProductId;
+        private string currentCategory;
 
         public ProductManagementForm(User user, Dictionary<string, List<Product>> categoryProducts)
         {
+            InitializeComponent();
             _currentUser = user;
+            _categoryProducts = DeepCopyCategoryProducts(categoryProducts);
             _categoryProducts = categoryProducts;
-            _nextProductId = ProductCatalog.Products.Values.Max(p => p.ItemId) + 1;
-            InitializeProductManagement();
+            SetupForm();
         }
 
-        private void InitializeProductManagement()
+        private Dictionary<string, List<Product>> DeepCopyCategoryProducts(Dictionary<string, List<Product>> original)
         {
-            this.Text = "Product Management";
-            this.Size = new Size(800, 600);
-            this.StartPosition = FormStartPosition.CenterScreen;
+            var copy = new Dictionary<string, List<Product>>();
+            foreach (var kvp in original)
+            {
+                copy[kvp.Key] = kvp.Value.Select(p => new Product(p.Name, p.Price, p.ItemId)).ToList();
+            }
+            return copy;
+        }
 
-            // Create controls
-            cmbCategories = new ComboBox
-            {
-                Location = new Point(20, 20),
-                Size = new Size(200, 30),
-                DropDownStyle = ComboBoxStyle.DropDownList
-            };
-            cmbCategories.Items.AddRange(_categoryProducts.Keys.ToArray());
-            cmbCategories.SelectedIndexChanged += CmbCategories_SelectedIndexChanged;
+        public Dictionary<string, List<Product>> UpdatedCategoryProducts => _categoryProducts;
 
-            dgvProducts = new DataGridView
+        private void SetupForm()
+        {
+            // Setup DataGridView columns
+            dgvProducts.Columns.Clear();
+            dgvProducts.Columns.Add(new DataGridViewTextBoxColumn
             {
-                Location = new Point(20, 60),
-                Size = new Size(740, 400),
-                AllowUserToAddRows = false,
-                MultiSelect = false,
-                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
-            };
-            dgvProducts.Columns.AddRange(new DataGridViewColumn[]
+                Name = "Name",
+                HeaderText = "Product Name",
+                Width = 200
+            });
+            dgvProducts.Columns.Add(new DataGridViewTextBoxColumn
             {
-                new DataGridViewTextBoxColumn { Name = "Name", HeaderText = "Product Name", Width = 300 },
-                new DataGridViewTextBoxColumn { Name = "Price", HeaderText = "Price", Width = 100 },
-                new DataGridViewTextBoxColumn { Name = "ItemId", HeaderText = "Item ID", Width = 100 }
+                Name = "Price",
+                HeaderText = "Price",
+                Width = 100
+            });
+            dgvProducts.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "ItemId",
+                HeaderText = "Item ID",
+                Width = 100
             });
 
-            // Create buttons
-            btnAdd = CreateButton("Add Product", 20, 480);
-            btnEdit = CreateButton("Edit Product", 170, 480);
-            btnDelete = CreateButton("Delete Product", 320, 480);
-            btnSave = CreateButton("Save Changes", 470, 480);
-
-            // Add event handlers
-            btnAdd.Click += BtnAdd_Click;
-            btnEdit.Click += BtnEdit_Click;
-            btnDelete.Click += BtnDelete_Click;
-            btnSave.Click += BtnSave_Click;
-
-            // Add controls to form
-            this.Controls.AddRange(new Control[] { cmbCategories, dgvProducts, btnAdd, btnEdit, btnDelete, btnSave });
+            // Add categories to combobox
+            cmbCategories.Items.Clear();
+            foreach (var category in _categoryProducts.Keys)
+            {
+                cmbCategories.Items.Add(category);
+            }
 
             if (cmbCategories.Items.Count > 0)
-                cmbCategories.SelectedIndex = 0;
-        }
-
-        private Button CreateButton(string text, int x, int y)
-        {
-            return new Button
             {
-                Text = text,
-                Location = new Point(x, y),
-                Size = new Size(140, 30),
-                BackColor = Color.FromArgb(74, 44, 42),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
+                cmbCategories.SelectedIndex = 0;
+                currentCategory = cmbCategories.Items[0].ToString();
+            }
+
+            // Add event handlers
+            cmbCategories.SelectedIndexChanged += (s, e) =>
+            {
+                currentCategory = cmbCategories.SelectedItem.ToString();
+                LoadProductsForCategory();
             };
+
+            btnAdd.Click += (s, e) => AddProduct();
+            btnEdit.Click += (s, e) => EditProduct();
+            btnDelete.Click += (s, e) => DeleteProduct();
+            btnSave.Click += (s, e) => SaveChanges();
+
+            // Initial load
+            LoadProductsForCategory();
         }
 
-        private void CmbCategories_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            LoadProductsForCategory(cmbCategories.SelectedItem.ToString());
-        }
-
-        private void LoadProductsForCategory(string category)
+        private void LoadProductsForCategory()
         {
             dgvProducts.Rows.Clear();
-            if (_categoryProducts.ContainsKey(category))
+            if (currentCategory != null && _categoryProducts.ContainsKey(currentCategory))
             {
-                foreach (var product in _categoryProducts[category])
+                foreach (var product in _categoryProducts[currentCategory])
                 {
-                    var catalogProduct = ProductCatalog.GetProduct(product.Name);
-                    if (catalogProduct != null)
-                    {
-                        dgvProducts.Rows.Add(product.Name, product.Price,
-                            catalogProduct.ItemId);
-                    }
+                    dgvProducts.Rows.Add(
+                        product.Name,
+                        product.Price.ToString("₱#,##0.00"),
+                        product.ItemId
+                    );
                 }
             }
         }
 
-        private void BtnAdd_Click(object sender, EventArgs e)
+        private void AddProduct()
         {
-            if (!_currentUser.IsSuperAdmin)
-            {
-                MessageBox.Show("Only administrators can add products.", "Access Denied",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            using (var addForm = new ProductEditForm(null, cmbCategories.SelectedItem.ToString()))
+            using (var addForm = new AddProductForm())
             {
                 if (addForm.ShowDialog() == DialogResult.OK)
                 {
-                    string category = cmbCategories.SelectedItem.ToString();
-                    // Create new product using the InventoryOrderSystem.Product constructor
-                    var newProduct = new InventoryOrderSystem.Product(
-                        addForm.EnteredProductName,
-                        addForm.ProductPrice,
-                        _nextProductId++
-                    );
+                    try
+                    {
+                        // Generate new ID
+                        int maxId = 1;
+                        if (_categoryProducts.Any())
+                        {
+                            maxId = _categoryProducts.Values
+                                .SelectMany(x => x)
+                                .Max(p => p.ItemId) + 1;
+                        }
 
-                    // Add to product catalog
-                    ProductCatalog.Products[newProduct.Name] = newProduct;
+                        // Create new product
+                        var newProduct = new Product(
+                            addForm.ProductName,
+                            addForm.ProductPrice,
+                            maxId
+                        );
 
-                    // Add to category products
-                    _categoryProducts[category].Add(newProduct);
+                        // Add to category products
+                        if (!_categoryProducts[currentCategory].Any(p => p.Name == newProduct.Name))
+                        {
+                            _categoryProducts[currentCategory].Add(newProduct);
 
-                    LoadProductsForCategory(category);
+                            // Add to product catalog
+                            if (!ProductCatalog.Products.ContainsKey(newProduct.Name))
+                            {
+                                ProductCatalog.AddProduct(newProduct);
+                            }
+
+                            LoadProductsForCategory();
+                            MessageBox.Show("Product added successfully!", "Success",
+                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        else
+                        {
+                            MessageBox.Show("A product with this name already exists.",
+                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error adding product: {ex.Message}",
+                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
         }
 
-        private void BtnEdit_Click(object sender, EventArgs e)
+        private void EditProduct()
         {
-            if (!_currentUser.IsSuperAdmin)
+            if (dgvProducts.SelectedRows.Count == 0)
             {
-                MessageBox.Show("Only administrators can edit products.", "Access Denied",
+                MessageBox.Show("Please select a product to edit.", "Warning",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            if (dgvProducts.SelectedRows.Count == 0) return;
-
             var row = dgvProducts.SelectedRows[0];
-            var productName = row.Cells["Name"].Value.ToString();
-            var existingProduct = ProductCatalog.GetProduct(productName);
+            string productName = row.Cells["Name"].Value.ToString();
+            decimal currentPrice = decimal.Parse(row.Cells["Price"].Value.ToString().Replace("₱", "").Trim());
 
-            using (var editForm = new ProductEditForm(existingProduct,
-                cmbCategories.SelectedItem.ToString()))
+            using (var editForm = new AddProductForm(productName, currentPrice))
             {
                 if (editForm.ShowDialog() == DialogResult.OK)
                 {
-                    string category = cmbCategories.SelectedItem.ToString();
-
-                    // Update in ProductCatalog
-                    if (ProductCatalog.Products.ContainsKey(productName))
+                    try
                     {
-                        ProductCatalog.Products[productName].Price = editForm.ProductPrice;
-                    }
+                        // Update in category products
+                        var categoryProduct = _categoryProducts[currentCategory]
+                            .FirstOrDefault(p => p.Name == productName);
+                        if (categoryProduct != null)
+                        {
+                            categoryProduct.Price = editForm.ProductPrice;
+                        }
 
-                    // Update in category products
-                    var categoryProduct = _categoryProducts[category]
-                        .Find(p => p.Name == productName);
-                    if (categoryProduct != null)
+                        // Update in product catalog
+                        var catalogProduct = ProductCatalog.GetProduct(productName);
+                        if (catalogProduct != null)
+                        {
+                            catalogProduct.Price = editForm.ProductPrice;
+                        }
+
+                        LoadProductsForCategory();
+                        MessageBox.Show("Product updated successfully!", "Success",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
                     {
-                        categoryProduct.Price = editForm.ProductPrice;
+                        MessageBox.Show($"Error updating product: {ex.Message}",
+                            "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
-
-                    LoadProductsForCategory(category);
                 }
             }
         }
 
-        private void BtnDelete_Click(object sender, EventArgs e)
+        private void DeleteProduct()
         {
-            if (!_currentUser.IsSuperAdmin)
+            if (dgvProducts.SelectedRows.Count == 0)
             {
-                MessageBox.Show("Only administrators can delete products.", "Access Denied", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Please select a product to delete.", "Warning",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            if (dgvProducts.SelectedRows.Count == 0) return;
+            var row = dgvProducts.SelectedRows[0];
+            string productName = row.Cells["Name"].Value.ToString();
 
-            var result = MessageBox.Show("Are you sure you want to delete this product?", "Confirm Delete",
-                MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-
-            if (result == DialogResult.Yes)
+            if (MessageBox.Show($"Are you sure you want to delete {productName}?",
+                "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
             {
-                var row = dgvProducts.SelectedRows[0];
-                string productName = row.Cells["Name"].Value.ToString();
-                string category = cmbCategories.SelectedItem.ToString();
+                try
+                {
+                    // Remove from category products
+                    _categoryProducts[currentCategory].RemoveAll(p => p.Name == productName);
 
-                // Remove from ProductCatalog
-                ProductCatalog.Products.Remove(productName);
+                    // Remove from product catalog
+                    ProductCatalog.DeleteProduct(productName);
 
-                // Remove from category products
-                _categoryProducts[category].RemoveAll(p => p.Name == productName);
-
-                LoadProductsForCategory(category);
+                    LoadProductsForCategory();
+                    MessageBox.Show("Product deleted successfully!", "Success",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error deleting product: {ex.Message}",
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
-        private void BtnSave_Click(object sender, EventArgs e)
+        private void SaveChanges()
         {
-            // Since ProductCatalog is static, changes are already saved in memory
-            MessageBox.Show("All changes have been saved.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            this.DialogResult = DialogResult.OK;
-            this.Close();
-        }
-    }
-
-    public class ProductEditForm : Form
-    {
-        private TextBox txtName, txtPrice;
-        private Button btnSave, btnCancel;
-        private string category;
-
-        public string EnteredProductName => txtName.Text;  // Changed from ProductName
-        public decimal ProductPrice { get; private set; }
-
-        public ProductEditForm(InventoryOrderSystem.Product product, string category)
-        {
-            this.category = category;
-            InitializeComponent();
-            if (product != null)
+            try
             {
-                txtName.Text = product.Name;
-                txtPrice.Text = product.Price.ToString();
-                txtName.Enabled = false;  // Don't allow name editing for existing products
+                // Here you might want to add code to persist changes to a database
+                MessageBox.Show("All changes have been saved successfully!", "Success",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.DialogResult = DialogResult.OK;
+                this.Close();
             }
-        }
-
-        private void InitializeComponent()
-        {
-            this.Size = new Size(300, 200);
-            this.StartPosition = FormStartPosition.CenterParent;
-            this.Text = "Edit Product";
-
-            Label lblName = new Label { Text = "Product Name:", Location = new Point(20, 20) };
-            Label lblPrice = new Label { Text = "Price:", Location = new Point(20, 60) };
-
-            txtName = new TextBox { Location = new Point(120, 20), Size = new Size(150, 20) };
-            txtPrice = new TextBox { Location = new Point(120, 60), Size = new Size(150, 20) };
-
-            btnSave = new Button
+            catch (Exception ex)
             {
-                Text = "Save",
-                DialogResult = DialogResult.OK,
-                Location = new Point(70, 100),
-                Size = new Size(80, 30),
-                BackColor = Color.FromArgb(74, 44, 42),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-
-            btnCancel = new Button
-            {
-                Text = "Cancel",
-                DialogResult = DialogResult.Cancel,
-                Location = new Point(160, 100),
-                Size = new Size(80, 30),
-                BackColor = Color.FromArgb(140, 105, 84),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-
-            btnSave.Click += BtnSave_Click;
-
-            this.Controls.AddRange(new Control[] { lblName, lblPrice, txtName, txtPrice, btnSave, btnCancel });
-        }
-
-        private void BtnSave_Click(object sender, EventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(txtName.Text) || string.IsNullOrWhiteSpace(txtPrice.Text))
-            {
-                MessageBox.Show("Please fill in all fields.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                DialogResult = DialogResult.None;
-                return;
+                MessageBox.Show($"Error saving changes: {ex.Message}",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
-            if (!decimal.TryParse(txtPrice.Text, out decimal price))
-            {
-                MessageBox.Show("Please enter a valid price.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                DialogResult = DialogResult.None;
-                return;
-            }
-
-            ProductPrice = price;
         }
     }
 }

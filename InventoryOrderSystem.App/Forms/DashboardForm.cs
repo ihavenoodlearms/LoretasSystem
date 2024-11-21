@@ -630,16 +630,17 @@ namespace InventoryOrderSystem.Forms
                     ColumnCount = 1,
                     RowCount = 8,
                     Padding = new Padding(10),
-                    RowStyles = {
-                new RowStyle(SizeType.Absolute, 20), // Username label
-                new RowStyle(SizeType.Absolute, 30), // Username textbox
-                new RowStyle(SizeType.Absolute, 20), // Password label
-                new RowStyle(SizeType.Absolute, 30), // Password textbox
-                new RowStyle(SizeType.Absolute, 20), // Confirm Password label
-                new RowStyle(SizeType.Absolute, 30), // Confirm Password textbox
-                new RowStyle(SizeType.Absolute, 20), // Role label
-                new RowStyle(SizeType.Absolute, 50)  // Role combo + Button
-            }
+                    RowStyles = 
+                    {
+                        new RowStyle(SizeType.Absolute, 20), // Username label
+                        new RowStyle(SizeType.Absolute, 30), // Username textbox
+                        new RowStyle(SizeType.Absolute, 20), // Password label
+                        new RowStyle(SizeType.Absolute, 30), // Password textbox
+                        new RowStyle(SizeType.Absolute, 20), // Confirm Password label
+                        new RowStyle(SizeType.Absolute, 30), // Confirm Password textbox
+                        new RowStyle(SizeType.Absolute, 20), // Role label
+                        new RowStyle(SizeType.Absolute, 50)  // Role combo + Button
+                    }
                 };
 
                 var controls = new Dictionary<string, Control>
