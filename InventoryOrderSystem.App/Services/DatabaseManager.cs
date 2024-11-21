@@ -250,6 +250,7 @@ namespace InventoryOrderSystem.Services
             CreateAdminUser("admin", "password123,","ADMIN");
         }
 
+        // This method already exists in your code but let's update it to match the current database schema
         public bool VerifyPassword(int userId, string password)
         {
             using (var connection = new SQLiteConnection(connectionString))
@@ -1072,6 +1073,138 @@ namespace InventoryOrderSystem.Services
                     return $"{dateComponent}{sequenceComponent}";
                 }
             }
+        }
+
+        // Add this after your GetAllUsers() method and before GetConnectionString()
+        public void UpdateUserPassword(int userId, string newPassword)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(connection))
+                {
+                    // Hash the new password using the existing PasswordHasher class
+                    string hashedPassword = PasswordHasher.HashPassword(newPassword);
+
+                    command.CommandText = "UPDATE Users SET PasswordHash = @PasswordHash WHERE UserId = @UserId";
+                    command.Parameters.AddWithValue("@PasswordHash", hashedPassword);
+                    command.Parameters.AddWithValue("@UserId", userId);
+
+                    int rowsAffected = command.ExecuteNonQuery();
+                    if (rowsAffected == 0)
+                    {
+                        throw new Exception("User not found or password not updated.");
+                    }
+                }
+            }
+        }
+
+    
+
+        // Add method to get user by ID
+        public User GetUserById(int userId)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT * FROM Users WHERE UserId = @UserId";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@UserId", userId);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            return new User
+                            {
+                                UserId = Convert.ToInt32(reader["UserId"]),
+                                Username = reader["Username"].ToString(),
+                                IsSuperAdmin = Convert.ToBoolean(reader["IsSuperAdmin"]),
+                                Role = reader["Role"].ToString()
+                            };
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Add method to update user information
+        public void UpdateUser(int userId, string username, string role)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(connection))
+                {
+                    command.CommandText = @"
+                UPDATE Users 
+                SET Username = @Username, 
+                    Role = @Role,
+                    IsSuperAdmin = @IsSuperAdmin
+                WHERE UserId = @UserId";
+
+                    command.Parameters.AddWithValue("@Username", username);
+                    command.Parameters.AddWithValue("@Role", role);
+                    command.Parameters.AddWithValue("@IsSuperAdmin", role.ToLower() == "admin" ? 1 : 0);
+                    command.Parameters.AddWithValue("@UserId", userId);
+
+                    int rowsAffected = command.ExecuteNonQuery();
+                    if (rowsAffected == 0)
+                    {
+                        throw new Exception("User not found or information not updated.");
+                    }
+                }
+            }
+        }
+
+        // Add method to delete user
+        public void DeleteUser(int userId)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(connection))
+                {
+                    command.CommandText = "DELETE FROM Users WHERE UserId = @UserId";
+                    command.Parameters.AddWithValue("@UserId", userId);
+
+                    int rowsAffected = command.ExecuteNonQuery();
+                    if (rowsAffected == 0)
+                    {
+                        throw new Exception("User not found or could not be deleted.");
+                    }
+                }
+            }
+        }
+
+        // Add method to get all users
+        public List<User> GetAllUsers()
+        {
+            List<User> users = new List<User>();
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT * FROM Users";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            users.Add(new User
+                            {
+                                UserId = Convert.ToInt32(reader["UserId"]),
+                                Username = reader["Username"].ToString(),
+                                IsSuperAdmin = Convert.ToBoolean(reader["IsSuperAdmin"]),
+                                Role = reader["Role"].ToString()
+                            });
+                        }
+                    }
+                }
+            }
+            return users;
         }
 
         public string GetConnectionString()

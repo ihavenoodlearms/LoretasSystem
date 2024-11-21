@@ -324,37 +324,34 @@ namespace InventoryOrderSystem.Forms
 
         private void CreateSettingsPanel()
         {
-            // Create settings panel with relative size and anchoring
             pnlSettings = new Panel
             {
                 Visible = false,
                 BackColor = cream,
-                Size = new Size((int)(this.ClientSize.Width * 0.3), (int)(this.ClientSize.Height * 0.3)), // 30% of form size
-                MinimumSize = new Size(300, 200), // Minimum size to prevent too small panel
-                MaximumSize = new Size(500, 300), // Maximum size to prevent too large panel
-                Anchor = AnchorStyles.None // This will be centered manually
+                Size = new Size((int)(this.ClientSize.Width * 0.4), (int)(this.ClientSize.Height * 0.5)), // Made panel larger
+                MinimumSize = new Size(400, 300),
+                MaximumSize = new Size(600, 500),
+                Anchor = AnchorStyles.None
             };
 
-            // Center the panel
             CenterSettingsPanel();
-
-            // Add resize handler to keep panel centered
             this.Resize += (s, e) => CenterSettingsPanel();
 
-            // Create a TableLayoutPanel for responsive layout
             TableLayoutPanel layoutPanel = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                RowCount = 4,
+                RowCount = 6, // Increased row count
                 ColumnCount = 1,
                 Padding = new Padding(20),
             };
 
-            // Set row styles for proper spacing
-            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 25F));  // Title
-            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 30F));  // Sign Out button
-            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 30F));  // Close button
-            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 15F));  // Bottom spacing
+            // Set row styles
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 15F));  // Title
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 17F));  // Manage Users button
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 17F));  // Add User button
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 17F));  // Change Password button
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 17F));  // Sign Out button
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 17F));  // Close button
 
             // Title
             Label lblSettings = new Label
@@ -366,45 +363,29 @@ namespace InventoryOrderSystem.Forms
                 TextAlign = ContentAlignment.MiddleCenter
             };
 
-            // Sign Out button with responsive width
-            Button btnSignOut = new Button
-            {
-                Text = "Sign Out",
-                Dock = DockStyle.Fill,
-                Height = 40,
-                Margin = new Padding(40, 5, 40, 5),
-                BackColor = accentGreen,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Arial Rounded MT Bold", 9.75f, FontStyle.Regular)
-            };
-            btnSignOut.FlatAppearance.BorderSize = 0;
-            btnSignOut.Click += BtnSignOut_Click;
+            // Create buttons with consistent styling
+            Button btnManageUsers = CreateStyledButton("Manage Users", accentGreen);
+            Button btnAddUser = CreateStyledButton("Add New User", accentGreen);
+            Button btnChangePassword = CreateStyledButton("Change Password", accentGreen);
+            Button btnSignOut = CreateStyledButton("Sign Out", lightBrown);
+            Button btnCloseSettings = CreateStyledButton("Close", lightBrown);
 
-            // Close button with responsive width
-            Button btnCloseSettings = new Button
-            {
-                Text = "Close",
-                Dock = DockStyle.Fill,
-                Height = 40,
-                Margin = new Padding(40, 5, 40, 5),
-                BackColor = lightBrown,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Arial Rounded MT Bold", 9.75f, FontStyle.Regular)
-            };
-            btnCloseSettings.FlatAppearance.BorderSize = 0;
+            // Add event handlers
+            btnManageUsers.Click += BtnManageUsers_Click;
+            btnAddUser.Click += BtnAddUser_Click;
+            btnChangePassword.Click += BtnChangePassword_Click;
+            btnSignOut.Click += BtnSignOut_Click;
             btnCloseSettings.Click += (s, e) => pnlSettings.Visible = false;
 
             // Add controls to the layout panel
             layoutPanel.Controls.Add(lblSettings, 0, 0);
-            layoutPanel.Controls.Add(btnSignOut, 0, 1);
-            layoutPanel.Controls.Add(btnCloseSettings, 0, 2);
+            layoutPanel.Controls.Add(btnManageUsers, 0, 1);
+            layoutPanel.Controls.Add(btnAddUser, 0, 2);
+            layoutPanel.Controls.Add(btnChangePassword, 0, 3);
+            layoutPanel.Controls.Add(btnSignOut, 0, 4);
+            layoutPanel.Controls.Add(btnCloseSettings, 0, 5);
 
-            // Add layout panel to settings panel
             pnlSettings.Controls.Add(layoutPanel);
-
-            // Add panel to form
             this.Controls.Add(pnlSettings);
             pnlSettings.BringToFront();
         }
@@ -426,6 +407,451 @@ namespace InventoryOrderSystem.Forms
                 );
             }
         }
+
+        private Button CreateStyledButton(string text, Color backgroundColor)
+        {
+            return new Button
+            {
+                Text = text,
+                Dock = DockStyle.Fill,
+                Height = 40,
+                Margin = new Padding(40, 5, 40, 5),
+                BackColor = backgroundColor,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Arial Rounded MT Bold", 9.75f, FontStyle.Regular),
+                FlatAppearance = { BorderSize = 0 }
+            };
+        }
+
+        private void BtnManageUsers_Click(object sender, EventArgs e)
+        {
+            using (var manageUsersForm = new Form())
+            {
+                manageUsersForm.Text = "Manage Users";
+                manageUsersForm.Size = new Size(800, 500);
+                manageUsersForm.StartPosition = FormStartPosition.CenterParent;
+                manageUsersForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                manageUsersForm.MaximizeBox = false;
+                manageUsersForm.MinimizeBox = false;
+
+                var dgvUsers = new DataGridView
+                {
+                    Dock = DockStyle.Fill,
+                    AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                    AllowUserToAddRows = false,
+                    ReadOnly = true,
+                    SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                    MultiSelect = false,
+                    BackgroundColor = Color.White
+                };
+
+                // Add columns
+                dgvUsers.Columns.AddRange(new DataGridViewColumn[]
+                {
+            new DataGridViewTextBoxColumn { Name = "UserId", HeaderText = "ID", Width = 50 },
+            new DataGridViewTextBoxColumn { Name = "Username", HeaderText = "Username", Width = 150 },
+            new DataGridViewTextBoxColumn { Name = "Role", HeaderText = "Role", Width = 100 }
+                });
+
+                // Load users
+                var users = _dbManager.GetAllUsers();
+                foreach (var user in users)
+                {
+                    dgvUsers.Rows.Add(user.UserId, user.Username, user.Role);
+                }
+
+                // Add buttons panel
+                var buttonsPanel = new Panel
+                {
+                    Dock = DockStyle.Bottom,
+                    Height = 60,
+                    Padding = new Padding(10)
+                };
+
+                var btnEditUser = new Button
+                {
+                    Text = "Edit User",
+                    Width = 120,
+                    Height = 35,
+                    BackColor = accentGreen,
+                    ForeColor = Color.White,
+                    FlatStyle = FlatStyle.Flat
+                };
+                btnEditUser.FlatAppearance.BorderSize = 0;
+
+                var btnDeleteUser = new Button
+                {
+                    Text = "Delete User",
+                    Width = 120,
+                    Height = 35,
+                    Left = btnEditUser.Right + 10,
+                    BackColor = Color.IndianRed,
+                    ForeColor = Color.White,
+                    FlatStyle = FlatStyle.Flat
+                };
+                btnDeleteUser.FlatAppearance.BorderSize = 0;
+
+                btnEditUser.Click += (s, ev) =>
+                {
+                    if (dgvUsers.SelectedRows.Count > 0)
+                    {
+                        int userId = Convert.ToInt32(dgvUsers.SelectedRows[0].Cells["UserId"].Value);
+                        ShowEditUserForm(userId);
+                        RefreshUsersList(dgvUsers);
+                    }
+                };
+
+                btnDeleteUser.Click += (s, ev) =>
+                {
+                    if (dgvUsers.SelectedRows.Count > 0)
+                    {
+                        int userId = Convert.ToInt32(dgvUsers.SelectedRows[0].Cells["UserId"].Value);
+                        if (userId == _currentUser.UserId)
+                        {
+                            MessageBox.Show("You cannot delete your own account.", "Error",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+
+                        var result = MessageBox.Show("Are you sure you want to delete this user?",
+                            "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                        if (result == DialogResult.Yes)
+                        {
+                            _dbManager.DeleteUser(userId);
+                            RefreshUsersList(dgvUsers);
+                        }
+                    }
+                };
+
+                buttonsPanel.Controls.AddRange(new Control[] { btnEditUser, btnDeleteUser });
+                manageUsersForm.Controls.AddRange(new Control[] { dgvUsers, buttonsPanel });
+
+                manageUsersForm.ShowDialog();
+            }
+        }
+
+        private void ShowEditUserForm(int userId)
+        {
+            var user = _dbManager.GetUserById(userId);
+            if (user == null) return;
+
+            using (var editForm = new Form())
+            {
+                editForm.Text = "Edit User";
+                editForm.Size = new Size(300, 250);
+                editForm.StartPosition = FormStartPosition.CenterParent;
+                editForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                editForm.MaximizeBox = false;
+                editForm.MinimizeBox = false;
+
+                var lblUsername = new Label { Text = "Username:", Location = new Point(20, 20) };
+                var txtUsername = new TextBox
+                {
+                    Text = user.Username,
+                    Location = new Point(20, 40),
+                    Width = 240
+                };
+
+                var lblRole = new Label { Text = "Role:", Location = new Point(20, 70) };
+                var cmbRole = new ComboBox
+                {
+                    Location = new Point(20, 90),
+                    Width = 240,
+                    DropDownStyle = ComboBoxStyle.DropDownList
+                };
+                cmbRole.Items.AddRange(new object[] { "Admin", "User" });
+                cmbRole.SelectedItem = user.Role;
+
+                var btnSave = new Button
+                {
+                    Text = "Save",
+                    Location = new Point(20, 160),
+                    Width = 100,
+                    BackColor = accentGreen,
+                    ForeColor = Color.White,
+                    FlatStyle = FlatStyle.Flat
+                };
+                btnSave.FlatAppearance.BorderSize = 0;
+
+                btnSave.Click += (s, e) =>
+                {
+                    try
+                    {
+                        _dbManager.UpdateUser(userId, txtUsername.Text, cmbRole.SelectedItem.ToString());
+                        MessageBox.Show("User updated successfully!", "Success",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        editForm.DialogResult = DialogResult.OK;
+                        editForm.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error updating user: {ex.Message}", "Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                };
+
+                editForm.Controls.AddRange(new Control[] {
+            lblUsername, txtUsername,
+            lblRole, cmbRole,
+            btnSave
+        });
+
+                editForm.ShowDialog();
+            }
+        }
+
+        private void RefreshUsersList(DataGridView dgv)
+        {
+            dgv.Rows.Clear();
+            var users = _dbManager.GetAllUsers();
+            foreach (var user in users)
+            {
+                dgv.Rows.Add(user.UserId, user.Username, user.Role);
+            }
+        }
+
+        private void BtnAddUser_Click(object sender, EventArgs e)
+        {
+            using (var addUserForm = new Form())
+            {
+                addUserForm.Text = "Add New User";
+                addUserForm.Size = new Size(290, 340);
+                addUserForm.StartPosition = FormStartPosition.CenterParent;
+                addUserForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                addUserForm.MaximizeBox = false;
+                addUserForm.MinimizeBox = false;
+                addUserForm.Padding = new Padding(10);
+
+                TableLayoutPanel layout = new TableLayoutPanel
+                {
+                    Dock = DockStyle.Fill,
+                    ColumnCount = 1,
+                    RowCount = 8,
+                    Padding = new Padding(10),
+                    RowStyles = {
+                new RowStyle(SizeType.Absolute, 20), // Username label
+                new RowStyle(SizeType.Absolute, 30), // Username textbox
+                new RowStyle(SizeType.Absolute, 20), // Password label
+                new RowStyle(SizeType.Absolute, 30), // Password textbox
+                new RowStyle(SizeType.Absolute, 20), // Confirm Password label
+                new RowStyle(SizeType.Absolute, 30), // Confirm Password textbox
+                new RowStyle(SizeType.Absolute, 20), // Role label
+                new RowStyle(SizeType.Absolute, 50)  // Role combo + Button
+            }
+                };
+
+                var controls = new Dictionary<string, Control>
+        {
+            { "lblUsername", new Label { Text = "Username:", AutoSize = true, Margin = new Padding(0, 5, 0, 0) } },
+            { "txtUsername", new TextBox { Width = 200, Height = 25, Margin = new Padding(0, 0, 0, 5) } },
+            { "lblPassword", new Label { Text = "Password:", AutoSize = true, Margin = new Padding(0, 5, 0, 0) } },
+            { "txtPassword", new TextBox { Width = 200, Height = 25, PasswordChar = '*', Margin = new Padding(0, 0, 0, 5) } },
+            { "lblConfirmPassword", new Label { Text = "Confirm Password:", AutoSize = true, Margin = new Padding(0, 5, 0, 0) } },
+            { "txtConfirmPassword", new TextBox { Width = 200, Height = 25, PasswordChar = '*', Margin = new Padding(0, 0, 0, 5) } },
+            { "lblRole", new Label { Text = "Role:", AutoSize = true, Margin = new Padding(0, 5, 0, 0) } },
+            { "cmbRole", new ComboBox {
+                Width = 200,
+                Height = 25,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Items = { "Admin", "User" },
+                SelectedIndex = 1,
+                Margin = new Padding(0, 0, 0, 10)
+            }},
+            { "btnCreate", new Button {
+                Text = "Create User",
+                Width = 100,
+                Height = 30,
+                BackColor = accentGreen,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Arial Rounded MT Bold", 9, FontStyle.Regular),
+                Margin = new Padding(0, 5, 0, 0)
+            }}
+        };
+
+                int row = 0;
+                foreach (var control in controls)
+                {
+                    if (control.Key == "btnCreate")
+                    {
+                        Panel buttonPanel = new Panel { Height = 40, Dock = DockStyle.Fill };
+                        control.Value.Location = new Point((layout.Width - control.Value.Width) / 2, 0);
+                        buttonPanel.Controls.Add(control.Value);
+                        layout.Controls.Add(buttonPanel, 0, row);
+                    }
+                    else
+                    {
+                        layout.Controls.Add(control.Value, 0, row);
+                    }
+                    row++;
+                }
+
+                controls["btnCreate"].Click += (s, ev) =>
+                {
+                    var txtUsername = (TextBox)controls["txtUsername"];
+                    var txtPassword = (TextBox)controls["txtPassword"];
+                    var txtConfirmPassword = (TextBox)controls["txtConfirmPassword"];
+                    var cmbRole = (ComboBox)controls["cmbRole"];
+
+                    if (string.IsNullOrWhiteSpace(txtUsername.Text) ||
+                        string.IsNullOrWhiteSpace(txtPassword.Text))
+                    {
+                        MessageBox.Show("Please fill in all fields.", "Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    if (txtPassword.Text != txtConfirmPassword.Text)
+                    {
+                        MessageBox.Show("Passwords do not match.", "Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    try
+                    {
+                        _dbManager.CreateUser(txtUsername.Text, txtPassword.Text, cmbRole.SelectedItem.ToString());
+                        MessageBox.Show("User created successfully!", "Success",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        addUserForm.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error creating user: {ex.Message}", "Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                };
+
+                addUserForm.Controls.Add(layout);
+                addUserForm.ShowDialog();
+            }
+        }
+
+        private void BtnChangePassword_Click(object sender, EventArgs e)
+        {
+            using (var changePasswordForm = new Form())
+            {
+                changePasswordForm.Text = "Change Password";
+                changePasswordForm.Size = new Size(300, 250);
+                changePasswordForm.StartPosition = FormStartPosition.CenterParent;
+                changePasswordForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                changePasswordForm.MaximizeBox = false;
+                changePasswordForm.MinimizeBox = false;
+                changePasswordForm.Padding = new Padding(10);
+
+                TableLayoutPanel layout = new TableLayoutPanel
+                {
+                    Dock = DockStyle.Fill,
+                    ColumnCount = 1,
+                    RowCount = 7,
+                    Padding = new Padding(10),
+                    RowStyles = {
+                new RowStyle(SizeType.Absolute, 20), // Current Password label
+                new RowStyle(SizeType.Absolute, 30), // Current Password textbox
+                new RowStyle(SizeType.Absolute, 20), // New Password label
+                new RowStyle(SizeType.Absolute, 30), // New Password textbox
+                new RowStyle(SizeType.Absolute, 20), // Confirm Password label
+                new RowStyle(SizeType.Absolute, 30), // Confirm Password textbox
+                new RowStyle(SizeType.Absolute, 40)  // Button
+            }
+                };
+
+                var controls = new Dictionary<string, Control>
+        {
+            { "lblCurrentPassword", new Label { Text = "Current Password:", AutoSize = true, Margin = new Padding(0, 5, 0, 0) } },
+            { "txtCurrentPassword", new TextBox { Width = 200, Height = 25, PasswordChar = '*', Margin = new Padding(0, 0, 0, 5) } },
+            { "lblNewPassword", new Label { Text = "New Password:", AutoSize = true, Margin = new Padding(0, 5, 0, 0) } },
+            { "txtNewPassword", new TextBox { Width = 200, Height = 25, PasswordChar = '*', Margin = new Padding(0, 0, 0, 5) } },
+            { "lblConfirmPassword", new Label { Text = "Confirm New Password:", AutoSize = true, Margin = new Padding(0, 5, 0, 0) } },
+            { "txtConfirmPassword", new TextBox { Width = 200, Height = 25, PasswordChar = '*', Margin = new Padding(0, 0, 0, 5) } },
+            { "btnChange", new Button {
+                Text = "Change Password",
+                Width = 120,
+                Height = 30,
+                BackColor = accentGreen,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Arial Rounded MT Bold", 9, FontStyle.Regular),
+                Margin = new Padding(0, 5, 0, 0)
+            }}
+        };
+
+                int row = 0;
+                foreach (var control in controls)
+                {
+                    if (control.Key == "btnChange")
+                    {
+                        Panel buttonPanel = new Panel { Height = 40, Dock = DockStyle.Fill };
+                        control.Value.Location = new Point((layout.Width - control.Value.Width) / 2, 0);
+                        buttonPanel.Controls.Add(control.Value);
+                        layout.Controls.Add(buttonPanel, 0, row);
+                    }
+                    else
+                    {
+                        layout.Controls.Add(control.Value, 0, row);
+                    }
+                    row++;
+                }
+
+                controls["btnChange"].Click += (s, ev) =>
+                {
+                    var txtCurrentPassword = (TextBox)controls["txtCurrentPassword"];
+                    var txtNewPassword = (TextBox)controls["txtNewPassword"];
+                    var txtConfirmPassword = (TextBox)controls["txtConfirmPassword"];
+
+                    if (string.IsNullOrWhiteSpace(txtCurrentPassword.Text) ||
+                        string.IsNullOrWhiteSpace(txtNewPassword.Text) ||
+                        string.IsNullOrWhiteSpace(txtConfirmPassword.Text))
+                    {
+                        MessageBox.Show("Please fill in all password fields.", "Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    if (txtNewPassword.Text != txtConfirmPassword.Text)
+                    {
+                        MessageBox.Show("New passwords do not match.", "Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    if (txtNewPassword.Text.Length < 6)
+                    {
+                        MessageBox.Show("New password must be at least 6 characters long.", "Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    try
+                    {
+                        if (_dbManager.VerifyPassword(_currentUser.UserId, txtCurrentPassword.Text))
+                        {
+                            _dbManager.UpdateUserPassword(_currentUser.UserId, txtNewPassword.Text);
+                            MessageBox.Show("Password changed successfully!", "Success",
+                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            changePasswordForm.Close();
+                        }
+                        else
+                        {
+                            MessageBox.Show("Current password is incorrect.", "Error",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error changing password: {ex.Message}", "Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                };
+
+                changePasswordForm.Controls.Add(layout);
+                changePasswordForm.ShowDialog();
+            }
+        }
+
+
 
         // Add this to your form's constructor or where you initialize the form
         protected override void OnSizeChanged(EventArgs e)
