@@ -393,41 +393,6 @@ namespace InventoryOrderSystem.Services
             }
         }
 
-        public User AuthenticateUser(string username, string password)
-        {
-            using (var connection = new SQLiteConnection(connectionString))
-            {
-                connection.Open();
-                string query = "SELECT * FROM Users WHERE Username = @Username";
-                using (var command = new SQLiteCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@Username", username);
-
-                    using (var reader = command.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            string storedHash = reader["PasswordHash"].ToString();
-                            if (PasswordHasher.VerifyPassword(password, storedHash))
-                            {
-                                // Get user role from database
-                                string role = reader["Role"].ToString(); // Assuming 'Role' column exists in Users table
-
-                                return new User
-                                {
-                                    UserId = Convert.ToInt32(reader["UserId"]),
-                                    Username = reader["Username"].ToString(),
-                                    IsSuperAdmin = Convert.ToBoolean(reader["IsSuperAdmin"]),
-                                    Role = role  // Set role in the User object
-                                };
-                            }
-                        }
-                    }
-                }
-            }
-            return null;
-        }
-
         public bool VerifyUserSecurityInfo(string username, string email, string answer1, string answer2)
         {
             using (var connection = new SQLiteConnection(connectionString))
@@ -1483,6 +1448,257 @@ namespace InventoryOrderSystem.Services
                 }
             }
             return users;
+        }
+
+        public void UpdateDatabaseForApproval()
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(connection))
+                {
+                    try
+                    {
+                        // Add AccountStatus column if it doesn't exist
+                        command.CommandText = @"
+                    ALTER TABLE Users 
+                    ADD COLUMN AccountStatus TEXT NOT NULL DEFAULT 'Approved'";
+                        command.ExecuteNonQuery();
+                    }
+                    catch (SQLiteException)
+                    {
+                        // Column might already exist
+                    }
+                }
+            }
+        }
+
+        // Add these methods to DatabaseManager.cs
+        public void CreatePendingUser(string username, string password, string role)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(connection))
+                {
+                    if (UserExists(username))
+                    {
+                        throw new Exception("Username already taken.");
+                    }
+
+                    command.CommandText = @"
+                INSERT INTO Users (Username, PasswordHash, IsSuperAdmin, Role, AccountStatus) 
+                VALUES (@Username, @PasswordHash, @IsSuperAdmin, @Role, 'Pending')";
+
+                    command.Parameters.AddWithValue("@Username", username);
+                    command.Parameters.AddWithValue("@PasswordHash", PasswordHasher.HashPassword(password));
+                    command.Parameters.AddWithValue("@IsSuperAdmin", role == "Admin" ? 1 : 0);
+                    command.Parameters.AddWithValue("@Role", role);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public List<User> GetPendingUsers()
+        {
+            List<User> users = new List<User>();
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT * FROM Users WHERE AccountStatus = 'Pending'";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            users.Add(new User
+                            {
+                                UserId = Convert.ToInt32(reader["UserId"]),
+                                Username = reader["Username"].ToString(),
+                                IsSuperAdmin = Convert.ToBoolean(reader["IsSuperAdmin"]),
+                                Role = reader["Role"].ToString(),
+                                AccountStatus = reader["AccountStatus"].ToString()
+                            });
+                        }
+                    }
+                }
+            }
+            return users;
+        }
+
+        public void ApproveUser(int userId)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = "UPDATE Users SET AccountStatus = 'Approved' WHERE UserId = @UserId";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@UserId", userId);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void RejectUser(int userId)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = "DELETE FROM Users WHERE UserId = @UserId AND AccountStatus = 'Pending'";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@UserId", userId);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        // Modify the AuthenticateUser method to check account status
+        public User AuthenticateUser(string username, string password)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT * FROM Users WHERE Username = @Username";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Username", username);
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            string storedHash = reader["PasswordHash"].ToString();
+                            string accountStatus = reader["AccountStatus"].ToString();
+
+                            if (accountStatus != "Approved")
+                            {
+                                throw new Exception("Your account is pending approval.");
+                            }
+
+                            if (PasswordHasher.VerifyPassword(password, storedHash))
+                            {
+                                return new User
+                                {
+                                    UserId = Convert.ToInt32(reader["UserId"]),
+                                    Username = reader["Username"].ToString(),
+                                    IsSuperAdmin = Convert.ToBoolean(reader["IsSuperAdmin"]),
+                                    Role = reader["Role"].ToString(),
+                                    AccountStatus = accountStatus
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Add the new methods here
+        public List<string> GetSecurityQuestions()
+        {
+            List<string> questions = new List<string>();
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT DISTINCT SecurityQuestion1 FROM Users WHERE SecurityQuestion1 IS NOT NULL " +
+                             "UNION SELECT DISTINCT SecurityQuestion2 FROM Users WHERE SecurityQuestion2 IS NOT NULL";
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            string question = reader[0].ToString();
+                            if (!string.IsNullOrEmpty(question))
+                            {
+                                questions.Add(question);
+                            }
+                        }
+                    }
+                }
+            }
+            return questions;
+        }
+
+        public void UpdateSecurityQuestions(string oldQuestion, string newQuestion)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        // Update SecurityQuestion1
+                        string updateQ1 = "UPDATE Users SET SecurityQuestion1 = @NewQuestion WHERE SecurityQuestion1 = @OldQuestion";
+                        using (var command = new SQLiteCommand(updateQ1, connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@NewQuestion", newQuestion);
+                            command.Parameters.AddWithValue("@OldQuestion", oldQuestion);
+                            command.ExecuteNonQuery();
+                        }
+
+                        // Update SecurityQuestion2
+                        string updateQ2 = "UPDATE Users SET SecurityQuestion2 = @NewQuestion WHERE SecurityQuestion2 = @OldQuestion";
+                        using (var command = new SQLiteCommand(updateQ2, connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@NewQuestion", newQuestion);
+                            command.Parameters.AddWithValue("@OldQuestion", oldQuestion);
+                            command.ExecuteNonQuery();
+                        }
+
+                        transaction.Commit();
+                    }
+                    catch (Exception)
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
+
+        // Add this method to your DatabaseManager class
+        public void UpdateUserSecurityAnswers(int userId, string answer1, string answer2)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        string query = @"
+                    UPDATE Users 
+                    SET SecurityAnswer1 = @Answer1,
+                        SecurityAnswer2 = @Answer2
+                    WHERE UserId = @UserId";
+
+                        using (var command = new SQLiteCommand(query, connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@UserId", userId);
+                            command.Parameters.AddWithValue("@Answer1", PasswordHasher.HashPassword(answer1.ToLower()));
+                            command.Parameters.AddWithValue("@Answer2", PasswordHasher.HashPassword(answer2.ToLower()));
+
+                            int rowsAffected = command.ExecuteNonQuery();
+                            if (rowsAffected == 0)
+                            {
+                                throw new Exception("User not found or answers not updated.");
+                            }
+                        }
+
+                        transaction.Commit();
+                    }
+                    catch (Exception)
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            }
         }
 
         public string GetConnectionString()

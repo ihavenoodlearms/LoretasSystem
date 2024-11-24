@@ -27,15 +27,14 @@ namespace InventoryOrderSystem.App.Forms
             cmbRole.SelectedIndex = 0;  // Default role is User
         }
 
+        // Modify your RegisterForm.cs btnRegister_Click method
         private void btnRegister_Click_1(object sender, EventArgs e)
         {
-
             string username = txtUser.Text.Trim();
             string password = txtPass.Text;
             string confirmPassword = txtConfirm.Text;
             string role = cmbRole.SelectedItem.ToString();
 
-            // Basic validation
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
                 lblErrorMessage.Text = "Username and password cannot be empty.";
@@ -50,22 +49,13 @@ namespace InventoryOrderSystem.App.Forms
                 return;
             }
 
-            // Check if the username exists already
-            if (_dbManager.UserExists(username))
-            {
-                lblErrorMessage.Text = "Username already taken.";
-                lblErrorMessage.Visible = true;
-                return;
-            }
-
             try
             {
-                // Create the user with the selected role
-                _dbManager.CreateAdminUser(username, password, role);  // Pass the role here
-                MessageBox.Show("Registration successful!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                this.Close(); // Close the register form or navigate to login page
-                LoginForm login = new LoginForm();
-                login.Show();
+                _dbManager.CreatePendingUser(username, password, role);
+                MessageBox.Show("Registration successful! Please wait for admin approval.",
+                               "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.Close();
+                new LoginForm().Show();
             }
             catch (Exception ex)
             {

@@ -15,5 +15,6 @@ namespace InventoryOrderSystem.Models
         public string SecurityAnswer2 { get; set; }
         public DateTime? LastPasswordReset { get; set; }
         public int FailedResetAttempts { get; set; }
+        public string AccountStatus { get; set; }
     }
 }

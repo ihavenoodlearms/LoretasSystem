@@ -8,6 +8,7 @@ using InventoryOrderSystem.App.Forms;
 using InventoryOrderSystem.Models;
 using InventoryOrderSystem.Services;
 using System.Data.SQLite;
+using System.Text.RegularExpressions;
 
 namespace InventoryOrderSystem.Forms
 {
@@ -18,9 +19,10 @@ namespace InventoryOrderSystem.Forms
         private DatabaseManager _dbManager;
         private DateTime currentDate;
         private OrderMenuForm _orderMenuForm;
-
+        private DateTimePicker dtpDate;
         private bool isDragging = false;
         private Point dragOffset;
+
 
         // Sample data - replace with actual data from your database
         private decimal totalSales = 0;
@@ -129,6 +131,209 @@ namespace InventoryOrderSystem.Forms
             }
         }
 
+        private void ShowSecurityQuestionsManager()
+        {
+            using (var securityQuestionsForm = new Form())
+            {
+                securityQuestionsForm.Text = "Manage Security Answers";
+                securityQuestionsForm.Size = new Size(600, 500);  // Made taller for email field
+                securityQuestionsForm.StartPosition = FormStartPosition.CenterParent;
+                securityQuestionsForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                securityQuestionsForm.MaximizeBox = false;
+                securityQuestionsForm.MinimizeBox = false;
+                securityQuestionsForm.BackColor = cream;
+
+                // Get current user's security information
+                var currentUser = _dbManager.GetUserByUsername(_currentUser.Username);
+
+                // Create layout
+                var layoutPanel = new TableLayoutPanel
+                {
+                    Dock = DockStyle.Fill,
+                    ColumnCount = 2,
+                    RowCount = 7,  // Increased for email
+                    Padding = new Padding(20),
+                    ColumnStyles = {
+                new ColumnStyle(SizeType.Percent, 40F),
+                new ColumnStyle(SizeType.Percent, 60F)
+            }
+                };
+
+                // Email section
+                var lblEmail = new Label
+                {
+                    Text = "Email:",
+                    Font = new Font("Arial", 10),
+                    Dock = DockStyle.Fill
+                };
+
+                var txtEmail = new TextBox
+                {
+                    Text = currentUser.Email,
+                    Font = new Font("Arial", 10),
+                    Dock = DockStyle.Fill
+                };
+
+                // Question 1
+                var lblQ1 = new Label
+                {
+                    Text = "Security Question 1:",
+                    Font = new Font("Arial", 10),
+                    Dock = DockStyle.Fill
+                };
+
+                var cboQ1 = new ComboBox
+                {
+                    DropDownStyle = ComboBoxStyle.DropDownList,
+                    Font = new Font("Arial", 10),
+                    Dock = DockStyle.Fill
+                };
+                cboQ1.Items.AddRange(new string[]
+                {
+            "What was your first pet's name?",
+            "In which city were you born?",
+            "What was your mother's maiden name?",
+            "What was the name of your first school?",
+            "What is your favorite book?",
+            "What was your childhood nickname?"
+                });
+                cboQ1.SelectedItem = currentUser.SecurityQuestion1;
+
+                // Answer 1
+                var lblA1 = new Label
+                {
+                    Text = "New Answer 1:",
+                    Font = new Font("Arial", 10),
+                    Dock = DockStyle.Fill
+                };
+
+                var txtA1 = new TextBox
+                {
+                    Font = new Font("Arial", 10),
+                    Dock = DockStyle.Fill,
+                    UseSystemPasswordChar = true
+                };
+
+                // Question 2
+                var lblQ2 = new Label
+                {
+                    Text = "Security Question 2:",
+                    Font = new Font("Arial", 10),
+                    Dock = DockStyle.Fill
+                };
+
+                var cboQ2 = new ComboBox
+                {
+                    DropDownStyle = ComboBoxStyle.DropDownList,
+                    Font = new Font("Arial", 10),
+                    Dock = DockStyle.Fill
+                };
+                cboQ2.Items.AddRange(new string[]
+                {
+            "What was your first pet's name?",
+            "In which city were you born?",
+            "What was your mother's maiden name?",
+            "What was the name of your first school?",
+            "What is your favorite book?",
+            "What was your childhood nickname?"
+                });
+                cboQ2.SelectedItem = currentUser.SecurityQuestion2;
+
+                // Answer 2
+                var lblA2 = new Label
+                {
+                    Text = "New Answer 2:",
+                    Font = new Font("Arial", 10),
+                    Dock = DockStyle.Fill
+                };
+
+                var txtA2 = new TextBox
+                {
+                    Font = new Font("Arial", 10),
+                    Dock = DockStyle.Fill,
+                    UseSystemPasswordChar = true
+                };
+
+                // Update button
+                var btnUpdate = new Button
+                {
+                    Text = "Update",
+                    BackColor = accentGreen,
+                    ForeColor = Color.White,
+                    FlatStyle = FlatStyle.Flat,
+                    Font = new Font("Arial Rounded MT Bold", 9.75f),
+                    Size = new Size(120, 35),  // Smaller fixed size
+                    Location = new Point(450, 340)  // Position it bottom-right
+                };
+                btnUpdate.FlatAppearance.BorderSize = 0;
+
+                btnUpdate.Click += (s, e) =>
+                {
+                    if (string.IsNullOrWhiteSpace(txtEmail.Text) ||
+                        string.IsNullOrWhiteSpace(txtA1.Text) ||
+                        string.IsNullOrWhiteSpace(txtA2.Text))
+                    {
+                        MessageBox.Show("Please fill in all fields.", "Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    // Validate email format
+                    if (!IsValidEmail(txtEmail.Text))
+                    {
+                        MessageBox.Show("Please enter a valid email address.", "Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    // Check if questions are different
+                    if (cboQ1.SelectedItem.ToString() == cboQ2.SelectedItem.ToString())
+                    {
+                        MessageBox.Show("Please select different security questions.", "Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    try
+                    {
+                        _dbManager.UpdateUserSecurityInfo(
+                            _currentUser.UserId,
+                            txtEmail.Text,
+                            cboQ1.SelectedItem.ToString(),
+                            txtA1.Text,
+                            cboQ2.SelectedItem.ToString(),
+                            txtA2.Text
+                        );
+                        MessageBox.Show("Security information updated successfully!", "Success",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        securityQuestionsForm.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error updating security information: {ex.Message}", "Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                };
+
+                // Add controls to the layout
+                layoutPanel.Controls.Add(lblEmail, 0, 0);
+                layoutPanel.Controls.Add(txtEmail, 1, 0);
+                layoutPanel.Controls.Add(lblQ1, 0, 1);
+                layoutPanel.Controls.Add(cboQ1, 1, 1);
+                layoutPanel.Controls.Add(lblA1, 0, 2);
+                layoutPanel.Controls.Add(txtA1, 1, 2);
+                layoutPanel.Controls.Add(lblQ2, 0, 3);
+                layoutPanel.Controls.Add(cboQ2, 1, 3);
+                layoutPanel.Controls.Add(lblA2, 0, 4);
+                layoutPanel.Controls.Add(txtA2, 1, 4);
+                layoutPanel.Controls.Add(btnUpdate, 1, 6);
+
+                securityQuestionsForm.Controls.Add(layoutPanel);
+                securityQuestionsForm.Controls.Add(btnUpdate);
+                btnUpdate.BringToFront();
+                securityQuestionsForm.ShowDialog();
+            }
+        }
 
 
         private void StyleButton(Button btn)
@@ -176,11 +381,30 @@ namespace InventoryOrderSystem.Forms
         }
 
 
+        // In the SetupDashboard method, replace the button creation code with this:
         private void SetupDashboard()
         {
             SetFormSize();
             InitializeDashboardData();
             UpdateDashboard();
+
+            // Create and configure DateTimePicker
+            dtpDate = new DateTimePicker
+            {
+                Format = DateTimePickerFormat.Short,
+                Width = 120,
+                Font = new Font("Arial Rounded MT Bold", 12),
+                Location = new Point(pnlMain.Width - 140, 20), // Adjust position as needed
+                Anchor = AnchorStyles.Top | AnchorStyles.Right
+            };
+
+            // Style the DateTimePicker to match your theme
+            dtpDate.CalendarForeColor = darkBrown;
+            dtpDate.CalendarMonthBackground = cream;
+            dtpDate.Value = currentDate;
+
+            // Add change event handler
+            dtpDate.ValueChanged += DtpDate_ValueChanged;
 
             var topProducts = _dbManager.GetTopProductsForDate(currentDate);
             if (topProducts.Count > 0)
@@ -198,47 +422,20 @@ namespace InventoryOrderSystem.Forms
             lblWelcome.Text = _currentUser != null ? $"Welcome, {_currentUser.Username}!" : "Welcome!";
             btnReports.Visible = _currentUser?.IsSuperAdmin ?? false;
 
-
-
             btnSettings.Click += btnSettings_Click;
 
-            Button btnPreviousDay = new Button
-            {
-                Text = "<",
-                Size = new Size(40, 30),
-                Font = new Font("Arial Rounded MT Bold", 12, FontStyle.Bold),
-                Location = new Point(lblDate.Left - 60, lblDate.Top), // Moved further left
-                BackColor = Color.FromArgb(82, 110, 72),
-                ForeColor = Color.Black,
-                FlatStyle = FlatStyle.Flat,
-                FlatAppearance =
-    {
-        BorderColor = Color.White,
-        BorderSize = 2
-    }
-            };
-            btnPreviousDay.Click += btnPreviousDay_Click;
-
-            Button btnNextDay = new Button
-            {
-                Text = ">",
-                Size = new Size(40, 30),
-                Font = new Font("Arial Rounded MT Bold", 12, FontStyle.Bold),
-                Location = new Point(lblDate.Right + 20, lblDate.Top), // Moved further right
-                BackColor = Color.FromArgb(82, 110, 72),
-                ForeColor = Color.Black,
-                FlatStyle = FlatStyle.Flat,
-                FlatAppearance =
-    {
-        BorderColor = Color.White,
-        BorderSize = 2
-    }
-            };
-            btnNextDay.Click += btnNextDay_Click;
-
-            pnlMain.Controls.Add(btnPreviousDay);
-            pnlMain.Controls.Add(btnNextDay);
+            // Add the DateTimePicker to the panel
+            pnlMain.Controls.Add(dtpDate);
         }
+
+        // Add this new event handler
+        private void DtpDate_ValueChanged(object sender, EventArgs e)
+        {
+            currentDate = dtpDate.Value.Date;
+            InitializeDashboardData();
+            UpdateDashboard();
+        }
+
 
         private void RefreshDataGridView()
         {
@@ -328,7 +525,7 @@ namespace InventoryOrderSystem.Forms
             {
                 Visible = false,
                 BackColor = cream,
-                Size = new Size((int)(this.ClientSize.Width * 0.4), (int)(this.ClientSize.Height * 0.5)), // Made panel larger
+                Size = new Size((int)(this.ClientSize.Width * 0.4), (int)(this.ClientSize.Height * 0.5)),
                 MinimumSize = new Size(400, 300),
                 MaximumSize = new Size(600, 500),
                 Anchor = AnchorStyles.None
@@ -340,18 +537,19 @@ namespace InventoryOrderSystem.Forms
             TableLayoutPanel layoutPanel = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                RowCount = 6, // Increased row count
+                RowCount = 7, // Increased to 7 to accommodate the new Security Questions button
                 ColumnCount = 1,
                 Padding = new Padding(20),
             };
 
             // Set row styles
             layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 15F));  // Title
-            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 17F));  // Manage Users button
-            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 17F));  // Add User button
-            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 17F));  // Change Password button
-            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 17F));  // Sign Out button
-            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 17F));  // Close button
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 14F));  // Manage Users button
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 14F));  // Add User button
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 14F));  // Change Password button
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 14F));  // Security Questions button
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 14F));  // Sign Out button
+            layoutPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 15F));  // Close button
 
             // Title
             Label lblSettings = new Label
@@ -367,6 +565,7 @@ namespace InventoryOrderSystem.Forms
             Button btnManageUsers = CreateStyledButton("Manage Users", accentGreen);
             Button btnAddUser = CreateStyledButton("Add New User", accentGreen);
             Button btnChangePassword = CreateStyledButton("Change Password", accentGreen);
+            Button btnSecurityQuestions = CreateStyledButton("Security Questions", accentGreen);
             Button btnSignOut = CreateStyledButton("Sign Out", lightBrown);
             Button btnCloseSettings = CreateStyledButton("Close", lightBrown);
 
@@ -374,6 +573,7 @@ namespace InventoryOrderSystem.Forms
             btnManageUsers.Click += BtnManageUsers_Click;
             btnAddUser.Click += BtnAddUser_Click;
             btnChangePassword.Click += BtnChangePassword_Click;
+            btnSecurityQuestions.Click += (s, e) => ShowSecurityQuestionsManager();
             btnSignOut.Click += BtnSignOut_Click;
             btnCloseSettings.Click += (s, e) => pnlSettings.Visible = false;
 
@@ -382,8 +582,9 @@ namespace InventoryOrderSystem.Forms
             layoutPanel.Controls.Add(btnManageUsers, 0, 1);
             layoutPanel.Controls.Add(btnAddUser, 0, 2);
             layoutPanel.Controls.Add(btnChangePassword, 0, 3);
-            layoutPanel.Controls.Add(btnSignOut, 0, 4);
-            layoutPanel.Controls.Add(btnCloseSettings, 0, 5);
+            layoutPanel.Controls.Add(btnSecurityQuestions, 0, 4);
+            layoutPanel.Controls.Add(btnSignOut, 0, 5);
+            layoutPanel.Controls.Add(btnCloseSettings, 0, 6);
 
             pnlSettings.Controls.Add(layoutPanel);
             this.Controls.Add(pnlSettings);
@@ -424,6 +625,25 @@ namespace InventoryOrderSystem.Forms
             };
         }
 
+        // Add the new method here
+        private void AddPendingUsersButton(Panel buttonsPanel)
+        {
+            var btnPendingUsers = new Button
+            {
+                Text = "Pending Users",
+                Width = 120,
+                Height = 35,
+                BackColor = Color.Orange,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Location = new Point(buttonsPanel.Controls[buttonsPanel.Controls.Count - 1].Right + 10, 0)
+            };
+            btnPendingUsers.FlatAppearance.BorderSize = 0;
+            btnPendingUsers.Click += (s, e) => ShowPendingUsersForm();
+            buttonsPanel.Controls.Add(btnPendingUsers);
+        }
+
+        // In your DashboardForm.cs, modify the BtnManageUsers_Click method like this:
         private void BtnManageUsers_Click(object sender, EventArgs e)
         {
             using (var manageUsersForm = new Form())
@@ -492,6 +712,19 @@ namespace InventoryOrderSystem.Forms
                 };
                 btnDeleteUser.FlatAppearance.BorderSize = 0;
 
+                // Add Pending Users button
+                var btnPendingUsers = new Button
+                {
+                    Text = "Pending Users",
+                    Width = 120,
+                    Height = 35,
+                    Left = btnDeleteUser.Right + 10,
+                    BackColor = Color.Orange,
+                    ForeColor = Color.White,
+                    FlatStyle = FlatStyle.Flat
+                };
+                btnPendingUsers.FlatAppearance.BorderSize = 0;
+
                 btnEditUser.Click += (s, ev) =>
                 {
                     if (dgvUsers.SelectedRows.Count > 0)
@@ -525,10 +758,121 @@ namespace InventoryOrderSystem.Forms
                     }
                 };
 
-                buttonsPanel.Controls.AddRange(new Control[] { btnEditUser, btnDeleteUser });
+                btnPendingUsers.Click += (s, ev) => ShowPendingUsersForm();
+
+                buttonsPanel.Controls.AddRange(new Control[] { btnEditUser, btnDeleteUser, btnPendingUsers });
                 manageUsersForm.Controls.AddRange(new Control[] { dgvUsers, buttonsPanel });
 
                 manageUsersForm.ShowDialog();
+            }
+        }
+
+        private void ShowPendingUsersForm()
+        {
+            using (var pendingUsersForm = new Form())
+            {
+                pendingUsersForm.Text = "Pending User Approvals";
+                pendingUsersForm.Size = new Size(600, 400);
+                pendingUsersForm.StartPosition = FormStartPosition.CenterParent;
+                pendingUsersForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                pendingUsersForm.MaximizeBox = false;
+                pendingUsersForm.MinimizeBox = false;
+
+                var dgvPendingUsers = new DataGridView
+                {
+                    Dock = DockStyle.Fill,
+                    AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                    AllowUserToAddRows = false,
+                    ReadOnly = true,
+                    SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                    MultiSelect = false,
+                    BackgroundColor = Color.White
+                };
+
+                dgvPendingUsers.Columns.AddRange(new DataGridViewColumn[]
+                {
+            new DataGridViewTextBoxColumn { Name = "UserId", HeaderText = "ID", Width = 50 },
+            new DataGridViewTextBoxColumn { Name = "Username", HeaderText = "Username", Width = 150 },
+            new DataGridViewTextBoxColumn { Name = "Role", HeaderText = "Role", Width = 100 }
+                });
+
+                var buttonsPanel = new Panel
+                {
+                    Dock = DockStyle.Bottom,
+                    Height = 60,
+                    Padding = new Padding(10)
+                };
+
+                var btnApprove = new Button
+                {
+                    Text = "Approve",
+                    Width = 100,
+                    Height = 35,
+                    BackColor = Color.ForestGreen,
+                    ForeColor = Color.White,
+                    FlatStyle = FlatStyle.Flat
+                };
+                btnApprove.FlatAppearance.BorderSize = 0;
+
+                var btnReject = new Button
+                {
+                    Text = "Reject",
+                    Width = 100,
+                    Height = 35,
+                    Left = btnApprove.Right + 10,
+                    BackColor = Color.IndianRed,
+                    ForeColor = Color.White,
+                    FlatStyle = FlatStyle.Flat
+                };
+                btnReject.FlatAppearance.BorderSize = 0;
+
+                void RefreshPendingUsers()
+                {
+                    dgvPendingUsers.Rows.Clear();
+                    var pendingUsers = _dbManager.GetPendingUsers();
+                    foreach (var user in pendingUsers)
+                    {
+                        dgvPendingUsers.Rows.Add(user.UserId, user.Username, user.Role);
+                    }
+                }
+
+                btnApprove.Click += (s, ev) =>
+                {
+                    if (dgvPendingUsers.SelectedRows.Count > 0)
+                    {
+                        int userId = Convert.ToInt32(dgvPendingUsers.SelectedRows[0].Cells["UserId"].Value);
+                        _dbManager.ApproveUser(userId);
+                        MessageBox.Show("User approved successfully!", "Success",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        RefreshPendingUsers();
+                    }
+                };
+
+                btnReject.Click += (s, ev) =>
+                {
+                    if (dgvPendingUsers.SelectedRows.Count > 0)
+                    {
+                        int userId = Convert.ToInt32(dgvPendingUsers.SelectedRows[0].Cells["UserId"].Value);
+                        var result = MessageBox.Show("Are you sure you want to reject this user?",
+                            "Confirm Rejection", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                        if (result == DialogResult.Yes)
+                        {
+                            _dbManager.RejectUser(userId);
+                            MessageBox.Show("User rejected successfully!", "Success",
+                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            RefreshPendingUsers();
+                        }
+                    }
+                };
+
+                buttonsPanel.Controls.AddRange(new Control[] { btnApprove, btnReject });
+                pendingUsersForm.Controls.AddRange(new Control[] { dgvPendingUsers, buttonsPanel });
+
+                // Initial load of pending users
+                RefreshPendingUsers();
+
+                pendingUsersForm.ShowDialog();
             }
         }
 
@@ -630,7 +974,7 @@ namespace InventoryOrderSystem.Forms
                     ColumnCount = 1,
                     RowCount = 8,
                     Padding = new Padding(10),
-                    RowStyles = 
+                    RowStyles =
                     {
                         new RowStyle(SizeType.Absolute, 20), // Username label
                         new RowStyle(SizeType.Absolute, 30), // Username textbox
@@ -915,7 +1259,7 @@ namespace InventoryOrderSystem.Forms
             UpdateDashboard();
         }
 
-        
+
         private void AdjustMainPanelLayout()
         {
             pnlMain.Location = new Point(pnlSidebar.Width, pnlHeader.Height);
@@ -965,6 +1309,7 @@ namespace InventoryOrderSystem.Forms
             UpdateLayout();
         }
 
+        // Update the UpdateLayout method to position the DateTimePicker
         private void UpdateLayout()
         {
             pnlMain.Width = this.ClientSize.Width - pnlSidebar.Width;
@@ -986,8 +1331,11 @@ namespace InventoryOrderSystem.Forms
             panel3.Location = new Point(startX + (panelWidth + 20) * 2, panel3.Location.Y);
             panel4.Location = new Point(startX + (panelWidth + 20) * 3, panel4.Location.Y);
 
-            lblDate.Location = new Point(pnlMain.Width - lblDate.Width - 80, lblDate.Location.Y); // Moved label left to make room for buttons
-
+            // Update DateTimePicker position
+            if (dtpDate != null)
+            {
+                dtpDate.Location = new Point(pnlMain.Width - dtpDate.Width - 20, dtpDate.Location.Y);
+            }
 
             dgvTopProducts.Width = pnlMain.Width - 40;
             dgvTopProducts.Height = pnlMain.Height - dgvTopProducts.Top - 20;
@@ -1000,6 +1348,21 @@ namespace InventoryOrderSystem.Forms
                 }
             }
         }
+
+        // Add this helper method to validate email format
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var regex = new Regex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+                return regex.IsMatch(email);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
 
     }
 }

@@ -109,7 +109,7 @@ namespace InventoryOrderSystem.Forms
             // Buttons
             btnGenerateReport = new Button
             {
-                Text = "Generate Report",
+                Text = "Sort Report",
                 Width = 120,
                 Height = 30,
                 BackColor = darkBrown,
