@@ -12,6 +12,7 @@ namespace InventoryOrderSystem
     public partial class LoginForm : Form
     {
         private DatabaseManager dbManager;
+        private Label lblForgotPassword;  // Add this field
 
         public LoginForm()
         {
@@ -21,7 +22,35 @@ namespace InventoryOrderSystem
             txtUsername.KeyDown += TextBox_KeyDown;
             txtPassword.KeyDown += TextBox_KeyDown;
             this.AcceptButton = btnLogin;
+            InitializeForgotPasswordLabel(); // Add this line
+        }
 
+        // Add this method
+        private void InitializeForgotPasswordLabel()
+        {
+            int yPosition = btnRegister.Bottom + 10; // 10 pixels padding after register button
+            lblForgotPassword = new Label
+            {
+                AutoSize = true,
+                Cursor = Cursors.Hand,
+                Font = new Font("Arial", 9F, FontStyle.Underline),
+                ForeColor = Color.FromArgb(82, 110, 72),
+                Location = new Point((pnlLogin.Width - 120) / 2, yPosition), // Center horizontally
+                Name = "lblForgotPassword",
+                Size = new Size(120, 15),
+                Text = "Forgot Password?"
+            };
+            lblForgotPassword.Click += lblForgotPassword_Click;
+            this.pnlLogin.Controls.Add(lblForgotPassword);
+            lblForgotPassword.Left = (pnlLogin.Width - lblForgotPassword.Width) / 2;
+        }
+
+        private void lblForgotPassword_Click(object sender, EventArgs e)
+        {
+            ForgotPasswordForm forgotPasswordForm = new ForgotPasswordForm();
+            this.Hide();
+            forgotPasswordForm.ShowDialog();
+            this.Show();
         }
 
         private void TextBox_KeyDown(object sender, KeyEventArgs e)

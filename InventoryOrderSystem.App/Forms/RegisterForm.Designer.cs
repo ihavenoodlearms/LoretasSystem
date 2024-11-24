@@ -119,6 +119,7 @@
             this.txtConfirm.SelectedText = "";
             this.txtConfirm.Size = new System.Drawing.Size(287, 30);
             this.txtConfirm.TabIndex = 14;
+            this.txtConfirm.MaxLength = 16;
             // 
             // guna2Panel1
             // 
@@ -192,6 +193,7 @@
             this.txtPass.SelectedText = "";
             this.txtPass.Size = new System.Drawing.Size(287, 30);
             this.txtPass.TabIndex = 12;
+            this.txtPass.MaxLength = 16;
             // 
             // btnRegister
             // 
@@ -235,6 +237,7 @@
             this.txtUser.SelectedText = "";
             this.txtUser.Size = new System.Drawing.Size(287, 30);
             this.txtUser.TabIndex = 10;
+            this.txtUser.MaxLength = 24;
             // 
             // guna2Panel5
             // 

@@ -162,6 +162,7 @@ namespace InventoryOrderSystem
             this.txtPassword.SelectedText = "";
             this.txtPassword.Size = new System.Drawing.Size(287, 30);
             this.txtPassword.TabIndex = 8;
+            this.txtPassword.MaxLength = 16;
             // 
             // guna2Panel2
             // 
@@ -190,6 +191,7 @@ namespace InventoryOrderSystem
             this.txtUsername.SelectedText = "";
             this.txtUsername.Size = new System.Drawing.Size(287, 30);
             this.txtUsername.TabIndex = 6;
+            this.txtUsername.MaxLength = 24;
             // 
             // btnLogin
             // 

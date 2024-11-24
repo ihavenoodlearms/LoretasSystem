@@ -179,16 +179,45 @@ namespace InventoryOrderSystem.Services
                 connection.Open();
                 using (var command = new SQLiteCommand(connection))
                 {
-                    // Create Users table
-                    command.CommandText = @"
-                        CREATE TABLE IF NOT EXISTS Users (
-                            UserId INTEGER PRIMARY KEY AUTOINCREMENT,
-                            Username TEXT NOT NULL UNIQUE,
-                            PasswordHash TEXT NOT NULL,
-                            IsSuperAdmin INTEGER NOT NULL,
-                            Role TEXT NOT NULL 
-                        )";
-                    command.ExecuteNonQuery();
+                    try
+                    {
+                        // First turn off foreign keys and start transaction
+                        command.CommandText = @"
+                    PRAGMA foreign_keys=off;
+                    
+                    BEGIN TRANSACTION;";
+                        command.ExecuteNonQuery();
+
+                        // Create Users table first (since it doesn't exist in a new database)
+                        command.CommandText = @"
+                            CREATE TABLE IF NOT EXISTS Users (
+                                UserId INTEGER PRIMARY KEY AUTOINCREMENT,
+                                Username TEXT NOT NULL UNIQUE,
+                                PasswordHash TEXT NOT NULL,
+                                IsSuperAdmin INTEGER NOT NULL,
+                                Role TEXT NOT NULL
+                            )";
+                        command.ExecuteNonQuery();
+
+                        // Then add the new columns
+                        command.CommandText = @"
+                            ALTER TABLE Users ADD COLUMN Email TEXT;
+                            ALTER TABLE Users ADD COLUMN SecurityQuestion1 TEXT;
+                            ALTER TABLE Users ADD COLUMN SecurityAnswer1 TEXT;
+                            ALTER TABLE Users ADD COLUMN SecurityQuestion2 TEXT;
+                            ALTER TABLE Users ADD COLUMN SecurityAnswer2 TEXT;
+                            ALTER TABLE Users ADD COLUMN LastPasswordReset TEXT;
+                            ALTER TABLE Users ADD COLUMN FailedResetAttempts INTEGER DEFAULT 0;
+                    
+                            COMMIT;
+                    
+                            PRAGMA foreign_keys=on;";
+                        command.ExecuteNonQuery();
+                    }
+                    catch (SQLiteException)
+                    {
+                        // Columns might already exist, continue
+                    }
 
                     // Create InventoryItems table
                     command.CommandText = @"
@@ -396,7 +425,256 @@ namespace InventoryOrderSystem.Services
                     }
                 }
             }
-            return null; 
+            return null;
+        }
+
+        public bool VerifyUserSecurityInfo(string username, string email, string answer1, string answer2)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = @"
+                    SELECT COUNT(*) FROM Users 
+                    WHERE Username = @Username 
+                    AND Email = @Email 
+                    AND SecurityAnswer1 = @Answer1 
+                    AND SecurityAnswer2 = @Answer2";
+
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Username", username);
+                    command.Parameters.AddWithValue("@Email", email);
+                    command.Parameters.AddWithValue("@Answer1", PasswordHasher.HashPassword(answer1.ToLower())); // Hash the answers
+                    command.Parameters.AddWithValue("@Answer2", PasswordHasher.HashPassword(answer2.ToLower()));
+
+                    int count = Convert.ToInt32(command.ExecuteScalar());
+                    return count > 0;
+                }
+            }
+        }
+
+        // Method to track failed reset attempts
+        public void IncrementFailedResetAttempts(string username)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = @"
+                    UPDATE Users 
+                    SET FailedResetAttempts = FailedResetAttempts + 1 
+                    WHERE Username = @Username";
+
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Username", username);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        // Get the number of failed attempts
+        public int GetFailedResetAttempts(string username)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT FailedResetAttempts FROM Users WHERE Username = @Username";
+
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Username", username);
+                    object result = command.ExecuteScalar();
+                    return result != null ? Convert.ToInt32(result) : 0;
+                }
+            }
+        }
+
+        // Reset failed attempts counter
+        public void ResetFailedAttempts(string username)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = "UPDATE Users SET FailedResetAttempts = 0 WHERE Username = @Username";
+
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Username", username);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public DateTime? GetLastPasswordReset(string username)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = "SELECT LastPasswordReset FROM Users WHERE Username = @Username";
+
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Username", username);
+                    object result = command.ExecuteScalar();
+
+                    // Handle null values explicitly
+                    if (result == null || result == DBNull.Value)
+                    {
+                        return default(DateTime?);  // Returns null for DateTime?
+                    }
+
+                    // Parse the date string
+                    if (DateTime.TryParse(result.ToString(), out DateTime parsedDate))
+                    {
+                        return parsedDate;
+                    }
+                    return default(DateTime?);  // Returns null if parsing fails
+                }
+            }
+        }
+
+        public void UpdateLastPasswordReset(string username)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = @"
+            UPDATE Users 
+            SET LastPasswordReset = @LastReset 
+            WHERE Username = @Username";
+
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@LastReset", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                    command.Parameters.AddWithValue("@Username", username);
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public User GetUserByUsername(string username)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = @"
+            SELECT UserId, Username, IsSuperAdmin, Role, Email,
+                   SecurityQuestion1, SecurityQuestion2, LastPasswordReset, 
+                   FailedResetAttempts
+            FROM Users 
+            WHERE Username = @Username";
+
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Username", username);
+                    using (var reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            return new User
+                            {
+                                UserId = Convert.ToInt32(reader["UserId"]),
+                                Username = reader["Username"].ToString(),
+                                IsSuperAdmin = Convert.ToBoolean(reader["IsSuperAdmin"]),
+                                Role = reader["Role"].ToString(),
+                                Email = reader["Email"].ToString(),
+                                SecurityQuestion1 = reader["SecurityQuestion1"].ToString(),
+                                SecurityQuestion2 = reader["SecurityQuestion2"].ToString(),
+                                LastPasswordReset = reader["LastPasswordReset"] != DBNull.Value
+                                    ? (DateTime?)DateTime.Parse(reader["LastPasswordReset"].ToString())
+                                    : null,
+                                FailedResetAttempts = Convert.ToInt32(reader["FailedResetAttempts"])
+                            };
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Update the CreateUser method to include security information
+        public void CreateUser(string username, string password, string role, string email,
+            string securityQ1, string securityA1, string securityQ2, string securityA2)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(connection))
+                {
+                    // Check if user already exists
+                    command.CommandText = "SELECT COUNT(*) FROM Users WHERE Username = @Username";
+                    command.Parameters.AddWithValue("@Username", username);
+                    int userCount = Convert.ToInt32(command.ExecuteScalar());
+
+                    if (userCount > 0)
+                    {
+                        throw new Exception("Username already taken.");
+                    }
+
+                    // Insert new user with security information
+                    command.CommandText = @"
+                        INSERT INTO Users (
+                            Username, PasswordHash, IsSuperAdmin, Role, Email,
+                            SecurityQuestion1, SecurityAnswer1,
+                            SecurityQuestion2, SecurityAnswer2,
+                            LastPasswordReset, FailedResetAttempts
+                        ) 
+                        VALUES (
+                            @Username, @PasswordHash, @IsSuperAdmin, @Role, @Email,
+                            @SecurityQ1, @SecurityA1,
+                            @SecurityQ2, @SecurityA2,
+                            @LastPasswordReset, 0
+                        )";
+
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue("@Username", username);
+                    command.Parameters.AddWithValue("@PasswordHash", PasswordHasher.HashPassword(password));
+                    command.Parameters.AddWithValue("@IsSuperAdmin", role.ToLower() == "admin" ? 1 : 0);
+                    command.Parameters.AddWithValue("@Role", role);
+                    command.Parameters.AddWithValue("@Email", email);
+                    command.Parameters.AddWithValue("@SecurityQ1", securityQ1);
+                    command.Parameters.AddWithValue("@SecurityA1", PasswordHasher.HashPassword(securityA1.ToLower()));
+                    command.Parameters.AddWithValue("@SecurityQ2", securityQ2);
+                    command.Parameters.AddWithValue("@SecurityA2", PasswordHasher.HashPassword(securityA2.ToLower()));
+                    command.Parameters.AddWithValue("@LastPasswordReset", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        // Add this method to update user security information
+        public void UpdateUserSecurityInfo(int userId, string email,
+            string securityQ1, string securityA1, string securityQ2, string securityA2)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                string query = @"
+                    UPDATE Users 
+                    SET Email = @Email,
+                        SecurityQuestion1 = @SecurityQ1,
+                        SecurityAnswer1 = @SecurityA1,
+                        SecurityQuestion2 = @SecurityQ2,
+                        SecurityAnswer2 = @SecurityA2
+                    WHERE UserId = @UserId";
+
+                using (var command = new SQLiteCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@UserId", userId);
+                    command.Parameters.AddWithValue("@Email", email);
+                    command.Parameters.AddWithValue("@SecurityQ1", securityQ1);
+                    command.Parameters.AddWithValue("@SecurityA1", PasswordHasher.HashPassword(securityA1.ToLower()));
+                    command.Parameters.AddWithValue("@SecurityQ2", securityQ2);
+                    command.Parameters.AddWithValue("@SecurityA2", PasswordHasher.HashPassword(securityA2.ToLower()));
+
+                    int rowsAffected = command.ExecuteNonQuery();
+                    if (rowsAffected == 0)
+                    {
+                        throw new Exception("User not found or information not updated.");
+                    }
+                }
+            }
         }
 
         public List<InventoryItem> GetAllInventoryItems()
