@@ -270,12 +270,21 @@ namespace InventoryOrderSystem.App.Forms
             inventoryGridView.Columns["Name"].HeaderText = "Item Name";
             inventoryGridView.Columns["Quantity"].HeaderText = "Quantity";
             inventoryGridView.Columns["Category"].HeaderText = "Category";
+            inventoryGridView.Columns["Unit"].HeaderText = "Unit";
 
             // Set column properties
             inventoryGridView.Columns["ItemId"].ReadOnly = true;
             inventoryGridView.Columns["Name"].ReadOnly = true;
             inventoryGridView.Columns["Quantity"].ReadOnly = true;
             inventoryGridView.Columns["Category"].ReadOnly = true;
+            inventoryGridView.Columns["Unit"].ReadOnly = true;
+
+            // Set column order
+            inventoryGridView.Columns["ItemId"].DisplayIndex = 0;
+            inventoryGridView.Columns["Name"].DisplayIndex = 1;
+            inventoryGridView.Columns["Quantity"].DisplayIndex = 2;
+            inventoryGridView.Columns["Unit"].DisplayIndex = 3;
+            inventoryGridView.Columns["Category"].DisplayIndex = 4;
 
             // Apply initial sort
             inventoryGridView.Sort(inventoryGridView.Columns["ItemId"], ListSortDirection.Ascending);

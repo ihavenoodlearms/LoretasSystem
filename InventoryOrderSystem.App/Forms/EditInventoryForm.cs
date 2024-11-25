@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using InventoryOrderSystem.Models;
@@ -14,6 +15,15 @@ namespace InventoryOrderSystem.Forms
         private TextBox txtItemName;
         private TextBox txtQuantity;
         private ComboBox cboCategory;
+        private ComboBox cboUnit;
+
+        private readonly Dictionary<string, string[]> categoryUnits = new Dictionary<string, string[]>
+    {
+        { "Powder", new[] { "KG", "G", "OZ", "LB" } },
+        { "Syrup", new[] { "L", "ML", "GAL", "OZ" } },
+        { "Fruit Tea Syrup", new[] { "L", "ML", "GAL", "OZ" } },
+        { "Misc.", new[] { "PCS", "PACK", "BOX" } }
+    };
 
         public EditInventoryForm(InventoryItem item)
         {
@@ -27,7 +37,7 @@ namespace InventoryOrderSystem.Forms
         {
             // Form properties
             this.Text = "Edit Item";
-            this.Size = new Size(400, 300);
+            this.Size = new Size(400, 350);  // Increased height to accommodate Unit field
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -104,11 +114,37 @@ namespace InventoryOrderSystem.Forms
             cboCategory.Items.AddRange(categories);
             cboCategory.SelectedItem = currentItem.Category;
 
-            // Create buttons
+            Label lblUnit = new Label
+            {
+                Text = "Unit:",
+                Location = new Point(20, 230),  // New Unit label
+                AutoSize = true
+            };
+
+            cboUnit = new ComboBox
+            {
+                Location = new Point(120, 230),  // New Unit ComboBox
+                Width = 220,
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+
+            // Add event handler for category selection change
+            cboCategory.SelectedIndexChanged += (s, e) => UpdateUnitOptions();
+
+            // Initialize unit options based on current category
+            UpdateUnitOptions();
+
+            // Set the current unit
+            if (!string.IsNullOrEmpty(currentItem.Unit))
+            {
+                cboUnit.SelectedItem = currentItem.Unit;
+            }
+
+            // Create buttons - Moved down to accommodate new Unit field
             Button btnUpdate = new Button
             {
                 Text = "Update",
-                Location = new Point(120, 230),
+                Location = new Point(120, 270),  // Moved down
                 Width = 100,
                 BackColor = Color.FromArgb(82, 110, 72),
                 ForeColor = Color.White,
@@ -120,7 +156,7 @@ namespace InventoryOrderSystem.Forms
             Button btnCancel = new Button
             {
                 Text = "Cancel",
-                Location = new Point(240, 230),
+                Location = new Point(240, 270),  // Moved down
                 Width = 100,
                 BackColor = Color.FromArgb(102, 67, 67),
                 ForeColor = Color.White,
@@ -131,13 +167,25 @@ namespace InventoryOrderSystem.Forms
 
             // Add controls to form
             this.Controls.AddRange(new Control[] {
-                titlePanel,
-                lblId,
-                lblName, txtItemName,
-                lblQuantity, txtQuantity,
-                lblCategory, cboCategory,
-                btnUpdate, btnCancel
-            });
+            titlePanel,
+            lblId,
+            lblName, txtItemName,
+            lblQuantity, txtQuantity,
+            lblCategory, cboCategory,
+            lblUnit, cboUnit,
+            btnUpdate, btnCancel
+        });
+        }
+
+        private void UpdateUnitOptions()
+        {
+            cboUnit.Items.Clear();
+            string selectedCategory = cboCategory.SelectedItem.ToString();
+            if (categoryUnits.ContainsKey(selectedCategory))
+            {
+                cboUnit.Items.AddRange(categoryUnits[selectedCategory]);
+                cboUnit.SelectedIndex = 0;
+            }
         }
 
         private void BtnUpdate_Click(object sender, EventArgs e)
@@ -151,7 +199,8 @@ namespace InventoryOrderSystem.Forms
                         ItemId = currentItem.ItemId,
                         Name = txtItemName.Text.Trim(),
                         Quantity = int.Parse(txtQuantity.Text),
-                        Category = cboCategory.SelectedItem.ToString()
+                        Category = cboCategory.SelectedItem.ToString(),
+                        Unit = cboUnit.SelectedItem.ToString()
                     };
 
                     dbManager.UpdateInventoryItem(updatedItem);
@@ -181,6 +230,14 @@ namespace InventoryOrderSystem.Forms
                 MessageBox.Show("Please enter a valid quantity (must be 0 or greater).",
                     "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtQuantity.Focus();
+                return false;
+            }
+
+            if (cboUnit.SelectedIndex == -1)
+            {
+                MessageBox.Show("Please select a unit.", "Validation Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                cboUnit.Focus();
                 return false;
             }
 

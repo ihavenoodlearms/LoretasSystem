@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows.Forms;
 using InventoryOrderSystem.Services;
 using OfficeOpenXml;
+
 namespace InventoryOrderSystem
 {
     static class Program
@@ -44,6 +45,11 @@ namespace InventoryOrderSystem
                     dbManager.InitializeDatabase();
                     File.AppendAllText(logPath, "Database initialized successfully\n");
 
+                    // Perform schema updates for inventory
+                    File.AppendAllText(logPath, "Updating inventory schema...\n");
+                    dbManager.UpdateInventorySchema();
+                    File.AppendAllText(logPath, "Inventory schema updated successfully\n");
+
                     File.AppendAllText(logPath, "Updating database for approval system...\n");
                     dbManager.UpdateDatabaseForApproval();
                     File.AppendAllText(logPath, "Database updated for approval system\n");
@@ -56,15 +62,14 @@ namespace InventoryOrderSystem
                 {
                     File.AppendAllText(logPath, $"Database setup error: {dbEx.Message}\n");
                     File.AppendAllText(logPath, $"Stack trace: {dbEx.StackTrace}\n");
-                    throw; // Rethrow to be caught by outer try-catch
+                    throw;
                 }
 
-                // Check if database file exists
+                // Rest of your existing Main method code...
                 string dbPath = Path.Combine(baseDirectory, "LoretasCafeDB.sqlite");
                 File.AppendAllText(logPath, $"Database path: {dbPath}\n");
                 File.AppendAllText(logPath, $"Database exists: {File.Exists(dbPath)}\n");
 
-                // Verify admin account
                 try
                 {
                     File.AppendAllText(logPath, "Verifying admin account...\n");
@@ -75,10 +80,8 @@ namespace InventoryOrderSystem
                 {
                     File.AppendAllText(logPath, $"Admin account verification error: {adminEx.Message}\n");
                     File.AppendAllText(logPath, $"Stack trace: {adminEx.StackTrace}\n");
-                    // Continue execution even if admin verification fails
                 }
 
-                // Run the LoginForm
                 File.AppendAllText(logPath, "Starting LoginForm...\n");
                 Application.Run(new LoginForm());
             }

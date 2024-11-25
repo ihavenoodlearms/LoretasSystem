@@ -8,6 +8,7 @@ namespace InventoryOrderSystem.Models
         private string _name;
         private int _quantity;
         private string _category;
+        private string _unit;
 
         public int ItemId
         {
@@ -61,6 +62,19 @@ namespace InventoryOrderSystem.Models
             }
         }
 
+        public string Unit
+        {
+            get => _unit;
+            set
+            {
+                if (_unit != value)
+                {
+                    _unit = value;
+                    OnPropertyChanged(nameof(Unit));
+                }
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged(string propertyName)
@@ -68,21 +82,20 @@ namespace InventoryOrderSystem.Models
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        // You might want to include a constructor for easy object creation
         public InventoryItem() { }
 
-        public InventoryItem(int itemId, string name, int quantity, string category)
+        public InventoryItem(int itemId, string name, int quantity, string category, string unit)
         {
             ItemId = itemId;
             Name = name;
             Quantity = quantity;
             Category = category;
+            Unit = unit;
         }
 
-        // Override ToString for easier debugging and display purposes
         public override string ToString()
         {
-            return $"Item ID: {ItemId}, Name: {Name}, Quantity: {Quantity}, Category: {Category}";
+            return $"Item ID: {ItemId}, Name: {Name}, Quantity: {Quantity} {Unit}, Category: {Category}";
         }
     }
 }

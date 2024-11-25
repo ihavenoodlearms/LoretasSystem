@@ -184,99 +184,184 @@ namespace InventoryOrderSystem.Services
                         // First turn off foreign keys and start transaction
                         command.CommandText = @"
                     PRAGMA foreign_keys=off;
-                    
                     BEGIN TRANSACTION;";
                         command.ExecuteNonQuery();
 
-                        // Create Users table first (since it doesn't exist in a new database)
+                        // Create Users table first
                         command.CommandText = @"
-                            CREATE TABLE IF NOT EXISTS Users (
-                                UserId INTEGER PRIMARY KEY AUTOINCREMENT,
-                                Username TEXT NOT NULL UNIQUE,
-                                PasswordHash TEXT NOT NULL,
-                                IsSuperAdmin INTEGER NOT NULL,
-                                Role TEXT NOT NULL
-                            )";
+                    CREATE TABLE IF NOT EXISTS Users (
+                        UserId INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Username TEXT NOT NULL UNIQUE,
+                        PasswordHash TEXT NOT NULL,
+                        IsSuperAdmin INTEGER NOT NULL,
+                        Role TEXT NOT NULL,
+                        Email TEXT,
+                        SecurityQuestion1 TEXT,
+                        SecurityAnswer1 TEXT,
+                        SecurityQuestion2 TEXT,
+                        SecurityAnswer2 TEXT,
+                        LastPasswordReset TEXT,
+                        FailedResetAttempts INTEGER DEFAULT 0,
+                        AccountStatus TEXT NOT NULL DEFAULT 'Approved'
+                    )";
                         command.ExecuteNonQuery();
 
-                        // Then add the new columns
+                        // Create or recreate InventoryItems table with Unit column
                         command.CommandText = @"
-                            ALTER TABLE Users ADD COLUMN Email TEXT;
-                            ALTER TABLE Users ADD COLUMN SecurityQuestion1 TEXT;
-                            ALTER TABLE Users ADD COLUMN SecurityAnswer1 TEXT;
-                            ALTER TABLE Users ADD COLUMN SecurityQuestion2 TEXT;
-                            ALTER TABLE Users ADD COLUMN SecurityAnswer2 TEXT;
-                            ALTER TABLE Users ADD COLUMN LastPasswordReset TEXT;
-                            ALTER TABLE Users ADD COLUMN FailedResetAttempts INTEGER DEFAULT 0;
+                    DROP TABLE IF EXISTS temp_InventoryItems;
                     
-                            COMMIT;
+                    CREATE TABLE temp_InventoryItems (
+                        ItemId INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Name TEXT NOT NULL,
+                        Quantity INTEGER NOT NULL,
+                        Category TEXT NOT NULL,
+                        Unit TEXT NOT NULL DEFAULT 'PCS'
+                    );
+
+                    INSERT OR IGNORE INTO temp_InventoryItems (ItemId, Name, Quantity, Category)
+                    SELECT ItemId, Name, Quantity, Category 
+                    FROM InventoryItems;
+
+                    DROP TABLE IF EXISTS InventoryItems;
                     
-                            PRAGMA foreign_keys=on;";
+                    CREATE TABLE InventoryItems (
+                        ItemId INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Name TEXT NOT NULL,
+                        Quantity INTEGER NOT NULL,
+                        Category TEXT NOT NULL,
+                        Unit TEXT NOT NULL DEFAULT 'PCS'
+                    );
+
+                    INSERT INTO InventoryItems (ItemId, Name, Quantity, Category, Unit)
+                    SELECT ItemId, Name, Quantity, Category, 'PCS'
+                    FROM temp_InventoryItems;
+
+                    DROP TABLE IF EXISTS temp_InventoryItems;";
+                        command.ExecuteNonQuery();
+
+                        // Create Orders table
+                        command.CommandText = @"
+                    CREATE TABLE IF NOT EXISTS Orders (
+                        OrderId INTEGER PRIMARY KEY AUTOINCREMENT,
+                        UserId INTEGER NOT NULL,
+                        OrderDate TEXT NOT NULL,
+                        TotalAmount REAL NOT NULL,
+                        PaymentMethod TEXT NOT NULL,
+                        Status TEXT NOT NULL DEFAULT 'Active',
+                        AmountPaid REAL,
+                        ChangeAmount REAL,
+                        FOREIGN KEY(UserId) REFERENCES Users(UserId)
+                    )";
+                        command.ExecuteNonQuery();
+
+                        // Create OrderItems table
+                        command.CommandText = @"
+                    CREATE TABLE IF NOT EXISTS OrderItems (
+                        OrderItemId INTEGER PRIMARY KEY AUTOINCREMENT,
+                        OrderId INTEGER NOT NULL,
+                        ItemId INTEGER NOT NULL,
+                        ProductName TEXT NOT NULL,
+                        Quantity INTEGER NOT NULL,
+                        Price REAL NOT NULL,
+                        FOREIGN KEY(OrderId) REFERENCES Orders(OrderId),
+                        FOREIGN KEY(ItemId) REFERENCES InventoryItems(ItemId)
+                    )";
+                        command.ExecuteNonQuery();
+
+                        // Create TransactionsData table
+                        command.CommandText = @"
+                    CREATE TABLE IF NOT EXISTS TransactionsData (
+                        transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        order_id INTEGER NOT NULL,
+                        PaymentMethod TEXT NOT NULL,
+                        AmountPaid REAL NOT NULL,
+                        OrderDate TEXT NOT NULL,
+                        FOREIGN KEY(order_id) REFERENCES Orders(OrderId)
+                    )";
+                        command.ExecuteNonQuery();
+
+                        command.CommandText = "COMMIT;";
+                        command.ExecuteNonQuery();
+
+                        command.CommandText = "PRAGMA foreign_keys=on;";
                         command.ExecuteNonQuery();
                     }
-                    catch (SQLiteException)
+                    catch (Exception ex)
                     {
-                        // Columns might already exist, continue
+                        command.CommandText = "ROLLBACK;";
+                        command.ExecuteNonQuery();
+                        throw new Exception($"Database initialization error: {ex.Message}", ex);
                     }
-
-                    // Create InventoryItems table
-                    command.CommandText = @"
-                        CREATE TABLE IF NOT EXISTS InventoryItems (
-                            ItemId INTEGER PRIMARY KEY AUTOINCREMENT,
-                            Name TEXT NOT NULL,
-                            Quantity INTEGER NOT NULL,
-                            Category TEXT NOT NULL
-                        )";
-                    command.ExecuteNonQuery();
-
-                    // Create Orders table
-                    command.CommandText = @"
-                        CREATE TABLE IF NOT EXISTS Orders (
-                            OrderId INTEGER PRIMARY KEY AUTOINCREMENT,
-                            UserId INTEGER NOT NULL,
-                            OrderDate TEXT NOT NULL,
-                            TotalAmount REAL NOT NULL,
-                            PaymentMethod TEXT NOT NULL,
-                            Status TEXT NOT NULL DEFAULT 'Active',
-                            AmountPaid REAL,
-                            ChangeAmount REAL,
-                            FOREIGN KEY(UserId) REFERENCES Users(UserId)
-                        )";
-                    command.ExecuteNonQuery();
-
-                    // Create OrderItems table
-                    command.CommandText = @"
-                        CREATE TABLE IF NOT EXISTS OrderItems (
-                            OrderItemId INTEGER PRIMARY KEY AUTOINCREMENT,
-                            OrderId INTEGER NOT NULL,
-                            ItemId INTEGER NOT NULL,
-                            ProductName TEXT NOT NULL,
-                            Quantity INTEGER NOT NULL,
-                            Price REAL NOT NULL,
-                            FOREIGN KEY(OrderId) REFERENCES Orders(OrderId),
-                            FOREIGN KEY(ItemId) REFERENCES InventoryItems(ItemId)
-                        )";
-                    command.ExecuteNonQuery();
-
-                    // Create TransactionsData table
-                    command.CommandText = @"
-                         CREATE TABLE IF NOT EXISTS TransactionsData (
-                            transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            order_id INTEGER NOT NULL,
-                            PaymentMethod TEXT NOT NULL,
-                            AmountPaid REAL NOT NULL,
-                            OrderDate TEXT NOT NULL,
-                            FOREIGN KEY(order_id) REFERENCES Orders(OrderId),
-                            FOREIGN KEY(PaymentMethod) REFERENCES Orders(PaymentMethod),
-                            FOREIGN KEY(AmountPaid) REFERENCES Orders(AmountPaid),
-                            FOREIGN KEY(OrderDate) REFERENCES Orders(OrderDate)
-                        )";
-                    command.ExecuteNonQuery();
                 }
             }
 
-            // Create admin user
-            CreateAdminUser("admin", "password123,","ADMIN");
+            // Create admin user if it doesn't exist
+            CreateAdminUser("admin", "password123,", "ADMIN");
+        }
+
+        // Add this new method to handle inventory schema updates
+        public void UpdateInventorySchema()
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(connection))
+                {
+                    try
+                    {
+                        command.CommandText = @"
+                    PRAGMA foreign_keys=off;
+                    
+                    BEGIN TRANSACTION;
+                    
+                    -- Create a temporary table with the new schema
+                    CREATE TABLE IF NOT EXISTS temp_InventoryItems (
+                        ItemId INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Name TEXT NOT NULL,
+                        Quantity INTEGER NOT NULL,
+                        Category TEXT NOT NULL,
+                        Unit TEXT NOT NULL DEFAULT 'PCS'
+                    );
+                    
+                    -- Copy data from the old table if it exists
+                    INSERT OR IGNORE INTO temp_InventoryItems (ItemId, Name, Quantity, Category)
+                    SELECT ItemId, Name, Quantity, Category 
+                    FROM InventoryItems;
+                    
+                    -- Drop the old table
+                    DROP TABLE IF EXISTS InventoryItems;
+                    
+                    -- Create the new table
+                    CREATE TABLE InventoryItems (
+                        ItemId INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Name TEXT NOT NULL,
+                        Quantity INTEGER NOT NULL,
+                        Category TEXT NOT NULL,
+                        Unit TEXT NOT NULL DEFAULT 'PCS'
+                    );
+                    
+                    -- Copy data from the temporary table
+                    INSERT INTO InventoryItems (ItemId, Name, Quantity, Category, Unit)
+                    SELECT ItemId, Name, Quantity, Category, 'PCS'
+                    FROM temp_InventoryItems;
+                    
+                    -- Drop the temporary table
+                    DROP TABLE IF EXISTS temp_InventoryItems;
+                    
+                    COMMIT;
+                    
+                    PRAGMA foreign_keys=on;";
+
+                        command.ExecuteNonQuery();
+                    }
+                    catch (Exception ex)
+                    {
+                        command.CommandText = "ROLLBACK;";
+                        command.ExecuteNonQuery();
+                        throw new Exception($"Inventory schema update error: {ex.Message}", ex);
+                    }
+                }
+            }
         }
 
         // This method already exists in your code but let's update it to match the current database schema
@@ -649,7 +734,7 @@ namespace InventoryOrderSystem.Services
             using (var connection = new SQLiteConnection(connectionString))
             {
                 connection.Open();
-                string query = "SELECT * FROM InventoryItems";
+                string query = "SELECT ItemId, Name, Quantity, Category, Unit FROM InventoryItems";
                 using (var command = new SQLiteCommand(query, connection))
                 {
                     using (var reader = command.ExecuteReader())
@@ -661,13 +746,13 @@ namespace InventoryOrderSystem.Services
                                 ItemId = Convert.ToInt32(reader["ItemId"]),
                                 Name = reader["Name"].ToString(),
                                 Quantity = Convert.ToInt32(reader["Quantity"]),
-                                Category = reader["Category"].ToString()
+                                Category = reader["Category"].ToString(),
+                                Unit = reader["Unit"].ToString()
                             });
                         }
                     }
                 }
             }
-
             return items;
         }
 
@@ -705,13 +790,15 @@ namespace InventoryOrderSystem.Services
             using (var connection = new SQLiteConnection(connectionString))
             {
                 connection.Open();
-                string query = @"INSERT INTO InventoryItems (Name, Quantity, Category) 
-                     VALUES (@Name, @Quantity, @Category)";
+                string query = @"
+            INSERT INTO InventoryItems (Name, Quantity, Category, Unit) 
+            VALUES (@Name, @Quantity, @Category, @Unit)";
                 using (var command = new SQLiteCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@Name", item.Name);
                     command.Parameters.AddWithValue("@Quantity", item.Quantity);
                     command.Parameters.AddWithValue("@Category", item.Category);
+                    command.Parameters.AddWithValue("@Unit", string.IsNullOrEmpty(item.Unit) ? "PCS" : item.Unit);
                     command.ExecuteNonQuery();
                 }
             }
@@ -722,15 +809,20 @@ namespace InventoryOrderSystem.Services
             using (var connection = new SQLiteConnection(connectionString))
             {
                 connection.Open();
-                string query = @"UPDATE InventoryItems 
-                             SET Name = @Name, Quantity = @Quantity, Category = @Category 
-                             WHERE ItemId = @ItemId";
+                string query = @"
+            UPDATE InventoryItems 
+            SET Name = @Name, 
+                Quantity = @Quantity, 
+                Category = @Category,
+                Unit = @Unit 
+            WHERE ItemId = @ItemId";
                 using (var command = new SQLiteCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@ItemId", item.ItemId);
                     command.Parameters.AddWithValue("@Name", item.Name);
                     command.Parameters.AddWithValue("@Quantity", item.Quantity);
                     command.Parameters.AddWithValue("@Category", item.Category);
+                    command.Parameters.AddWithValue("@Unit", string.IsNullOrEmpty(item.Unit) ? "PCS" : item.Unit);
                     int rowsAffected = command.ExecuteNonQuery();
                     if (rowsAffected == 0)
                     {
