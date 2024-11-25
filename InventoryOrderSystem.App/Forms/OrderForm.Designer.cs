@@ -29,6 +29,7 @@
             this.btnBack = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
             this.lblRestock = new System.Windows.Forms.Label();
+            this.btnViewHistory = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvOrders)).BeginInit();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -181,12 +182,27 @@
             this.lblRestock.TabIndex = 10;
             this.lblRestock.Text = "Order Management";
             // 
+            // btnViewHistory
+            // 
+            this.btnViewHistory.BackColor = System.Drawing.Color.Blue;
+            this.btnViewHistory.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnViewHistory.Font = new System.Drawing.Font("Arial Rounded MT Bold", 11.25F);
+            this.btnViewHistory.ForeColor = System.Drawing.Color.White;
+            this.btnViewHistory.Location = new System.Drawing.Point(667, 648);
+            this.btnViewHistory.Name = "btnViewHistory";
+            this.btnViewHistory.Size = new System.Drawing.Size(152, 54);
+            this.btnViewHistory.TabIndex = 6;
+            this.btnViewHistory.Text = "View History ";
+            this.btnViewHistory.UseVisualStyleBackColor = false;
+            this.btnViewHistory.Click += new System.EventHandler(this.btnViewHistory_Click);
+            // 
             // OrderForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(230)))), ((int)(((byte)(210)))), ((int)(((byte)(181)))));
             this.ClientSize = new System.Drawing.Size(1451, 716);
+            this.Controls.Add(this.btnViewHistory);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.btnNewOrder);
             this.Controls.Add(this.dgvOrders);
@@ -217,5 +233,6 @@
         private System.Windows.Forms.Button btnBack;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label lblRestock;
+        private System.Windows.Forms.Button btnViewHistory;
     }
 }

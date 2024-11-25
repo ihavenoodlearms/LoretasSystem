@@ -46,10 +46,15 @@ namespace InventoryOrderSystem.Forms
 
         private void LoadOrders()
         {
+            // Get all orders from database
             _orders = _dbManager.GetAllOrders();
-            var orderViewModels = _orders.Select(o => new OrderViewModel
+
+            // Filter orders to show only active ones
+            var activeOrders = _orders.Where(o => o.Status != "Paid" && o.Status != "Voided");
+
+            var orderViewModels = activeOrders.Select(o => new OrderViewModel
             {
-                OrderId = o.OrderId,  // Add this line
+                OrderId = o.OrderId,
                 transaction_id = _dbManager.GetTransactionId(o.OrderId),
                 UserId = o.UserId,
                 OrderDate = o.OrderDate,
@@ -64,6 +69,12 @@ namespace InventoryOrderSystem.Forms
             _bindingOrders = new SortableBindingList<OrderViewModel>(orderViewModels);
             dgvOrders.DataSource = _bindingOrders;
             FormatDataGridView();
+        }
+
+        // Add a method to refresh the grid after payment or void operations
+        private void RefreshOrderGrid()
+        {
+            LoadOrders();
         }
 
 
@@ -175,10 +186,21 @@ namespace InventoryOrderSystem.Forms
             };
             btnPayOrder.Click += BtnPayOrder_Click;
 
+            // Add the View History button
+            Button btnViewHistory = new Button
+            {
+                Text = "View History",
+                Location = new Point(btnPayOrder.Right + 10, 20),
+                Size = new Size(120, 35),
+                BackColor = Color.FromArgb(74, 44, 42),
+                ForeColor = Color.White
+            };
+            btnViewHistory.Click += btnViewHistory_Click;
+
             Button btnBack = new Button
             {
                 Text = "Back",
-                Location = new Point(btnPayOrder.Right + 10, 20),
+                Location = new Point(btnViewHistory.Right + 10, 20),
                 Size = new Size(120, 35),
                 BackColor = Color.FromArgb(74, 44, 42),
                 ForeColor = Color.White
@@ -186,8 +208,8 @@ namespace InventoryOrderSystem.Forms
             btnBack.Click += btnBack_Click;
 
             buttonPanel.Controls.AddRange(new Control[] {
-                btnNewOrder, btnViewOrder, btnVoidOrder, btnPayOrder, btnBack
-            });
+        btnNewOrder, btnViewOrder, btnVoidOrder, btnPayOrder, btnViewHistory, btnBack
+    });
 
             ((System.ComponentModel.ISupportInitialize)(dgvOrders)).EndInit();
         }
@@ -204,7 +226,7 @@ namespace InventoryOrderSystem.Forms
             var selectedRow = dgvOrders.SelectedRows[0];
             string currentStatus = selectedRow.Cells["Status"].Value?.ToString();
 
-            // Instead of getting transaction_id (which won't exist yet), get OrderId directly
+            // Get OrderId directly
             int orderId = Convert.ToInt32(selectedRow.Cells["OrderId"].Value);
 
             if (currentStatus == "Paid")
@@ -277,7 +299,7 @@ namespace InventoryOrderSystem.Forms
                     Text = "Confirm Payment",
                     Location = new Point(85, 120),
                     Size = new Size(120, 30),
-                    DialogResult = DialogResult.None  // Changed from OK to None
+                    DialogResult = DialogResult.None
                 };
 
                 confirmButton.Click += (s, evt) =>
@@ -296,7 +318,6 @@ namespace InventoryOrderSystem.Forms
                         return;
                     }
 
-                    // Only set DialogResult to OK if payment amount is valid
                     paymentForm.DialogResult = DialogResult.OK;
                     paymentForm.Close();
                 };
@@ -305,7 +326,7 @@ namespace InventoryOrderSystem.Forms
             totalLabel, amountPaidLabel, amountPaidBox, changeLabel, confirmButton
         });
 
-                if (paymentForm.ShowDialog() == DialogResult.OK)  // This will only be true if payment amount is valid
+                if (paymentForm.ShowDialog() == DialogResult.OK)
                 {
                     decimal amountPaid = decimal.Parse(amountPaidBox.Text);
                     decimal change = amountPaid - totalAmount;
@@ -313,15 +334,7 @@ namespace InventoryOrderSystem.Forms
                     try
                     {
                         _dbManager.MarkOrderAsPaid(orderId, amountPaid, change);
-
-                        // Update DataGridView
-                        selectedRow.Cells["Status"].Value = "Paid";
-                        selectedRow.Cells["AmountPaid"].Value = amountPaid;
-                        selectedRow.Cells["ChangeAmount"].Value = change;
-                        selectedRow.DefaultCellStyle.BackColor = Color.LightGreen;
-                        selectedRow.DefaultCellStyle.ForeColor = Color.DarkGreen;
-
-                        LoadOrders();  // Refresh the grid to ensure all data is updated correctly
+                        RefreshOrderGrid(); // Use the new refresh method
 
                         MessageBox.Show($"Payment processed successfully!\nChange: ₱{change:F2}",
                             "Payment Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -403,27 +416,45 @@ namespace InventoryOrderSystem.Forms
 
         private void btnViewOrder_Click(object sender, EventArgs e)
         {
-            if (dgvOrders.SelectedRows.Count > 0)
+            if (dgvOrders.SelectedRows.Count == 0)
             {
-                string transactionId = dgvOrders.SelectedRows[0].Cells["transaction_id"].Value.ToString();
-                int orderId = _dbManager.GetOrderIdFromTransactionId(transactionId);
+                MessageBox.Show("Please select an order to view.", "No Order Selected",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                var selectedRow = dgvOrders.SelectedRows[0];
+                var orderId = Convert.ToInt32(selectedRow.Cells["OrderId"].Value);
+                var transactionIdCell = selectedRow.Cells["transaction_id"].Value;
+                string transactionId = transactionIdCell?.ToString() ?? "Not Generated Yet";
+
+                // Get the order directly using OrderId from the orders list
                 Order selectedOrder = _orders.FirstOrDefault(o => o.OrderId == orderId);
                 if (selectedOrder != null)
                 {
                     MessageBox.Show(GetOrderDetails(selectedOrder, transactionId), "Order Details",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
+                else
+                {
+                    MessageBox.Show("Order details could not be found.",
+                        "Order Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("Please select an order to view.", "No Order Selected",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"Error viewing order details: {ex.Message}",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
+        // Updated GetOrderDetails method to handle missing transaction ID
         private string GetOrderDetails(Order order, string transactionId)
         {
             string details = $"Transaction ID: {transactionId}\n" +
+                           $"Order ID: {order.OrderId}\n" +  // Added Order ID to display
                            $"User ID: {order.UserId}\n" +
                            $"Order Date: {order.OrderDate}\n" +
                            $"Total Amount: {order.TotalAmount:C}\n" +
@@ -436,27 +467,55 @@ namespace InventoryOrderSystem.Forms
                 details += $"- {item.ProductName}, Quantity: {item.Quantity}, Price: {item.Price:C}\n";
             }
 
+            // Add total amount summary at the end
+            details += $"\nTotal Amount: {order.TotalAmount:C}";
+
             return details;
         }
 
         private void btnVoidOrder_Click_1(object sender, EventArgs e)
         {
-            if (dgvOrders.SelectedRows.Count > 0)
-            {
-                string transactionId = dgvOrders.SelectedRows[0].Cells["transaction_id"].Value.ToString();
-                int orderId = _dbManager.GetOrderIdFromTransactionId(transactionId);
-                VoidOrderWithConfirmation(orderId);
-            }
-            else
+            if (dgvOrders.SelectedRows.Count == 0)
             {
                 MessageBox.Show("Please select an order to void.", "No Order Selected",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                var selectedRow = dgvOrders.SelectedRows[0];
+                var orderId = Convert.ToInt32(selectedRow.Cells["OrderId"].Value);
+                string currentStatus = selectedRow.Cells["Status"].Value?.ToString();
+
+                // Check if order is already voided or paid
+                if (currentStatus == "Voided")
+                {
+                    MessageBox.Show("This order has already been voided.", "Already Voided",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (currentStatus == "Paid")
+                {
+                    MessageBox.Show("Cannot void a paid order.", "Order Paid",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                VoidOrderWithConfirmation(orderId);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error voiding order: {ex.Message}",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void VoidOrderWithConfirmation(int orderId)
         {
-            DialogResult result = MessageBox.Show("Are you sure you want to void this order?", "Confirm Void", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            DialogResult result = MessageBox.Show("Are you sure you want to void this order?",
+                "Confirm Void", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result == DialogResult.Yes)
             {
@@ -511,9 +570,9 @@ namespace InventoryOrderSystem.Forms
                             try
                             {
                                 _dbManager.VoidOrder(orderId);
+                                RefreshOrderGrid();
                                 MessageBox.Show("Order has been voided successfully.", "Order Voided",
                                     MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                LoadOrders();  // Refresh the orders list
                             }
                             catch (Exception ex)
                             {
@@ -533,6 +592,142 @@ namespace InventoryOrderSystem.Forms
                             MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 }
+            }
+        }
+
+        private void btnViewHistory_Click(object sender, EventArgs e)
+        {
+            // Get all orders including paid and voided
+            var allOrders = _orders.Select(o => new OrderViewModel
+            {
+                OrderId = o.OrderId,
+                transaction_id = _dbManager.GetTransactionId(o.OrderId),
+                UserId = o.UserId,
+                OrderDate = o.OrderDate,
+                TotalAmount = o.TotalAmount,
+                PaymentMethod = o.PaymentMethod,
+                OrderItemsCount = o.OrderItems.Count,
+                Status = o.Status,
+                AmountPaid = o.AmountPaid,
+                ChangeAmount = o.ChangeAmount
+            }).ToList();
+
+            using (var historyForm = new Form())
+            {
+                historyForm.Text = "Order History";
+                historyForm.Size = new Size(1000, 600);
+                historyForm.StartPosition = FormStartPosition.CenterParent;
+
+                var historyGrid = new DataGridView
+                {
+                    Dock = DockStyle.Fill,
+                    ReadOnly = true,
+                    AllowUserToAddRows = false,
+                    MultiSelect = false,
+                    SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                    BackColor = Color.FromArgb(255, 240, 209),
+                    AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+                };
+
+                // First bind the data
+                historyGrid.DataSource = new SortableBindingList<OrderViewModel>(allOrders);
+
+                // Then format after data is bound
+                try
+                {
+                    FormatDataGridViewForHistory(historyGrid);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error formatting grid: {ex.Message}", "Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                historyForm.Controls.Add(historyGrid);
+                historyForm.ShowDialog();
+            }
+        }
+
+        private void FormatDataGridViewForHistory(DataGridView gridView)
+        {
+            if (gridView?.Columns == null || gridView.Columns.Count == 0)
+                return;
+
+            try
+            {
+                // Apply the same formatting as the main grid
+                if (gridView.Columns.Contains("OrderId"))
+                    gridView.Columns["OrderId"].Visible = false;
+
+                if (gridView.Columns.Contains("transaction_id"))
+                {
+                    gridView.Columns["transaction_id"].HeaderText = "Transaction ID";
+                    gridView.Columns["transaction_id"].FillWeight = 15;
+                }
+
+                var columnSettings = new Dictionary<string, (string HeaderText, int FillWeight)>
+        {
+            { "UserId", ("User ID", 8) },
+            { "OrderDate", ("Order Date", 15) },
+            { "TotalAmount", ("Total Amount", 12) },
+            { "PaymentMethod", ("Payment Method", 12) },
+            { "OrderItemsCount", ("Items Count", 10) },
+            { "Status", ("Status", 10) },
+            { "AmountPaid", ("Amount Paid", 12) },
+            { "ChangeAmount", ("Change Amount", 13) }
+        };
+
+                foreach (var setting in columnSettings)
+                {
+                    if (gridView.Columns.Contains(setting.Key))
+                    {
+                        var column = gridView.Columns[setting.Key];
+                        column.HeaderText = setting.Value.HeaderText;
+                        column.FillWeight = setting.Value.FillWeight;
+
+                        // Apply currency format to amount columns
+                        if (setting.Key == "TotalAmount" || setting.Key == "AmountPaid" || setting.Key == "ChangeAmount")
+                        {
+                            column.DefaultCellStyle.Format = "C2";
+                        }
+                    }
+                }
+
+                // Add cell formatting for status colors
+                gridView.CellFormatting += (sender, e) =>
+                {
+                    if (e.RowIndex >= 0 && gridView.Columns.Contains("Status"))
+                    {
+                        DataGridViewRow row = gridView.Rows[e.RowIndex];
+                        string status = row.Cells["Status"].Value?.ToString();
+
+                        if (status == "Voided")
+                        {
+                            row.DefaultCellStyle.BackColor = Color.LightPink;
+                            row.DefaultCellStyle.ForeColor = Color.DarkRed;
+                        }
+                        else if (status == "Paid")
+                        {
+                            row.DefaultCellStyle.BackColor = Color.LightGreen;
+                            row.DefaultCellStyle.ForeColor = Color.DarkGreen;
+                        }
+                        else
+                        {
+                            row.DefaultCellStyle.BackColor = gridView.DefaultCellStyle.BackColor;
+                            row.DefaultCellStyle.ForeColor = gridView.DefaultCellStyle.ForeColor;
+                        }
+                    }
+                };
+
+                // Sort by OrderDate descending
+                if (gridView.Columns.Contains("OrderDate"))
+                {
+                    gridView.Sort(gridView.Columns["OrderDate"], ListSortDirection.Descending);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error formatting grid: {ex.Message}", ex);
             }
         }
 
