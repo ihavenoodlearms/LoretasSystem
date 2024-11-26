@@ -961,7 +961,6 @@ namespace InventoryOrderingSystem
                         try
                         {
                             decimal totalAmount = decimal.Parse(labelTotal.Text.Replace("Total: ₱", ""));
-                            List<InventoryOrderSystem.Models.OrderItem> convertedItems = ConvertToOrderItems(orderItems);
 
                             Order newOrder = new Order
                             {
@@ -969,18 +968,12 @@ namespace InventoryOrderingSystem
                                 OrderDate = DateTime.Now,
                                 TotalAmount = totalAmount,
                                 PaymentMethod = selectedPaymentMethod,
-                                OrderItems = convertedItems,
+                                OrderItems = ConvertToOrderItems(orderItems),
                                 Status = "Active"
                             };
 
                             // Raise the OrderPlaced event
                             OrderPlaced?.Invoke(this, newOrder);
-
-                            // Clear the order form
-                            ResetOrderForm();
-
-                            // Close OrderMenuForm and return to previous form
-                            this.Close();
                         }
                         catch (Exception ex)
                         {
@@ -1092,6 +1085,87 @@ namespace InventoryOrderingSystem
             summary.AppendLine($"\n{labelTotal.Text}");
             return summary.ToString();
         }
+
+        // Add the LoadExistingOrder method here
+        public void LoadExistingOrder(Order order)
+        {
+            // Clear any existing items
+            orderItems.Clear();
+            listBoxOrderSummary.Items.Clear();
+            labelTotal.Text = "Total: ₱0.00";
+
+            // Convert and load the existing order items
+            foreach (var item in order.OrderItems)
+            {
+                var product = ProductCatalog.GetProduct(item.ProductName);
+                if (product != null)
+                {
+                    var orderItem = new OrderItem(product, item.Size ?? "8oz",
+                        item.ExtraShot, item.Quantity, item.AddOns ?? new List<string>());
+                    orderItems.Add(orderItem);
+
+                    string itemDescription = GetItemDescription(orderItem);
+                    listBoxOrderSummary.Items.Add(itemDescription);
+
+                    // Update total
+                    decimal itemTotal = orderItem.CalculatePrice();
+                    decimal currentTotal = decimal.Parse(labelTotal.Text.Replace("Total: ₱", ""));
+                    decimal newTotal = currentTotal + itemTotal;
+                    labelTotal.Text = $"Total: ₱{newTotal:F2}";
+
+                    // Find and update the corresponding product box
+                    if (productBoxes.ContainsKey(product.Name))
+                    {
+                        var productBox = productBoxes[product.Name];
+                        var checkBox = productBox.Controls.OfType<CheckBox>().First();
+                        var quantityUpDown = productBox.Controls.OfType<NumericUpDown>().First();
+                        var sizeComboBox = productBox.Controls.OfType<ComboBox>().FirstOrDefault();
+                        var extraShotCheckBox = productBox.Controls.OfType<CheckBox>().ElementAtOrDefault(1);
+                        var addOnsPanel = productBox.Controls.OfType<Panel>().FirstOrDefault();
+
+                        // Update the controls to match the order item
+                        checkBox.Checked = true;
+                        quantityUpDown.Value = item.Quantity;
+
+                        if (sizeComboBox != null && !string.IsNullOrEmpty(item.Size))
+                        {
+                            sizeComboBox.SelectedItem = item.Size;
+                        }
+
+                        if (extraShotCheckBox != null)
+                        {
+                            extraShotCheckBox.Checked = item.ExtraShot;
+                        }
+
+                        if (addOnsPanel != null && item.AddOns != null)
+                        {
+                            foreach (var addOnCheckBox in addOnsPanel.Controls.OfType<CheckBox>())
+                            {
+                                addOnCheckBox.Checked = item.AddOns.Contains(addOnCheckBox.Text);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Select the appropriate category for the first item
+            if (orderItems.Count > 0)
+            {
+                var firstProduct = orderItems[0].Product;
+                var category = categoryProducts.FirstOrDefault(x => x.Value.Any(p => p.Name == firstProduct.Name)).Key;
+                if (!string.IsNullOrEmpty(category))
+                {
+                    var categoryButton = flowLayoutPanelCategories.Controls.OfType<Button>()
+                        .FirstOrDefault(b => b.Text == category);
+                    if (categoryButton != null)
+                    {
+                        CategoryButton_Click(categoryButton, EventArgs.Empty);
+                    }
+                }
+            }
+        }
+
+
 
         private void buttonBackToDashboard_Click(object sender, EventArgs e)
         {

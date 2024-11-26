@@ -30,6 +30,8 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.lblRestock = new System.Windows.Forms.Label();
             this.btnViewHistory = new System.Windows.Forms.Button();
+            this.btnDeleteOrder = new System.Windows.Forms.Button();
+            this.btnEditOrder = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvOrders)).BeginInit();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
@@ -188,7 +190,7 @@
             this.btnViewHistory.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnViewHistory.Font = new System.Drawing.Font("Arial Rounded MT Bold", 11.25F);
             this.btnViewHistory.ForeColor = System.Drawing.Color.White;
-            this.btnViewHistory.Location = new System.Drawing.Point(667, 648);
+            this.btnViewHistory.Location = new System.Drawing.Point(991, 648);
             this.btnViewHistory.Name = "btnViewHistory";
             this.btnViewHistory.Size = new System.Drawing.Size(152, 54);
             this.btnViewHistory.TabIndex = 6;
@@ -196,12 +198,48 @@
             this.btnViewHistory.UseVisualStyleBackColor = false;
             this.btnViewHistory.Click += new System.EventHandler(this.btnViewHistory_Click);
             // 
+            // btnDeleteOrder
+            // 
+            this.btnDeleteOrder.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(98)))), ((int)(((byte)(130)))), ((int)(((byte)(93)))));
+            this.btnDeleteOrder.FlatAppearance.BorderSize = 0;
+            this.btnDeleteOrder.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnDeleteOrder.Font = new System.Drawing.Font("Arial Rounded MT Bold", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnDeleteOrder.ForeColor = System.Drawing.Color.White;
+            this.btnDeleteOrder.Location = new System.Drawing.Point(669, 648);
+            this.btnDeleteOrder.Margin = new System.Windows.Forms.Padding(5);
+            this.btnDeleteOrder.MinimumSize = new System.Drawing.Size(100, 35);
+            this.btnDeleteOrder.Name = "btnDeleteOrder";
+            this.btnDeleteOrder.Size = new System.Drawing.Size(152, 54);
+            this.btnDeleteOrder.TabIndex = 7;
+            this.btnDeleteOrder.Text = "Delete Order";
+            this.btnDeleteOrder.UseVisualStyleBackColor = false;
+            this.btnDeleteOrder.Click += new System.EventHandler(this.btnDeleteOrder_Click);
+            // 
+            // btnEditOrder
+            // 
+            this.btnEditOrder.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(98)))), ((int)(((byte)(130)))), ((int)(((byte)(93)))));
+            this.btnEditOrder.FlatAppearance.BorderSize = 0;
+            this.btnEditOrder.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnEditOrder.Font = new System.Drawing.Font("Arial Rounded MT Bold", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnEditOrder.ForeColor = System.Drawing.Color.White;
+            this.btnEditOrder.Location = new System.Drawing.Point(831, 648);
+            this.btnEditOrder.Margin = new System.Windows.Forms.Padding(5);
+            this.btnEditOrder.MinimumSize = new System.Drawing.Size(100, 35);
+            this.btnEditOrder.Name = "btnEditOrder";
+            this.btnEditOrder.Size = new System.Drawing.Size(152, 54);
+            this.btnEditOrder.TabIndex = 8;
+            this.btnEditOrder.Text = "Edit Order";
+            this.btnEditOrder.UseVisualStyleBackColor = false;
+            this.btnEditOrder.Click += new System.EventHandler(this.btnEditOrder_Click);
+            // 
             // OrderForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(230)))), ((int)(((byte)(210)))), ((int)(((byte)(181)))));
             this.ClientSize = new System.Drawing.Size(1451, 716);
+            this.Controls.Add(this.btnEditOrder);
+            this.Controls.Add(this.btnDeleteOrder);
             this.Controls.Add(this.btnViewHistory);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.btnNewOrder);
@@ -234,5 +272,7 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label lblRestock;
         private System.Windows.Forms.Button btnViewHistory;
+        private System.Windows.Forms.Button btnDeleteOrder;
+        private System.Windows.Forms.Button btnEditOrder;
     }
 }

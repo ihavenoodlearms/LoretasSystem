@@ -1069,6 +1069,67 @@ namespace InventoryOrderSystem.Services
             }
         }
 
+        public void DeleteOrder(int orderId)
+        {
+            using (var connection = new SQLiteConnection(connectionString))
+            {
+                connection.Open();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        // First restore the inventory quantities
+                        string restoreInventoryQuery = @"
+                    UPDATE InventoryItems
+                    SET Quantity = Quantity + (
+                        SELECT OrderItems.Quantity
+                        FROM OrderItems
+                        WHERE OrderItems.OrderId = @OrderId
+                        AND OrderItems.ItemId = InventoryItems.ItemId
+                    )
+                    WHERE EXISTS (
+                        SELECT 1
+                        FROM OrderItems
+                        WHERE OrderItems.OrderId = @OrderId
+                        AND OrderItems.ItemId = InventoryItems.ItemId
+                    )";
+                        using (var command = new SQLiteCommand(restoreInventoryQuery, connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@OrderId", orderId);
+                            command.ExecuteNonQuery();
+                        }
+
+                        // Delete order items
+                        string deleteOrderItemsQuery = "DELETE FROM OrderItems WHERE OrderId = @OrderId";
+                        using (var command = new SQLiteCommand(deleteOrderItemsQuery, connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@OrderId", orderId);
+                            command.ExecuteNonQuery();
+                        }
+
+                        // Delete the order
+                        string deleteOrderQuery = "DELETE FROM Orders WHERE OrderId = @OrderId";
+                        using (var command = new SQLiteCommand(deleteOrderQuery, connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@OrderId", orderId);
+                            int rowsAffected = command.ExecuteNonQuery();
+                            if (rowsAffected == 0)
+                            {
+                                throw new Exception("Order not found.");
+                            }
+                        }
+
+                        transaction.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        throw new Exception($"Error deleting order: {ex.Message}", ex);
+                    }
+                }
+            }
+        }
+
         public int GetItemIdFromName(string itemName)
         {
             using (var connection = new SQLiteConnection(connectionString))

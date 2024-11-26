@@ -207,11 +207,249 @@ namespace InventoryOrderSystem.Forms
             };
             btnBack.Click += btnBack_Click;
 
+            Button btnEditOrder = new Button
+            {
+                Text = "Edit Order",
+                Location = new Point(btnViewOrder.Right + 10, 20),
+                Size = new Size(120, 35),
+                BackColor = Color.FromArgb(74, 44, 42),
+                ForeColor = Color.White
+            };
+            btnEditOrder.Click += btnEditOrder_Click;
+
+            Button btnDeleteOrder = new Button
+            {
+                Text = "Delete Order",
+                Location = new Point(btnEditOrder.Right + 10, 20),
+                Size = new Size(120, 35),
+                BackColor = Color.FromArgb(74, 44, 42),
+                ForeColor = Color.White
+            };
+            btnDeleteOrder.Click += btnDeleteOrder_Click;
+
             buttonPanel.Controls.AddRange(new Control[] {
-        btnNewOrder, btnViewOrder, btnVoidOrder, btnPayOrder, btnViewHistory, btnBack
-    });
+    btnNewOrder, btnViewOrder, btnEditOrder, btnDeleteOrder, btnVoidOrder, btnPayOrder, btnViewHistory, btnBack
+});
 
             ((System.ComponentModel.ISupportInitialize)(dgvOrders)).EndInit();
+        }
+
+        // Add these new methods to OrderForm.cs
+        private void btnEditOrder_Click(object sender, EventArgs e)
+        {
+            if (dgvOrders.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Please select an order to edit.", "No Order Selected",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var selectedRow = dgvOrders.SelectedRows[0];
+            string currentStatus = selectedRow.Cells["Status"].Value?.ToString();
+            int orderId = Convert.ToInt32(selectedRow.Cells["OrderId"].Value);
+
+            if (currentStatus == "Paid" || currentStatus == "Voided")
+            {
+                MessageBox.Show("Cannot edit a paid or voided order.", "Invalid Operation",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Get the original order
+            Order originalOrder = _orders.FirstOrDefault(o => o.OrderId == orderId);
+            if (originalOrder == null)
+            {
+                MessageBox.Show("Order not found.", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Verify password before editing
+            using (var passwordForm = new Form())
+            {
+                passwordForm.Text = "Enter Password";
+                passwordForm.Size = new Size(300, 150);
+                passwordForm.StartPosition = FormStartPosition.CenterParent;
+                passwordForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                passwordForm.MaximizeBox = false;
+                passwordForm.MinimizeBox = false;
+
+                Label passwordLabel = new Label()
+                {
+                    Left = 20,
+                    Top = 20,
+                    Text = "Enter your password:",
+                    AutoSize = true
+                };
+
+                TextBox passwordBox = new TextBox()
+                {
+                    Left = 20,
+                    Top = 50,
+                    Width = 240,
+                    PasswordChar = '*'
+                };
+
+                Button confirmButton = new Button()
+                {
+                    Text = "Confirm",
+                    Left = 100,
+                    Top = 80,
+                    DialogResult = DialogResult.OK
+                };
+
+                confirmButton.Click += (s, evt) => { passwordForm.Close(); };
+
+                passwordForm.Controls.Add(passwordLabel);
+                passwordForm.Controls.Add(passwordBox);
+                passwordForm.Controls.Add(confirmButton);
+                passwordForm.AcceptButton = confirmButton;
+
+                if (passwordForm.ShowDialog() == DialogResult.OK)
+                {
+                    if (_dbManager.VerifyPassword(_currentUser.UserId, passwordBox.Text))
+                    {
+                        // Create new OrderMenuForm for editing
+                        var orderMenuForm = new OrderMenuForm(_currentUser);
+                        orderMenuForm.LoadExistingOrder(originalOrder);
+
+                        // Add FormClosed event handler similar to new order
+                        orderMenuForm.FormClosed += (s, args) => this.Show();
+
+                        orderMenuForm.OrderPlaced += (s, newOrder) =>
+                        {
+                            try
+                            {
+                                // Delete the old order
+                                _dbManager.DeleteOrder(orderId);
+
+                                // Add the new order
+                                _dbManager.AddOrder(newOrder);
+
+                                RefreshOrderGrid();
+                                MessageBox.Show("Order updated successfully!", "Success",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                                // Close the OrderMenuForm and show OrderForm
+                                if (s is OrderMenuForm form)
+                                {
+                                    form.Close();
+                                }
+                                this.Show();
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($"Error updating order: {ex.Message}",
+                                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                        };
+
+                        this.Hide();
+                        orderMenuForm.Show();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Incorrect password.", "Authentication Failed",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+            private void btnDeleteOrder_Click(object sender, EventArgs e)
+        {
+            if (dgvOrders.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Please select an order to delete.", "No Order Selected",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var selectedRow = dgvOrders.SelectedRows[0];
+            string currentStatus = selectedRow.Cells["Status"].Value?.ToString();
+            int orderId = Convert.ToInt32(selectedRow.Cells["OrderId"].Value);
+
+            if (currentStatus == "Paid" || currentStatus == "Voided")
+            {
+                MessageBox.Show("Cannot delete a paid or voided order.", "Invalid Operation",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Verify password before deleting
+            using (var passwordForm = new Form())
+            {
+                passwordForm.Text = "Enter Password";
+                passwordForm.Size = new Size(300, 150);
+                passwordForm.StartPosition = FormStartPosition.CenterParent;
+                passwordForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                passwordForm.MaximizeBox = false;
+                passwordForm.MinimizeBox = false;
+
+                Label passwordLabel = new Label()
+                {
+                    Left = 20,
+                    Top = 20,
+                    Text = "Enter your password:",
+                    AutoSize = true
+                };
+
+                TextBox passwordBox = new TextBox()
+                {
+                    Left = 20,
+                    Top = 50,
+                    Width = 240,
+                    PasswordChar = '*'
+                };
+
+                Button confirmButton = new Button()
+                {
+                    Text = "Confirm",
+                    Left = 100,
+                    Top = 80,
+                    DialogResult = DialogResult.OK
+                };
+
+                confirmButton.Click += (s, evt) => { passwordForm.Close(); };
+
+                passwordForm.Controls.Add(passwordLabel);
+                passwordForm.Controls.Add(passwordBox);
+                passwordForm.Controls.Add(confirmButton);
+                passwordForm.AcceptButton = confirmButton;
+
+                if (passwordForm.ShowDialog() == DialogResult.OK)
+                {
+                    if (_dbManager.VerifyPassword(_currentUser.UserId, passwordBox.Text))
+                    {
+                        DialogResult confirmDelete = MessageBox.Show(
+                            "Are you sure you want to permanently delete this order?",
+                            "Confirm Delete",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Warning);
+
+                        if (confirmDelete == DialogResult.Yes)
+                        {
+                            try
+                            {
+                                _dbManager.DeleteOrder(orderId);
+                                RefreshOrderGrid();
+                                MessageBox.Show("Order deleted successfully!", "Success",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($"Error deleting order: {ex.Message}",
+                                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Incorrect password.", "Authentication Failed",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
         }
 
         private void BtnPayOrder_Click(object sender, EventArgs e)
@@ -733,7 +971,7 @@ namespace InventoryOrderSystem.Forms
 
         private void OrderForm_Resize(object sender, EventArgs e)
         {
-           
+
         }
 
         private void btnBack_Click(object sender, EventArgs e)
@@ -742,14 +980,14 @@ namespace InventoryOrderSystem.Forms
             if (_currentUser.Role == "Admin")
             {
                 this.Hide();
-                DashboardForm adminDashboard = new DashboardForm(_currentUser);  
+                DashboardForm adminDashboard = new DashboardForm(_currentUser);
                 adminDashboard.Show();
             }
             else if (_currentUser.Role == "User")
             {
-                
+
                 this.Hide();
-                UserForm userDashboard = new UserForm(_currentUser); 
+                UserForm userDashboard = new UserForm(_currentUser);
                 userDashboard.Show();
             }
             else

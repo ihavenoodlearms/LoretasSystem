@@ -747,13 +747,80 @@ namespace InventoryOrderSystem.Forms
                             return;
                         }
 
-                        var result = MessageBox.Show("Are you sure you want to delete this user?",
-                            "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-
-                        if (result == DialogResult.Yes)
+                        // Create password verification form
+                        using (var passwordForm = new Form())
                         {
-                            _dbManager.DeleteUser(userId);
-                            RefreshUsersList(dgvUsers);
+                            passwordForm.Text = "Enter Admin Password";
+                            passwordForm.Size = new Size(300, 150);
+                            passwordForm.StartPosition = FormStartPosition.CenterParent;
+                            passwordForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                            passwordForm.MaximizeBox = false;
+                            passwordForm.MinimizeBox = false;
+
+                            Label passwordLabel = new Label()
+                            {
+                                Left = 20,
+                                Top = 20,
+                                Text = "Enter your password:",
+                                AutoSize = true
+                            };
+
+                            TextBox passwordBox = new TextBox()
+                            {
+                                Left = 20,
+                                Top = 50,
+                                Width = 240,
+                                PasswordChar = '*'
+                            };
+
+                            Button confirmButton = new Button()
+                            {
+                                Text = "Confirm",
+                                Left = 100,
+                                Top = 80,
+                                DialogResult = DialogResult.OK
+                            };
+
+                            confirmButton.Click += (_, evt) => { passwordForm.Close(); };
+
+                            passwordForm.Controls.Add(passwordLabel);
+                            passwordForm.Controls.Add(passwordBox);
+                            passwordForm.Controls.Add(confirmButton);
+                            passwordForm.AcceptButton = confirmButton;
+
+                            if (passwordForm.ShowDialog() == DialogResult.OK)
+                            {
+                                string enteredPassword = passwordBox.Text;
+
+                                // Verify the admin password
+                                if (_dbManager.VerifyPassword(_currentUser.UserId, enteredPassword))
+                                {
+                                    // Show the confirmation dialog
+                                    var result = MessageBox.Show("Are you sure you want to delete this user?",
+                                        "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                                    if (result == DialogResult.Yes)
+                                    {
+                                        try
+                                        {
+                                            _dbManager.DeleteUser(userId);
+                                            RefreshUsersList(dgvUsers);
+                                            MessageBox.Show("User deleted successfully!", "Success",
+                                                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            MessageBox.Show($"Error deleting user: {ex.Message}", "Error",
+                                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    MessageBox.Show("Incorrect password. User deletion canceled.",
+                                        "Authentication Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                }
+                            }
                         }
                     }
                 };
